@@ -6,14 +6,7 @@ dotenv.config();
 // Initialize Gemini API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Common medical conditions data
-const commonConditions = [
-  { id: 1, name: 'Headache', prompt: 'I have a severe headache' },
-  { id: 2, name: 'Common Cold', prompt: 'I have runny nose and fever' },
-  { id: 3, name: 'Stomach Pain', prompt: 'I have stomach pain and nausea' },
-  { id: 4, name: 'Allergies', prompt: 'I have itchy eyes and sneezing' },
-  { id: 5, name: 'Back Pain', prompt: 'I have lower back pain' }
-];
+
 
 // Helper function to convert chat history
 const formatChatHistory = (context) => {
@@ -26,25 +19,6 @@ const formatChatHistory = (context) => {
 };
 
 
-// const createMedicalPrompt = (userMessage) => {
-//   const systemPrompt = `You are a medical assistant AI. Provide:
-// 1. Information about possible conditions based on symptoms
-// 2. General medical information and advice
-// 3. Provide home remedies if possible
-// 4. Discuss medications, their uses, and effects when asked
-// 5. Reminder to consult healthcare professionals
-
-// Keep responses:
-// - Direct and clear
-// - Using clinical terms for sensitive topics
-// - Educational without making diagnoses
-// - Professional but easy to understand
-// - If you can't provide a response, let the user know
-
-// Add a brief reminder about consulting a doctor.`;
-
-//   return `${systemPrompt}\n\nUser Query: ${userMessage}`;
-// };
 
 const createMedicalPrompt = (userMessage, user) => {
   const { bloodGroup, height, weight } = user?.info || {};
@@ -164,15 +138,5 @@ export const processChat = async (req, res) => {
       message: 'Please try asking your question differently.',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
-  }
-};
-
-// Get common conditions
-export const getCommonConditions = async (req, res) => {
-  try {
-    res.json(commonConditions);
-  } catch (error) {
-    console.error('Error in getCommonConditions:', error);
-    res.status(500).json({ error: 'Failed to fetch conditions' });
   }
 };
