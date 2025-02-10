@@ -2,3 +2,5 @@
 server/node_modules
 server/*.log
 server/.env
+
+client/.env
