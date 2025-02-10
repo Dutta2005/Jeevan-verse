@@ -13,6 +13,10 @@ import Signup from './pages/account/Signup.tsx'
 import Login from './pages/account/Login.tsx'
 import PublicRoutes from './components/layouts/Public.tsx'
 import Home from './pages/Home.tsx'
+import OrganizationSignup from './pages/organisation/auth/OrganisationSignup.tsx'
+import OrganizationLogin from './pages/organisation/auth/OrganisationLogin.tsx'
+import Layout from './pages/organisation/Layout.tsx'
+import OrgHome from './pages/organisation/OrgHome.tsx'
 
 const router = createBrowserRouter([
   {
@@ -20,6 +24,13 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { path: "", element: <Home /> },
+    ]
+  },
+  {
+    path: 'organisation',
+    element: <Layout />,
+    children: [
+      { path: '', element: <OrgHome /> },
     ]
   },
   { 
@@ -30,6 +41,8 @@ const router = createBrowserRouter([
     path: 'signup',
     element: <PublicRoutes role="user"><Signup /></PublicRoutes>
   },
+  { path: 'register', element: <PublicRoutes role="organization"><OrganizationSignup /></PublicRoutes> },
+  { path: 'signin', element: <PublicRoutes role="organization"><OrganizationLogin /></PublicRoutes> },
 ])
 
 
