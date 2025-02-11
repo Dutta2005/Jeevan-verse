@@ -19,6 +19,8 @@ import Layout from './pages/organisation/Layout.tsx'
 import OrgHome from './pages/organisation/OrgHome.tsx'
 import Protected from './components/layouts/Protected.tsx'
 import MedicalChatbot from './pages/Chatbot.tsx'
+import DiscussionPost from './components/discussion/DiscussionPost.tsx'
+import DiscussionsPage from './pages/Discussions.tsx'
 
 const router = createBrowserRouter([
   {
@@ -29,7 +31,14 @@ const router = createBrowserRouter([
       {
         path: "chatbot",
         element: <Protected role="user"><MedicalChatbot /></Protected>
-      }
+      },
+      { 
+        path: 'discussions', 
+        element: <Protected role="user"><DiscussionsPage /></Protected>,
+        children: [
+        ]
+      },
+      { path: 'discussions/:id', element: <DiscussionPost /> }
     ]
   },
   {
