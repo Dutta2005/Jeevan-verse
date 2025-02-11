@@ -17,6 +17,8 @@ import OrganizationSignup from './pages/organisation/auth/OrganisationSignup.tsx
 import OrganizationLogin from './pages/organisation/auth/OrganisationLogin.tsx'
 import Layout from './pages/organisation/Layout.tsx'
 import OrgHome from './pages/organisation/OrgHome.tsx'
+import Protected from './components/layouts/Protected.tsx'
+import MedicalChatbot from './pages/Chatbot.tsx'
 
 const router = createBrowserRouter([
   {
@@ -24,6 +26,10 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { path: "", element: <Home /> },
+      {
+        path: "chatbot",
+        element: <Protected role="user"><MedicalChatbot /></Protected>
+      }
     ]
   },
   {
