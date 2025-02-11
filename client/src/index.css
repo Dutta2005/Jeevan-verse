@@ -6,3 +6,42 @@
     --radius: 0.5rem
   }
 }
+
+
+body {
+  @apply font-ibm
+ }
+ 
+ /* Webkit browsers (Chrome, Safari, newer versions of Opera) */
+ ::-webkit-scrollbar {
+   width: 6px;
+   height: 6px;
+ }
+ 
+ ::-webkit-scrollbar-track {
+   background: transparent;
+ }
+ 
+ ::-webkit-scrollbar-thumb {
+   background-color: #a0aec0;
+   border-radius: 3px;
+ }
+ 
+ ::-webkit-scrollbar-thumb:hover {
+   background-color: #718096;
+ }
+ 
+ /* Firefox */
+ * {
+   scrollbar-width: thin;
+   scrollbar-color: #a0aec0 transparent;
+ }
+ 
+ /* Hide scrollbar when not hovering (optional) */
+ .hide-scrollbar::-webkit-scrollbar-thumb {
+   background: transparent;
+ }
+ 
+ .hide-scrollbar:hover::-webkit-scrollbar-thumb {
+   background: #a0aec0;
+ }
