@@ -24,12 +24,14 @@ import userRouter from "./routes/user.routes.js";
 import organizationRouter from "./routes/organization.routes.js";
 import chatRoutes from './routes/chatbot.routes.js';
 import postRouter from "./routes/post.routes.js";
+import commentRouter from "./routes/comment.routes.js";
 
 // routers
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/organizations", organizationRouter);
 app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/posts", postRouter);
+app.use("/api/v1/comments", commentRouter);
 
 
 export {app}
