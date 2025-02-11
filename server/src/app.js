@@ -9,7 +9,8 @@ const app = express();
 
 console.log(process.env.CORS_ORIGIN);
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    // origin: process.env.CORS_ORIGIN,
+    origin: "https://jeevan-verse.vercel.app/",
     credentials: true
 }))
 
