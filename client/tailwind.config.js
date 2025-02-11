@@ -9,6 +9,13 @@ export default {
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},
+		  fontFamily: {
+			ibm: [
+				'IBM Plex Sans',
+				'sans-serif'
+			],
+		  samarkan: [ 'Samarkan', 'sans-serif']
+		},
   		colors: {
 			primary: {
 				DEFAULT: '#bf2231'
