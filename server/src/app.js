@@ -9,8 +9,8 @@ const app = express();
 
 console.log(process.env.CORS_ORIGIN);
 app.use(cors({
-    // origin: process.env.CORS_ORIGIN,
-    origin: "https://jeevan-verse.vercel.app",
+    origin: process.env.CORS_ORIGIN,
+    // origin: "https://jeevan-verse.vercel.app",
     credentials: true
 }))
 
@@ -23,10 +23,13 @@ app.use(cookieParser());
 import userRouter from "./routes/user.routes.js";
 import organizationRouter from "./routes/organization.routes.js";
 import chatRoutes from './routes/chatbot.routes.js';
+import postRouter from "./routes/post.routes.js";
 
 // routers
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/organizations", organizationRouter);
 app.use("/api/v1/chat", chatRoutes);
+app.use("/api/v1/posts", postRouter);
+
 
 export {app}
