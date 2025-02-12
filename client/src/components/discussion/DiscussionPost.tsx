@@ -4,6 +4,7 @@ import { api } from "../../api/api";
 import {
   Card,
   CardContent,
+  CardFooter,
   CardHeader,
 } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import DiscussionPostSkeleton from "./DiscussionPostSkeleton";
+import CommentSection from "../CommentSection";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import CreatePost from "./CreatePost";
@@ -181,12 +183,17 @@ const DiscussionPost = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="prose prose-lg dark:prose-invert max-w-none">
+          <div className="max-w-none">
             <p className="text-light-text dark:text-dark-text leading-relaxed">
               {post.content}
             </p>
           </div>
         </CardContent>
+        <CardFooter className="flex flex-col border-t border-secondary/10 mt-6">
+          <div className="w-full pt-6">
+            <CommentSection postId={post._id} />
+          </div>
+        </CardFooter>
       </Card>
     </div>
   );
