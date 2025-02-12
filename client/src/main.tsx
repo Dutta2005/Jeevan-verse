@@ -13,6 +13,7 @@ import Signup from './pages/account/Signup.tsx'
 import Login from './pages/account/Login.tsx'
 import PublicRoutes from './components/layouts/Public.tsx'
 import Home from './pages/Home.tsx'
+import Error404 from './components/errors/Error404.tsx'
 import OrganizationSignup from './pages/organisation/auth/OrganisationSignup.tsx'
 import OrganizationLogin from './pages/organisation/auth/OrganisationLogin.tsx'
 import Layout from './pages/organisation/Layout.tsx'
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { path: "", element: <Home /> },
+      { path: '*', element: <Error404 /> },
       {
         path: "chatbot",
         element: <Protected role="user"><MedicalChatbot /></Protected>
