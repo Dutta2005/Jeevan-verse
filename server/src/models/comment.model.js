@@ -21,6 +21,11 @@ const commentSchema = new mongoose.Schema({
         ref: 'User',
         default: null
     },
+    organization: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Organization',
+        default: null
+    },
     likes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -33,5 +38,12 @@ const commentSchema = new mongoose.Schema({
     timestamps: true 
 });
 
+// Validation to ensure either user or organization is present
+commentSchema.pre('validate', function(next) {
+    if (!this.user && !this.organization) {
+        next(new Error('Either user or organization must be specified'));
+    }
+    next();
+});
 
 export const Comment = mongoose.model('Comment', commentSchema);

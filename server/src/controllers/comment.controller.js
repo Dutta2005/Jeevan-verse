@@ -17,13 +17,20 @@ const getComments = asyncHandler(async (req, res) => {
         : { parentComment: parentCommentId };
 
     const comments = await Comment.find(query)
-        .populate('user', 'name status')
+        .populate({
+            path: 'user', 
+            select: 'name status'
+        })
+        .populate({
+            path: 'organization', 
+            select: 'name'
+        })
         .populate({
             path: 'replies',
-            populate: {
-                path: 'user',
-                select: 'name status'
-            }
+            populate: [
+                { path: 'user', select: 'name status' },
+                { path: 'organization', select: 'name' }
+            ]
         })
         .skip((page - 1) * limit)
         .limit(parseInt(limit))
@@ -51,10 +58,18 @@ const addComment = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Either postId or parentCommentId must be provided");
     }
 
-    const commentData = {
-        content,
-        user: req.user._id
-    };
+    const commentData = {};
+
+    // Determine comment creator based on available information
+    if (req.user) {
+        commentData.user = req.user._id;
+    } else if (req.organization) {
+        commentData.organization = req.organization._id;
+    } else {
+        throw new ApiError(401, "Authentication required");
+    }
+
+    commentData.content = content;
 
     if (postId) {
         if (!mongoose.isValidObjectId(postId)) {
@@ -87,18 +102,25 @@ const addComment = asyncHandler(async (req, res) => {
     return res.status(201).json(new ApiResponse(201, "Comment added successfully", { comment }));
 });
 
+
+
 const updateComment = asyncHandler(async (req, res) => {
     const { commentId } = req.params;
     const { content } = req.body;
+
+    if (!req.user && !req.organization) {
+        throw new ApiError(401, "Authentication required");
+    }
 
     if (!mongoose.isValidObjectId(commentId)) {
         throw new ApiError(400, "Invalid comment id");
     }
 
-    const comment = await Comment.findOne({
-        _id: commentId,
-        user: req.user._id
-    });
+    const query = req.organization
+        ? { _id: commentId, organization: req.organization._id }
+        : { _id: commentId, user: req.user._id };
+
+    const comment = await Comment.findOne(query);
 
     if (!comment) {
         throw new ApiError(404, "Comment not found or you are not authorized to update this comment");
@@ -113,14 +135,19 @@ const updateComment = asyncHandler(async (req, res) => {
 const deleteComment = asyncHandler(async (req, res) => {
     const { commentId } = req.params;
 
+    if (!req.user && !req.organization) {
+        throw new ApiError(401, "Authentication required");
+    }
+
     if (!mongoose.isValidObjectId(commentId)) {
         throw new ApiError(400, "Invalid comment id");
     }
 
-    const comment = await Comment.findOne({
-        _id: commentId,
-        user: req.user._id
-    });
+    const query = req.organization
+        ? { _id: commentId, organization: req.organization._id }
+        : { _id: commentId, user: req.user._id };
+
+    const comment = await Comment.findOne(query);
 
     if (!comment) {
         throw new ApiError(404, "Comment not found or you are not authorized to delete this comment");
