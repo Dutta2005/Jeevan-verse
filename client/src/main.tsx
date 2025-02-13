@@ -37,6 +37,8 @@ const router = createBrowserRouter([
         path: "chatbot",
         element: <Protected role="user"><MedicalChatbot /></Protected>
       },
+      { path: 'posts', element: <Protected role="user"><OrgPostPage /></Protected> },
+      { path: 'post/:id', element: <OrgPost /> },
       { 
         path: 'discussions', 
         element: <Protected role="user"><DiscussionsPage /></Protected>,
