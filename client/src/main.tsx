@@ -51,6 +51,7 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { path: '', element: <OrgHome /> },
+      { path: '*', element: <Error404 /> },
       {
         path: 'posts', element: <Protected role="organization"><OrgPostPage /></Protected>
       },
