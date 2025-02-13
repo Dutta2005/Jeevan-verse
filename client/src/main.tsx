@@ -22,6 +22,9 @@ import Protected from './components/layouts/Protected.tsx'
 import MedicalChatbot from './pages/Chatbot.tsx'
 import DiscussionPost from './components/discussion/DiscussionPost.tsx'
 import DiscussionsPage from './pages/Discussions.tsx'
+import OrgPostPage from './pages/organisation/OrgPostPage.tsx'
+import OrgPost from './pages/organisation/OrgPost.tsx'
+import PostForm from './components/organisation/post/PostForm.tsx'
 
 const router = createBrowserRouter([
   {
@@ -48,6 +51,12 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { path: '', element: <OrgHome /> },
+      {
+        path: 'posts', element: <Protected role="organization"><OrgPostPage /></Protected>
+      },
+      { path: 'post/:id', element: <OrgPost /> },
+      { path: 'create', element: <Protected role="organization"><PostForm /></Protected> },
+      { path: 'edit/:id', element: <Protected role="organization"><PostForm /></Protected> }
     ]
   },
   { 
