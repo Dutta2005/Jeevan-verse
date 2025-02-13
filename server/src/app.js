@@ -26,6 +26,7 @@ import chatRoutes from './routes/chatbot.routes.js';
 import postRouter from "./routes/post.routes.js";
 import commentRouter from "./routes/comment.routes.js";
 import orgPostRouter from "./routes/orgPost.routes.js";
+import bloodRequestRouter from "./routes/bloodRequest.routes.js";
 
 // routers
 app.use("/api/v1/users", userRouter);
@@ -34,6 +35,7 @@ app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/posts", postRouter);
 app.use("/api/v1/comments", commentRouter);
 app.use("/api/v1/org-posts", orgPostRouter);
+app.use("/api/v1/blood-requests", bloodRequestRouter);
 
 
 export {app}
