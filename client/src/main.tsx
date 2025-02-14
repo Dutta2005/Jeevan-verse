@@ -1,37 +1,35 @@
+// main.tsx
 import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import { Provider } from 'react-redux'
-import { store } from './store/store.js'
 import { PersistGate } from "redux-persist/integration/react"
 import { persistStore } from "redux-persist"
-import { Toaster } from './components/ui/toaster.tsx'
-import Protected from './components/layouts/Protected.tsx'
-import PublicRoutes from './components/layouts/Public.tsx'
-import Layout from './pages/organisation/Layout.tsx'
-import LoadingScreen from './components/LoadingScreen.tsx'
+import { store } from './store/store.js'
+import LoadingScreen from './components/LoadingScreen'
+import Protected from './components/layouts/Protected'
+import PublicRoutes from './components/layouts/Public'
+import './index.css'
+import { Toaster } from './components/ui/toaster.js'
 
-// Eager load protected route components
-import MedicalChatbot from './pages/Chatbot.tsx'
-import OrgPostPage from './pages/organisation/OrgPostPage.tsx'
-import DiscussionsPage from './pages/Discussions.tsx'
-import PostForm from './components/organisation/post/PostForm.tsx'
-import BloodBridge from './pages/BloodBridge.tsx'
-import BloodBridgeRequest from './pages/BloodBridgeRequest.tsx'
-
-
-
-const Home = lazy(() => import('./pages/Home.tsx'))
-const Error404 = lazy(() => import('./components/errors/Error404.tsx'))
-const DiscussionPost = lazy(() => import('./components/discussion/DiscussionPost.tsx'))
-const OrgPost = lazy(() => import('./pages/organisation/OrgPost.tsx'))
-const Signup = lazy(() => import('./pages/account/Signup.tsx'))
-const Login = lazy(() => import('./pages/account/Login.tsx'))
-const OrganizationSignup = lazy(() => import('./pages/organisation/auth/OrganisationSignup.tsx'))
-const OrganizationLogin = lazy(() => import('./pages/organisation/auth/OrganisationLogin.tsx'))
-const OrgHome = lazy(() => import('./pages/organisation/OrgHome.tsx'))
+// Lazy load all route components
+const App = lazy(() => import('./App'))
+const Home = lazy(() => import('./pages/Home'))
+const Error404 = lazy(() => import('./components/errors/Error404'))
+const MedicalChatbot = lazy(() => import('./pages/Chatbot'))
+const BloodBridge = lazy(() => import('./pages/BloodBridge'))
+const BloodBridgeRequest = lazy(() => import('./pages/BloodBridgeRequest'))
+const OrgPostPage = lazy(() => import('./pages/organisation/OrgPostPage'))
+const DiscussionsPage = lazy(() => import('./pages/Discussions'))
+const DiscussionPost = lazy(() => import('./components/discussion/DiscussionPost'))
+const OrgPost = lazy(() => import('./pages/organisation/OrgPost'))
+const PostForm = lazy(() => import('./components/organisation/post/PostForm'))
+const Layout = lazy(() => import('./pages/organisation/Layout'))
+const OrgHome = lazy(() => import('./pages/organisation/OrgHome'))
+const Login = lazy(() => import('./pages/account/Login'))
+const Signup = lazy(() => import('./pages/account/Signup'))
+const OrganizationSignup = lazy(() => import('./pages/organisation/auth/OrganisationSignup'))
+const OrganizationLogin = lazy(() => import('./pages/organisation/auth/OrganisationLogin'))
 
 const router = createBrowserRouter([
   {
@@ -40,19 +38,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "",
-        element: (
-          <Suspense fallback={<LoadingScreen />}>
-            <Home />
-          </Suspense>
-        )
+        element: <Home />
       },
       {
         path: '*',
-        element: (
-          <Suspense fallback={<LoadingScreen />}>
-            <Error404 />
-          </Suspense>
-        )
+        element: <Error404 />
       },
       {
         path: "chatbot",
@@ -67,14 +57,16 @@ const router = createBrowserRouter([
         element: (
           <Protected role="user">
             <BloodBridge />
-          </Protected>)
+          </Protected>
+        )
       },
       {
         path: 'bloodbridge/request/:id',
         element: (
           <Protected role="user">
             <BloodBridgeRequest />
-          </Protected>)
+          </Protected>
+        )
       },
       {
         path: 'posts',
@@ -108,19 +100,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: '',
-        element: (
-          <Suspense fallback={<LoadingScreen />}>
-            <OrgHome />
-          </Suspense>
-        )
+        element: <OrgHome />
       },
       {
         path: '*',
-        element: (
-          <Suspense fallback={<LoadingScreen />}>
-            <Error404 />
-          </Suspense>
-        )
+        element: <Error404 />
       },
       {
         path: 'posts',
@@ -156,9 +140,7 @@ const router = createBrowserRouter([
     path: 'login',
     element: (
       <PublicRoutes role="user">
-        <Suspense fallback={<LoadingScreen />}>
-          <Login />
-        </Suspense>
+        <Login />
       </PublicRoutes>
     )
   },
@@ -166,9 +148,7 @@ const router = createBrowserRouter([
     path: 'signup',
     element: (
       <PublicRoutes role="user">
-        <Suspense fallback={<LoadingScreen />}>
-          <Signup />
-        </Suspense>
+        <Signup />
       </PublicRoutes>
     )
   },
@@ -176,9 +156,7 @@ const router = createBrowserRouter([
     path: 'register',
     element: (
       <PublicRoutes role="organization">
-        <Suspense fallback={<LoadingScreen />}>
-          <OrganizationSignup />
-        </Suspense>
+        <OrganizationSignup />
       </PublicRoutes>
     )
   },
@@ -186,9 +164,7 @@ const router = createBrowserRouter([
     path: 'signin',
     element: (
       <PublicRoutes role="organization">
-        <Suspense fallback={<LoadingScreen />}>
-          <OrganizationLogin />
-        </Suspense>
+        <OrganizationLogin />
       </PublicRoutes>
     )
   }
@@ -198,11 +174,13 @@ let persistor = persistStore(store);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Toaster />
     <Provider store={store}>
       <PersistGate persistor={persistor}>
-        <RouterProvider router={router} />
+        <Suspense fallback={<LoadingScreen />}>
+          <Toaster />
+          <RouterProvider router={router} />
+        </Suspense>
       </PersistGate>
     </Provider>
-  </StrictMode>,
+  </StrictMode>
 )
