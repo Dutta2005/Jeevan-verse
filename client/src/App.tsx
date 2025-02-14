@@ -24,7 +24,7 @@ function App() {
   return (
     <ErrorBoundary FallbackComponent={SomethingWrong}>
       <Navbar />
-      <Suspense fallback={<div className='h-screen flex justify-center items-center'><PuffLoader color="red" /></div>}>
+      <Suspense fallback={<div className='h-screen flex justify-center items-center dark:bg-dark-bg/95 bg-white/95'><PuffLoader color="red" /></div>}>
       <div className="pt-16 bg-light-bg text-light-text dark:bg-dark-bg dark:text-dark-text min-h-screen">
         <Outlet />
       </div>
