@@ -30,6 +30,7 @@
     "country-state-city": "^3.2.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.475.0",
+    "motion": "^12.4.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-error-boundary": "^5.0.0",
