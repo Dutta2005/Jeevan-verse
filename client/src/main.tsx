@@ -25,6 +25,8 @@ import DiscussionsPage from './pages/Discussions.tsx'
 import OrgPostPage from './pages/organisation/OrgPostPage.tsx'
 import OrgPost from './pages/organisation/OrgPost.tsx'
 import PostForm from './components/organisation/post/PostForm.tsx'
+import BloodBridge from './pages/BloodBridge.tsx'
+import BloodBridgeRequest from './pages/BloodBridgeRequest.tsx'
 
 const router = createBrowserRouter([
   {
@@ -36,6 +38,14 @@ const router = createBrowserRouter([
       {
         path: "chatbot",
         element: <Protected role="user"><MedicalChatbot /></Protected>
+      },
+      {
+        path: 'bloodbridge',
+        element: <Protected role="user"><BloodBridge /></Protected>
+      },
+      {
+        path: 'bloodbridge/request/:id',
+        element: <Protected role="user"><BloodBridgeRequest /></Protected>
       },
       { path: 'posts', element: <Protected role="user"><OrgPostPage /></Protected> },
       { path: 'post/:id', element: <OrgPost /> },
