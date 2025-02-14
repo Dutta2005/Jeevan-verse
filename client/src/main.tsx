@@ -1,89 +1,198 @@
-import { StrictMode } from 'react'
+import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { createBrowserRouter, RouterProvider } from 'react-router'
-import { Provider } from 'react-redux';
-import { store } from './store/store.js';
+import { Provider } from 'react-redux'
+import { store } from './store/store.js'
 import { PersistGate } from "redux-persist/integration/react"
 import { persistStore } from "redux-persist"
 import { Toaster } from './components/ui/toaster.tsx'
-
-import Signup from './pages/account/Signup.tsx'
-import Login from './pages/account/Login.tsx'
-import PublicRoutes from './components/layouts/Public.tsx'
-import Home from './pages/Home.tsx'
-import Error404 from './components/errors/Error404.tsx'
-import OrganizationSignup from './pages/organisation/auth/OrganisationSignup.tsx'
-import OrganizationLogin from './pages/organisation/auth/OrganisationLogin.tsx'
-import Layout from './pages/organisation/Layout.tsx'
-import OrgHome from './pages/organisation/OrgHome.tsx'
 import Protected from './components/layouts/Protected.tsx'
+import PublicRoutes from './components/layouts/Public.tsx'
+import Layout from './pages/organisation/Layout.tsx'
+import LoadingScreen from './components/LoadingScreen.tsx'
+
+// Eager load protected route components
 import MedicalChatbot from './pages/Chatbot.tsx'
-import DiscussionPost from './components/discussion/DiscussionPost.tsx'
-import DiscussionsPage from './pages/Discussions.tsx'
 import OrgPostPage from './pages/organisation/OrgPostPage.tsx'
-import OrgPost from './pages/organisation/OrgPost.tsx'
+import DiscussionsPage from './pages/Discussions.tsx'
 import PostForm from './components/organisation/post/PostForm.tsx'
 import BloodBridge from './pages/BloodBridge.tsx'
 import BloodBridgeRequest from './pages/BloodBridgeRequest.tsx'
+
+
+
+const Home = lazy(() => import('./pages/Home.tsx'))
+const Error404 = lazy(() => import('./components/errors/Error404.tsx'))
+const DiscussionPost = lazy(() => import('./components/discussion/DiscussionPost.tsx'))
+const OrgPost = lazy(() => import('./pages/organisation/OrgPost.tsx'))
+const Signup = lazy(() => import('./pages/account/Signup.tsx'))
+const Login = lazy(() => import('./pages/account/Login.tsx'))
+const OrganizationSignup = lazy(() => import('./pages/organisation/auth/OrganisationSignup.tsx'))
+const OrganizationLogin = lazy(() => import('./pages/organisation/auth/OrganisationLogin.tsx'))
+const OrgHome = lazy(() => import('./pages/organisation/OrgHome.tsx'))
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
-      { path: "", element: <Home /> },
-      { path: '*', element: <Error404 /> },
+      {
+        path: "",
+        element: (
+          <Suspense fallback={<LoadingScreen />}>
+            <Home />
+          </Suspense>
+        )
+      },
+      {
+        path: '*',
+        element: (
+          <Suspense fallback={<LoadingScreen />}>
+            <Error404 />
+          </Suspense>
+        )
+      },
       {
         path: "chatbot",
-        element: <Protected role="user"><MedicalChatbot /></Protected>
+        element: (
+          <Protected role="user">
+            <MedicalChatbot />
+          </Protected>
+        )
       },
       {
         path: 'bloodbridge',
-        element: <Protected role="user"><BloodBridge /></Protected>
+        element: (
+          <Protected role="user">
+            <BloodBridge />
+          </Protected>)
       },
       {
         path: 'bloodbridge/request/:id',
-        element: <Protected role="user"><BloodBridgeRequest /></Protected>
+        element: (
+          <Protected role="user">
+            <BloodBridgeRequest />
+          </Protected>)
       },
-      { path: 'posts', element: <Protected role="user"><OrgPostPage /></Protected> },
-      { path: 'post/:id', element: <OrgPost /> },
+      {
+        path: 'posts',
+        element: (
+          <Protected role="user">
+            <OrgPostPage />
+          </Protected>
+        )
+      },
       { 
-        path: 'discussions', 
-        element: <Protected role="user"><DiscussionsPage /></Protected>,
-        children: [
-        ]
+        path: 'post/:id', 
+        element: <OrgPost /> 
       },
-      { path: 'discussions/:id', element: <DiscussionPost /> }
+      {
+        path: 'discussions',
+        element: (
+          <Protected role="user">
+            <DiscussionsPage />
+          </Protected>
+        )
+      },
+      {
+        path: 'discussions/:id',
+        element: <DiscussionPost />
+      }
     ]
   },
   {
     path: 'organisation',
     element: <Layout />,
     children: [
-      { path: '', element: <OrgHome /> },
-      { path: '*', element: <Error404 /> },
       {
-        path: 'posts', element: <Protected role="organization"><OrgPostPage /></Protected>
+        path: '',
+        element: (
+          <Suspense fallback={<LoadingScreen />}>
+            <OrgHome />
+          </Suspense>
+        )
       },
-      { path: 'post/:id', element: <OrgPost /> },
-      { path: 'create', element: <Protected role="organization"><PostForm /></Protected> },
-      { path: 'edit/:id', element: <Protected role="organization"><PostForm /></Protected> }
+      {
+        path: '*',
+        element: (
+          <Suspense fallback={<LoadingScreen />}>
+            <Error404 />
+          </Suspense>
+        )
+      },
+      {
+        path: 'posts',
+        element: (
+          <Protected role="organization">
+            <OrgPostPage />
+          </Protected>
+        )
+      },
+      {
+        path: 'post/:id',
+        element: <OrgPost />
+      },
+      {
+        path: 'create',
+        element: (
+          <Protected role="organization">
+            <PostForm />
+          </Protected>
+        )
+      },
+      {
+        path: 'edit/:id',
+        element: (
+          <Protected role="organization">
+            <PostForm />
+          </Protected>
+        )
+      }
     ]
   },
-  { 
+  {
     path: 'login',
-    element: <PublicRoutes role="user"><Login /></PublicRoutes>
+    element: (
+      <PublicRoutes role="user">
+        <Suspense fallback={<LoadingScreen />}>
+          <Login />
+        </Suspense>
+      </PublicRoutes>
+    )
   },
   {
     path: 'signup',
-    element: <PublicRoutes role="user"><Signup /></PublicRoutes>
+    element: (
+      <PublicRoutes role="user">
+        <Suspense fallback={<LoadingScreen />}>
+          <Signup />
+        </Suspense>
+      </PublicRoutes>
+    )
   },
-  { path: 'register', element: <PublicRoutes role="organization"><OrganizationSignup /></PublicRoutes> },
-  { path: 'signin', element: <PublicRoutes role="organization"><OrganizationLogin /></PublicRoutes> },
+  {
+    path: 'register',
+    element: (
+      <PublicRoutes role="organization">
+        <Suspense fallback={<LoadingScreen />}>
+          <OrganizationSignup />
+        </Suspense>
+      </PublicRoutes>
+    )
+  },
+  {
+    path: 'signin',
+    element: (
+      <PublicRoutes role="organization">
+        <Suspense fallback={<LoadingScreen />}>
+          <OrganizationLogin />
+        </Suspense>
+      </PublicRoutes>
+    )
+  }
 ])
-
 
 let persistor = persistStore(store);
 
