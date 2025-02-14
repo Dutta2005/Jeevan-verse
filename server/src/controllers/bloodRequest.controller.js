@@ -75,17 +75,37 @@ const getAllBloodRequests = asyncHandler(async (req, res) => {
 const getBloodRequestById = asyncHandler(async (req, res) => {
     try {
         const bloodRequestId = req.params.id;
-        const bloodRequest = await BloodRequest.findById(bloodRequestId);
+        const bloodRequest = await BloodRequest.findById(bloodRequestId)
+            .populate({
+                path: 'volunteers.user',
+                select: 'name phone email'
+            });
+
         if (!bloodRequest) {
             throw new ApiError(404, "Blood request not found");
         }
+
+        // If the requester is not the creator, filter out contact details of volunteers who opted out
+        if (!req.user || bloodRequest.userId.toString() !== req.user._id.toString()) {
+            bloodRequest.volunteers = bloodRequest.volunteers.map(volunteer => {
+                if (!volunteer.canShareDetails) {
+                    // Remove sensitive information
+                    if (volunteer.user) {
+                        volunteer.user.phone = undefined;
+                        volunteer.user.email = undefined;
+                    }
+                }
+                return volunteer;
+            });
+        }
+
         return res.status(200).json(
             new ApiResponse(200, "Blood request fetched successfully", bloodRequest)
         );
     } catch (error) {
         return res.status(500).json(
             new ApiResponse(500, error?.message || "Something went wrong while fetching blood request")
-        )
+        );
     }
 })
 
@@ -277,6 +297,85 @@ const getBloodRequestsByStatus = asyncHandler(async (req, res) => {
     }
 })
 
+// New function to add volunteer to blood request
+const addVolunteerToRequest = asyncHandler(async (req, res) => {
+    try {
+        const bloodRequestId = req.params.id;
+        const { canShareDetails = true } = req.body;
+        
+        if (!req.user) {
+            throw new ApiError(401, "Unauthorized request");
+        }
+
+        const bloodRequest = await BloodRequest.findById(bloodRequestId);
+        if (!bloodRequest) {
+            throw new ApiError(404, "Blood request not found");
+        }
+
+        // Check if user is already a volunteer
+        const isAlreadyVolunteer = bloodRequest.volunteers.some(
+            volunteer => volunteer.user.toString() === req.user._id.toString()
+        );
+
+        if (isAlreadyVolunteer) {
+            throw new ApiError(400, "You are already a volunteer for this request");
+        }
+
+        // Add new volunteer
+        bloodRequest.volunteers.push({
+            user: req.user._id,
+            canShareDetails
+        });
+
+        const updatedBloodRequest = await bloodRequest.save();
+
+        return res.status(200).json(
+            new ApiResponse(200, "Successfully added as volunteer", updatedBloodRequest)
+        );
+    } catch (error) {
+        return res.status(500).json(
+            new ApiResponse(500, error?.message || "Something went wrong while adding volunteer")
+        );
+    }
+});
+
+// update volunteer sharing preference
+const updateVolunteerPreferences = asyncHandler(async (req, res) => {
+    try {
+        const bloodRequestId = req.params.id;
+        const { canShareDetails } = req.body;
+
+        if (!req.user) {
+            throw new ApiError(401, "Unauthorized request");
+        }
+
+        const bloodRequest = await BloodRequest.findById(bloodRequestId);
+        if (!bloodRequest) {
+            throw new ApiError(404, "Blood request not found");
+        }
+
+        // Find and update volunteer preferences
+        const volunteerIndex = bloodRequest.volunteers.findIndex(
+            volunteer => volunteer.user.toString() === req.user._id.toString()
+        );
+
+        if (volunteerIndex === -1) {
+            throw new ApiError(404, "You are not a volunteer for this request");
+        }
+
+        bloodRequest.volunteers[volunteerIndex].canShareDetails = canShareDetails;
+        const updatedBloodRequest = await bloodRequest.save();
+
+        return res.status(200).json(
+            new ApiResponse(200, "Volunteer preferences updated successfully", updatedBloodRequest)
+        );
+    } catch (error) {
+        return res.status(500).json(
+            new ApiResponse(500, error?.message || "Something went wrong while updating volunteer preferences")
+        );
+    }
+});
+
 export {
     createBloodRequest, 
     getAllBloodRequests, 
@@ -287,5 +386,7 @@ export {
     updateBloodRequest, 
     deleteBloodRequest,
     getBloodRequestsByStatus,
+    addVolunteerToRequest,
+    updateVolunteerPreferences
 }
 
