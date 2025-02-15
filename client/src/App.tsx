@@ -1,4 +1,3 @@
-// App.tsx
 import { Outlet } from "react-router"
 import { ErrorBoundary } from 'react-error-boundary'
 import { useSelector, useDispatch } from "react-redux"
@@ -9,7 +8,6 @@ import Navbar from "./components/navbar/Navbar"
 import "./App.css"
 import { initializeSocket } from "./utils/socket"
 import { addNotification } from "./store/notificationSlice"
-// import Footer from "./components/footer/Footer"
 
 function App() {
   const dispatch = useDispatch()
@@ -45,12 +43,9 @@ function App() {
   return (
     <ErrorBoundary FallbackComponent={SomethingWrong}>
       <Navbar />
-      {/* <Suspense fallback={<LoadingScreen />}> */}
       <div className="pt-16 bg-light-bg text-light-text dark:bg-dark-bg dark:text-dark-text min-h-screen">
         <Outlet />
       </div>
-      {/* <Footer /> */}
-      {/* </Suspense> */}
     </ErrorBoundary>
   )
 }
