@@ -2,7 +2,7 @@ import { ArrowRight, ChevronRight } from "lucide-react";
 import { Link } from "react-router";
 import { BorderBeam } from "../components/ui/border-beam";
 import BloodBridge from "@/components/landing page/BloodBridge";
-
+import Footer from "@/components/footer/Footer";
 const HeroBackground = () => (
   <div className="absolute inset-0 overflow-hidden">
     <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-primary opacity-10 blur-[100px]" />
@@ -12,6 +12,7 @@ const HeroBackground = () => (
 
 function LandingPage() {
   return (
+    <div>
     <div className="min-h-screen bg-gradient-to-b from-light-bg to-white dark:from-dark-bg dark:to-dark-bg/95 dark:text-dark-text -mt-16 pb-10 pt-10">
       {/* Hero Section */}
       <section className="relative min-h-[100vh] md:min-h-[90vh] flex flex-col justify-center items-center text-center px-6 overflow-hidden">
@@ -68,6 +69,8 @@ function LandingPage() {
       </section>
 
       <BloodBridge />
+    </div>
+      <Footer />
     </div>
   );
 }
