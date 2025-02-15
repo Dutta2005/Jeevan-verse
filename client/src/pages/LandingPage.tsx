@@ -62,7 +62,7 @@ function LandingPage() {
             >
               <span className="relative z-10">Be a part of our journey</span>
               <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
-              <BorderBeam />
+              <BorderBeam size={100} />
             </Link>
           </div>
         </div>
