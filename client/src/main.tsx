@@ -29,6 +29,7 @@ const Login = lazy(() => import('./pages/account/Login'))
 const Signup = lazy(() => import('./pages/account/Signup'))
 const OrganizationSignup = lazy(() => import('./pages/organisation/auth/OrganisationSignup'))
 const OrganizationLogin = lazy(() => import('./pages/organisation/auth/OrganisationLogin'))
+const OrgProfile = lazy(() => import('./pages/organisation/OrgProfile'))
 
 const router = createBrowserRouter([
   {
@@ -90,7 +91,8 @@ const router = createBrowserRouter([
       {
         path: 'discussions/:id',
         element: <DiscussionPost />
-      }
+      },
+      { path: 'org-profile/:id', element: <OrgProfile /> },
     ]
   },
   {
@@ -101,6 +103,7 @@ const router = createBrowserRouter([
         path: '',
         element: <OrgHome />
       },
+      { path: 'org-profile/:id', element: <OrgProfile /> },
       {
         path: '*',
         element: <Error404 />
