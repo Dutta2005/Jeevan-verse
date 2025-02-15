@@ -12,8 +12,8 @@ const server = createServer(app); // Create an HTTP server
 
 console.log(process.env.CORS_ORIGIN);
 app.use(cors({
-    // origin: process.env.CORS_ORIGIN,
-    origin: "https://jeevan-verse.vercel.app",
+    origin: process.env.CORS_ORIGIN,
+    // origin: "https://jeevan-verse.vercel.app",
     credentials: true
 }))
 console.log("app.js", process.env.CORS_ORIGIN);
