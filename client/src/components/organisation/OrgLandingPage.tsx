@@ -15,6 +15,7 @@ import {
   import { useNavigate } from "react-router";
   import { Button } from "../ui/button";
   import { Marquee } from "../ui/marquee";
+import Footer from "../footer/Footer";
   
   const CampaignCard = ({
     title,
@@ -137,7 +138,8 @@ import {
     const navigate = useNavigate();
   
     return (
-      <div className="min-h-screen bg-light-bg dark:bg-gradient-to-b dark:from-dark-bg dark:to-dark-bg/95 md:px-8">
+      <div>
+      <div className="min-h-screen bg-light-bg dark:bg-gradient-to-b dark:from-dark-bg/95 dark:to-dark-bg/95 md:px-8">
         {/* Hero Section */}
         <section className="container mx-auto px-4 pt-20 pb-16">
           <div className="max-w-3xl lg:text-center lg:mx-auto">
@@ -216,6 +218,8 @@ import {
           </div>
         </section>
       </div>
+      <Footer />
+    </div>
     );
   }
   
