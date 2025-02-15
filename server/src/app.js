@@ -2,10 +2,13 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import { createServer } from "http"; // Import HTTP server
+import { initializeWebSocket } from "./utils/webSocket.js"; // Import WebSocket setup
 
 dotenv.config({path: "./.env"});
 
 const app = express();
+const server = createServer(app); // Create an HTTP server
 
 console.log(process.env.CORS_ORIGIN);
 app.use(cors({
@@ -13,6 +16,7 @@ app.use(cors({
     // origin: "https://jeevan-verse.vercel.app",
     credentials: true
 }))
+console.log("app.js", process.env.CORS_ORIGIN);
 
 app.use(express.json({limit: "20kb"}));
 app.use(express.urlencoded({extended: true, limit: "20kb"}));
@@ -37,5 +41,7 @@ app.use("/api/v1/comments", commentRouter);
 app.use("/api/v1/org-posts", orgPostRouter);
 app.use("/api/v1/blood-requests", bloodRequestRouter);
 
+// Initialize WebSocket
+initializeWebSocket(server); // Integrate WebSocket
 
-export {app}
+export {server, app}
