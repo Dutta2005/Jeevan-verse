@@ -3,6 +3,7 @@ import storage from 'redux-persist/lib/storage'
 import { persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
 import themeSlice from './themeSlice'
 import authSlice from './authSlice'
+import notificationSlice from './notificationSlice'
 
 const persistConfig = {
     key: 'root',
@@ -13,6 +14,7 @@ const persistConfig = {
 const reducer = combineReducers({
     theme: themeSlice,
     auth: authSlice,
+    notification: notificationSlice
 
 });
 

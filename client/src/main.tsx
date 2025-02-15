@@ -31,6 +31,7 @@ const Signup = lazy(() => import('./pages/account/Signup'))
 const OrganizationSignup = lazy(() => import('./pages/organisation/auth/OrganisationSignup'))
 const OrganizationLogin = lazy(() => import('./pages/organisation/auth/OrganisationLogin'))
 const OrgProfile = lazy(() => import('./pages/organisation/OrgProfile'))
+const NotificationPage = lazy(() => import('./pages/account/NotificationPage'))
 
 const router = createBrowserRouter([
   {
@@ -66,6 +67,14 @@ const router = createBrowserRouter([
         element: (
           <Protected role="user">
             <BloodBridgeRequest />
+          </Protected>
+        )
+      },
+      {
+        path: 'notifications',
+        element: (
+          <Protected role="user">
+            <NotificationPage />
           </Protected>
         )
       },

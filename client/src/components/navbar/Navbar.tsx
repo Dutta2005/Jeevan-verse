@@ -19,6 +19,7 @@ import { toggleTheme } from "../../store/themeSlice";
 import Logoutbtn from "../Logoutbtn";
 import { menuOptions } from "../../utils/userMenu";
 import Sidebar from "./Sidebar";
+import Notifications from "./Notifications";
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -72,6 +73,9 @@ const Navbar = () => {
           </NavigationMenu>
 
           <div className="flex items-center gap-4">
+          {isAuthenticated && (
+            <Notifications />
+          )}
             <Sidebar />
             <DropdownMenu>
               <DropdownMenuTrigger className="hidden lg:block" asChild>

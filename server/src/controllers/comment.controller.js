@@ -183,8 +183,10 @@ const addComment = asyncHandler(async (req, res) => {
                     await mongoose.model('OrgPost').findById(postId).select('organization');
         
         if (post) {
+            // Check which model the post belongs to
+            const isOrgPost = post.constructor.modelName === 'OrgPost';
             const notificationData = {
-                redirectUrl: post === 'Post' ? `/discussions/${postId}` : `/posts/${postId}`,
+                redirectUrl: isOrgPost ? `/post/${postId}` : `/discussions/${postId}`,
                 data: {
                     postId,
                     commentId: commentData._id
@@ -239,6 +241,8 @@ const addComment = asyncHandler(async (req, res) => {
         
         commentData.parentComment = parentCommentId;
 
+        const isOrgPost = parentComment.post.constructor.modelName === 'OrgPost';
+
         // Notify parent comment creator about the reply
         if (parentComment.user) {
             await createNotification({
@@ -247,7 +251,7 @@ const addComment = asyncHandler(async (req, res) => {
                     ? `${req.user.name} replied to your comment`
                     : `${req.organization.name} replied to your comment`,
                 // redirectUrl: `/comment/${parentCommentId}`,
-                redirectUrl: parentComment.post === 'Post' ? `/discussions/${parentComment.post}` : `/post/${parentComment.post}` ,
+                redirectUrl:  isOrgPost? `/post/${parentComment.post}` : `/discussions/${parentComment.post}` ,
                 data: {
                     postId: parentComment.post,
                     parentCommentId,
