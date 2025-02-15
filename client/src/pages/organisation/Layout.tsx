@@ -2,8 +2,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../../components/organisation/navbar/Sidebar";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { Suspense, useEffect } from "react";
-import LoadingScreen from "@/components/LoadingScreen";
+import { useEffect } from "react";
 
 function Layout() {
   let isLoggedIn = useSelector(
@@ -36,11 +35,9 @@ function Layout() {
         </div>
         <Sidebar isLoggedIn={isLoggedIn} theme={theme} />
       </div>
-      <Suspense fallback={<LoadingScreen />}>
         <div className="pt-16">
           <Outlet />
         </div>
-      </Suspense>
     </div>
   );
 }
