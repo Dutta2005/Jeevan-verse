@@ -1,5 +1,5 @@
 // main.tsx
-import { StrictMode, lazy } from 'react'
+import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router'
 import { Provider } from 'react-redux'
@@ -10,6 +10,7 @@ import Protected from './components/layouts/Protected'
 import PublicRoutes from './components/layouts/Public'
 import './index.css'
 import { Toaster } from './components/ui/toaster.js'
+import LoadingScreen from './components/LoadingScreen.js'
 
 // Lazy load components
 const App = lazy(() => import('./App'))
@@ -179,7 +180,9 @@ createRoot(document.getElementById('root')!).render(
     <Provider store={store}>
       <PersistGate persistor={persistor}>
           <Toaster />
-          <RouterProvider router={router} />
+          <Suspense fallback={<LoadingScreen />}>
+            <RouterProvider router={router} />
+          </Suspense>
       </PersistGate>
     </Provider>
   </StrictMode>
