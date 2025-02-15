@@ -7,8 +7,7 @@ const commentSchema = new mongoose.Schema({
         trim: true
     },
     post: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Post',
+        type: mongoose.Schema.Types.Mixed,
         default: null
     },
     parentComment: {
@@ -26,10 +25,6 @@ const commentSchema = new mongoose.Schema({
         ref: 'Organization',
         default: null
     },
-    likes: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }],
     replies: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Comment'
