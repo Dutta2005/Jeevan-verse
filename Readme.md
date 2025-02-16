@@ -1,9 +1,3 @@
-<!-- ## backend url
-https://health-sphere-1.vercel.app <br />
-https://health-sphere-4tm2.onrender.com
-
-## frontend url
-https://health-sphere-eight.vercel.app/ -->
 # Jeevan Verse 🌐💉
 
 *Connecting Healthcare, Empowering Lives*
@@ -59,8 +53,8 @@ https://health-sphere-eight.vercel.app/ -->
 ### Steps
 1. Clone the repository
   ``` bash
-   git clone https://github.com/yourusername/health-sphere.git
-   cd health-sphere
+   git clone https://github.com/yourusername/Jeevan-verse.git
+   cd Jeevan-verse
   ```
    
 2. Install dependencies
@@ -105,8 +99,6 @@ https://health-sphere-eight.vercel.app/ -->
 - Explore AI Symptoms Checker
 - Connect with health communities
 
-### License
-MIT License
 
 ### Contact
 jeevanverse247@gmail.com
