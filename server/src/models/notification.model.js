@@ -17,11 +17,11 @@ const notificationSchema = new mongoose.Schema(
             required: true,
         },
         redirectUrl: {
-            type: String, // URL to redirect the user
+            type: String, 
             required: true,
         },
         data: {
-            type: mongoose.Schema.Types.Mixed, // Additional data (e.g., bloodRequestId)
+            type: mongoose.Schema.Types.Mixed, 
         },
         isRead: {
             type: Boolean,

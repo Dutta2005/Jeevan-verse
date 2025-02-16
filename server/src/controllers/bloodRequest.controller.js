@@ -8,42 +8,6 @@ import { getIO } from "../utils/webSocket.js";
 
 
 // craete a new blood request
-// const createBloodRequest = asyncHandler(async (req, res) => {
-//     try {
-//         const { bloodGroup, urgency, message, status, contactDetails, address } = req.body;
-    
-//         if (!bloodGroup || !urgency || !status || !contactDetails || !address) {
-//             throw new ApiError(400, "All fields are required");
-//         }
-    
-//         if (!req.user) {
-//             throw new ApiError(401, "Unauthorized request");
-//         }
-    
-//         const bloodRequest = await BloodRequest.create({
-//             userId: req.user._id,
-//             bloodGroup,
-//             urgency,
-//             message: message || "Urgent blood required",
-//             contactDetails,
-//             status,
-//             address
-//         });
-    
-//         const savedBloodRequest = await bloodRequest.save();
-    
-//         return res.status(201).json(
-//             new ApiResponse(201, "Blood request created successfully", {
-//                 bloodRequest: savedBloodRequest
-//             })
-//         );
-//     } catch (error) {
-//         return res.status(500).json(
-//             new ApiResponse(500, error?.message || "Something went wrong while creating blood request")
-//         )
-//     }
-// })
-
 const createBloodRequest = asyncHandler(async (req, res) => {
     try {
         const { bloodGroup, urgency, message, status, contactDetails, address } = req.body;
@@ -103,7 +67,6 @@ const createBloodRequest = asyncHandler(async (req, res) => {
                     userId: user._id,
                     type: "blood_request",
                     message: `A blood request for ${bloodGroup} is needed in ${city}.`,
-                    // redirectUrl: `/blood-requests/${savedBloodRequest._id}`,
                     redirectUrl: `/bloodbridge/request/${savedBloodRequest._id}`,
                     data: { bloodRequestId: savedBloodRequest._id },
                 });
@@ -260,10 +223,6 @@ const getBloodRequestsByBloodGroup = asyncHandler(async (req, res) => {
         if (bloodGroup.includes(' ')) {
             bloodGroup = bloodGroup.replace(' ', '+');
         }
-
-        // Log the received and processed blood group
-        // console.log('Received blood group:', req.query.bloodGroup);
-        // console.log('Processed blood group:', bloodGroup);
 
         // Validate bloodGroup parameter
         if (!bloodGroup) {

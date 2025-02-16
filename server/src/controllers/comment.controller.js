@@ -48,61 +48,6 @@ const getComments = asyncHandler(async (req, res) => {
     }));
 });
 
-// const addComment = asyncHandler(async (req, res) => {
-//     const { postId, parentCommentId } = req.params;
-//     const { content } = req.body;
-
-//     if (!content) {
-//         throw new ApiError(400, "Comment content is required");
-//     }
-
-//     if (!postId && !parentCommentId) {
-//         throw new ApiError(400, "Either postId or parentCommentId must be provided");
-//     }
-
-//     const commentData = {};
-
-//     // Determine comment creator based on available information
-//     if (req.user) {
-//         commentData.user = req.user._id;
-//     } else if (req.organization) {
-//         commentData.organization = req.organization._id;
-//     } else {
-//         throw new ApiError(401, "Authentication required");
-//     }
-
-//     commentData.content = content;
-
-//     if (postId) {
-//         if (!mongoose.isValidObjectId(postId)) {
-//             throw new ApiError(400, "Invalid post id");
-//         }
-//         commentData.post = postId;
-//     }
-
-//     if (parentCommentId) {
-//         if (!mongoose.isValidObjectId(parentCommentId)) {
-//             throw new ApiError(400, "Invalid parent comment id");
-//         }
-        
-//         const parentComment = await Comment.findById(parentCommentId);
-//         if (!parentComment) {
-//             throw new ApiError(404, "Parent comment not found");
-//         }
-        
-//         commentData.parentComment = parentCommentId;
-//     }
-
-//     const comment = await Comment.create(commentData);
-
-//     if (parentCommentId) {
-//         await Comment.findByIdAndUpdate(parentCommentId, {
-//             $push: { replies: comment._id }
-//         });
-//     }
-
-//     return res.status(201).json(new ApiResponse(201, "Comment added successfully", { comment }));
-// });
 
 const createNotification = async ({ userId, message, type = "comment", redirectUrl, data }) => {
     try {
@@ -241,7 +186,10 @@ const addComment = asyncHandler(async (req, res) => {
         
         commentData.parentComment = parentCommentId;
 
-        const isOrgPost = parentComment.post.constructor.modelName === 'OrgPost';
+        const post = await mongoose.model('Post').findById(parentComment.post) || 
+             await mongoose.model('OrgPost').findById(parentComment.post);
+
+        const isOrgPost = post && post.constructor.modelName === 'OrgPost';
 
         // Notify parent comment creator about the reply
         if (parentComment.user) {
@@ -250,7 +198,6 @@ const addComment = asyncHandler(async (req, res) => {
                 message: req.user 
                     ? `${req.user.name} replied to your comment`
                     : `${req.organization.name} replied to your comment`,
-                // redirectUrl: `/comment/${parentCommentId}`,
                 redirectUrl:  isOrgPost? `/post/${parentComment.post}` : `/discussions/${parentComment.post}` ,
                 data: {
                     postId: parentComment.post,
