@@ -1,7 +1,10 @@
 import { ArrowRight, ChevronRight } from "lucide-react";
 import { Link } from "react-router";
 import { BorderBeam } from "../components/ui/border-beam";
+import Umeed from "@/components/landing page/Umeed";
 import BloodBridge from "@/components/landing page/BloodBridge";
+import ChitChat from "@/components/landing page/ChitChat";
+import Campaign from "@/components/landing page/Campaign";
 import Footer from "@/components/footer/Footer";
 const HeroBackground = () => (
   <div className="absolute inset-0 overflow-hidden">
@@ -62,13 +65,16 @@ function LandingPage() {
             >
               <span className="relative z-10">Be a part of our journey</span>
               <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
-              <BorderBeam />
+              <BorderBeam size={100} />
             </Link>
           </div>
         </div>
       </section>
 
+      <Umeed />
       <BloodBridge />
+      <ChitChat />
+      <Campaign />
     </div>
       <Footer />
     </div>

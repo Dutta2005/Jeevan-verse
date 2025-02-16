@@ -139,7 +139,7 @@ import Footer from "../footer/Footer";
   
     return (
       <div>
-      <div className="min-h-screen bg-light-bg dark:bg-gradient-to-b dark:from-dark-bg/95 dark:to-dark-bg/95 md:px-8">
+      <div className="min-h-screen bg-light-bg dark:bg-dark-bg md:px-8">
         {/* Hero Section */}
         <section className="container mx-auto px-4 pt-20 pb-16">
           <div className="max-w-3xl lg:text-center lg:mx-auto">

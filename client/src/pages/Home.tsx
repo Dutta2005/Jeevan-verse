@@ -3,6 +3,7 @@ import LandingPage from "./LandingPage"
 import { RootState } from "../store/store"
 import { useNavigate } from "react-router"
 import { useEffect } from "react"
+import Dashboard from "@/components/dashboard/Dashboard"
 
 function Home() {
     const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
@@ -19,7 +20,7 @@ function Home() {
         <div>
             
             {isAuthenticated ? (
-                <p>Hello</p>
+                <Dashboard />
             ) : (
                 <LandingPage />
             )}
