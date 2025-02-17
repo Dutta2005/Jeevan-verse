@@ -16,6 +16,10 @@ import { api } from "../../api/api";
 import { RootState } from "../../store/store";
 import { Link } from "react-router";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import EditRequest from "./EditRequest";
+import { Dialog, DialogHeader, DialogContent, DialogTitle } from "../ui/dialog";
+import { ScrollArea } from "../ui/scroll-area";
+
 
 interface Address {
   state: string;
@@ -165,6 +169,7 @@ const UserRequests = () => {
   const [requests, setRequests] = useState<Request[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
 
   const fetchRequests = async () => {
     try {
@@ -183,8 +188,19 @@ const UserRequests = () => {
 
   const handleEdit = (id: string) => {
     console.log(`Edit request with ID: ${id}`);
-    // Implement edit functionality here
+    // Implement the edit logic here
+    setEditingRequestId(id);
   };
+
+  const handleEditSave = async () => {
+    await fetchRequests(); // Refresh the requests after saving
+    setEditingRequestId(null);
+  };
+
+  const handleEditCancel = () => {
+    setEditingRequestId(null);
+  };
+
 
   const markCompleted = async (id: string) => {
     try {
@@ -263,6 +279,27 @@ const UserRequests = () => {
           </Card>
         )}
       </div>
+      
+      {/* Edit Request Dialog */}
+      <Dialog open={!!editingRequestId} onOpenChange={() => setEditingRequestId(null)}>
+        <DialogContent className="max-w-md w-full p-0 h-[90%] md:h-auto dark:bg-dark-bg dark:text-dark-text">
+        <ScrollArea className="h-full w-full">
+         <div className="p-6">
+                   <DialogHeader>
+                     <DialogTitle>Request Form</DialogTitle>
+                   </DialogHeader>
+          {editingRequestId && (
+            <EditRequest
+              requestId={editingRequestId}
+              onSave={handleEditSave}
+              onCancel={handleEditCancel}
+            />
+          )}
+          </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };
