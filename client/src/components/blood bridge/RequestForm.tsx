@@ -124,8 +124,10 @@ function RequestForm() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="dark:bg-dark-bg dark:text-dark-text dark:hover:bg-gray-800">
-          <Plus className="mr-2" /> Create a Request
+        <Button 
+        variant={"ghost"}
+        className="text-accent text-md font-semibold">
+          <Plus /> Create a Request
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md w-full p-0 h-[90%] md:h-auto dark:bg-dark-bg dark:text-dark-text">
