@@ -14,6 +14,7 @@ import PostSkeleton from "../../components/organisation/post/PostSkeleton";
 import CommentSection from "@/components/CommentSection";
 import { RootState } from "../../store/store";
 import { useSelector } from "react-redux";
+import BackBtn from "@/components/BackButton";
 
 interface Post {
   _id: string;
@@ -81,6 +82,7 @@ function OrgPost() {
 
   return (
     <div className="max-w-3xl mx-auto p-1 md:p-6">
+      <BackBtn cn="mb-2" />
       <Card className="rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-light-bg dark:bg-dark-bg dark:text-dark-text">
         <CardHeader className="space-y-6 pb-6">
           <div className="flex items-center justify-between">

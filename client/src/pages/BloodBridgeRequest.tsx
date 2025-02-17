@@ -9,6 +9,7 @@ import { Skeleton } from "../components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { MapPin, Phone, Mail, Users, Clock } from 'lucide-react';
 import BeVolunteer from "../components/blood bridge/BeVolunteer";
+import BackBtn from "@/components/BackButton";
 
 interface Address {
     state: string;
@@ -103,6 +104,7 @@ export default function BloodBridgeRequest() {
 
     return (
         <div className="p-4 max-w-4xl mx-auto">
+            <BackBtn cn={"mb-3"} />
             {error && (
                 <Alert variant="destructive" className="mb-4">
                     <AlertTitle>Error</AlertTitle>

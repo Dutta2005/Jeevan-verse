@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { useToast } from "../../hooks/use-toast";
+import BackBtn from "../BackButton";
 
 interface PostDetail {
   _id: string;
@@ -128,6 +129,7 @@ const DiscussionPost = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <BackBtn cn="mb-2" />
       <Card className="bg-light-bg dark:bg-dark-bg border-none shadow-lg">
         <CardHeader className="space-y-4">
           <div className="flex justify-between items-start">
