@@ -10,6 +10,7 @@ import PublicRoutes from './components/layouts/Public'
 import './index.css'
 import { Toaster } from './components/ui/toaster.js'
 import LoadingScreen from './components/LoadingScreen.js'
+import BloodDonationGuidelines from './pages/BloodDonationGuidelines.js'
 
 // Lazy load components
 const App = lazy(() => import('./App'))
@@ -68,6 +69,10 @@ const router = createBrowserRouter([
             <BloodBridgeRequest />
           </Protected>
         )
+      },
+      {
+        path: 'bloodbridge/guidelines',
+        element: <BloodDonationGuidelines />
       },
       {
         path: 'notifications',
