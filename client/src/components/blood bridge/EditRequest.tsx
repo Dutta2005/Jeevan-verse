@@ -157,6 +157,18 @@ function EditRequest({ requestId, onSave, onCancel }: EditRequestProps) {
             </SelectContent>
           </Select>
         </div>
+        
+        {/* Message */}
+        <div>
+            <Label htmlFor="message">Message</Label>
+            <Input
+                type="text"
+                id="message"
+                placeholder="Optional message"
+                value={formData.message}
+                onChange={(e) => handleChange("message", e.target.value)}
+            />
+        </div>
 
         <div>
           <Label>Phone *</Label>
