@@ -5,6 +5,7 @@ import { asyncHandler } from "../utils/asynchandler.js";
 import { User } from "../models/user.model.js";
 import { Notification } from "../models/notification.model.js";
 import { getIO } from "../utils/webSocket.js";
+import { sendBloodRequestEmail } from "../service/email.js";
 
 
 // craete a new blood request
@@ -78,6 +79,13 @@ const createBloodRequest = asyncHandler(async (req, res) => {
                     redirectUrl: notification.redirectUrl,
                     data: notification.data,
                     createdAt: notification.createdAt
+                });
+
+                await sendBloodRequestEmail({
+                    to: user.email,
+                    bloodGroup,
+                    city,
+                    requestId: savedBloodRequest._id
                 });
 
                 return notification;

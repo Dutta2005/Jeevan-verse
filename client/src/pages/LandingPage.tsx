@@ -1,7 +1,10 @@
 import { ArrowRight, ChevronRight } from "lucide-react";
 import { Link } from "react-router";
 import { BorderBeam } from "../components/ui/border-beam";
+import Umeed from "@/components/landing page/Umeed";
 import BloodBridge from "@/components/landing page/BloodBridge";
+import ChitChat from "@/components/landing page/ChitChat";
+import Campaign from "@/components/landing page/Campaign";
 import Footer from "@/components/footer/Footer";
 const HeroBackground = () => (
   <div className="absolute inset-0 overflow-hidden">
@@ -68,7 +71,10 @@ function LandingPage() {
         </div>
       </section>
 
+      <Umeed />
       <BloodBridge />
+      <ChitChat />
+      <Campaign />
     </div>
       <Footer />
     </div>
