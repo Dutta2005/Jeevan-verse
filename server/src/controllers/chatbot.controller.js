@@ -76,7 +76,7 @@ export const processChat = async (req, res) => {
     }
 
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
+      model: process.env.GEMINI_MODEL_ID || "gemini-2.0-flash",
       generationConfig: {
         maxOutputTokens: 500,
         temperature: 0.7,
