@@ -2,13 +2,21 @@
 
 > **"Connecting Healthcare, Empowering Lives"**
 
-Jeevan Verse is a **full-stack healthcare platform** built as a hackathon project that connects patients, donors, medical professionals, and health organizations. It features an AI-powered symptom checker, a real-time blood donation network, community discussion forums, and organization-driven health campaigns.
+Jeevan Verse is a **full-stack healthcare platform** built as a hackathon project that connects patients, donors, medical professionals, and health organizations. It features Umeed, an AI-powered health assistant with multi-modal prescription analysis and persistent memory, a real-time blood donation network, community discussion forums, and organization-driven health campaigns.
 
 ---
 
 ## 1. High-Level Architecture
 
 ![alt text](./screenshots/hld.png)
+
+### Umeed AI Chatbot Architecture
+
+![Umeed Chatbot Features](./screenshots/umeed.png)
+
+### Chatbot Sequence Flow
+
+![alt text](./screenshots/umeed-arch.png)
 
 ### Architecture Pattern
 
@@ -17,7 +25,7 @@ Jeevan Verse is a **full-stack healthcare platform** built as a hackathon projec
 - **Database**: MongoDB with Mongoose ODM
 - **Auth**: JWT-based (Access + Refresh token pair) with HTTP-only cookies
 - **Real-time**: Socket.IO for live notifications (blood requests, comments)
-- **AI**: Google Gemini API for medical symptom analysis
+- **AI**: Gemini 2.5 Flash for chat & vision, and Pinecone Vector DB for RAG memory
 - **File Storage**: Cloudinary for image uploads
 - **Email**: Nodemailer (Mailtrap in dev, Gmail in production)
 
@@ -47,21 +55,23 @@ Jeevan Verse is a **full-stack healthcare platform** built as a hackathon projec
 
 ### Backend
 
-| Technology                | Purpose                                 |
-| ------------------------- | --------------------------------------- |
-| **Node.js**               | JavaScript runtime                      |
-| **Express.js 4**          | HTTP server framework                   |
-| **Mongoose 8**            | MongoDB ODM                             |
-| **Socket.IO 4**           | WebSocket server                        |
-| **@google/generative-ai** | Google Gemini API client                |
-| **jsonwebtoken**          | JWT creation & verification             |
-| **bcryptjs**              | Password hashing                        |
-| **Cloudinary**            | Image upload & management               |
-| **Multer**                | File upload middleware (memory storage) |
-| **Nodemailer**            | Email sending                           |
-| **cookie-parser**         | HTTP cookie parsing                     |
-| **cors**                  | Cross-Origin Resource Sharing           |
-| **dotenv**                | Environment variable management         |
+| Technology                      | Purpose                                 |
+| ------------------------------- | --------------------------------------- |
+| **Node.js**                     | JavaScript runtime                      |
+| **Express.js 4**                | HTTP server framework                   |
+| **Mongoose 8**                  | MongoDB ODM                             |
+| **Socket.IO 4**                 | WebSocket server                        |
+| **@google/generative-ai**       | Google Gemini API client                |
+| **@pinecone-database/pinecone** | Vector database for RAG memory          |
+| **pdf-parse**                   | PDF text extraction for prescriptions   |
+| **jsonwebtoken**                | JWT creation & verification             |
+| **bcryptjs**                    | Password hashing                        |
+| **Cloudinary**                  | Image upload & management               |
+| **Multer**                      | File upload middleware (memory storage) |
+| **Nodemailer**                  | Email sending                           |
+| **cookie-parser**               | HTTP cookie parsing                     |
+| **cors**                        | Cross-Origin Resource Sharing           |
+| **dotenv**                      | Environment variable management         |
 
 ### Deployment
 
@@ -108,7 +118,7 @@ hackwars/
 │       ├── pages/
 │       │   ├── Home.tsx             # Conditional: Dashboard (auth) or LandingPage
 │       │   ├── LandingPage.tsx      # Public landing with hero + feature sections
-│       │   ├── Chatbot.tsx          # AI Symptom Checker (Umeed)
+│       │   ├── Chatbot.tsx          # Umeed AI Health Assistant
 │       │   ├── BloodBridge.tsx      # Blood donation hub (tabs)
 │       │   ├── BloodBridgeRequest.tsx # Individual blood request detail
 │       │   ├── BloodDonationGuidelines.tsx # Static guidelines page
@@ -127,6 +137,11 @@ hackwars/
 │       │           ├── OrganisationLogin.tsx
 │       │           └── OrganisationSignup.tsx
 │       └── components/
+│           ├── chatbot/             # Umeed AI Assistant features
+│           │   ├── SessionSidebar.tsx
+│           │   ├── FileUpload.tsx
+│           │   ├── PrescriptionCard.tsx
+│           │   └── BehaviorInsights.tsx
 │           ├── BackButton.tsx       # Reusable back navigation
 │           ├── CommentSection.tsx   # Threaded comments with replies
 │           ├── LoadingScreen.tsx    # Suspense fallback spinner
@@ -183,14 +198,16 @@ hackwars/
         ├── constants.js             # DB_NAME = "hackwars"
         ├── db/
         │   └── index.js             # MongoDB connection via Mongoose
-        ├── models/                  # 7 Mongoose schemas
+        ├── models/                  # 9 Mongoose schemas
         │   ├── user.model.js
         │   ├── organization.model.js
         │   ├── post.model.js
         │   ├── comment.model.js
         │   ├── bloodRequest.model.js
         │   ├── notification.model.js
-        │   └── orgPost.model.js
+        │   ├── orgPost.model.js
+        │   ├── chatSession.model.js  # Chat history & metadata
+        │   └── prescription.model.js # Extracted prescription data
         ├── controllers/             # 8 controller files
         │   ├── user.controller.js
         │   ├── organization.controller.js
@@ -221,6 +238,9 @@ hackwars/
         │   └── webSocket.js         # Socket.IO server setup
         └── service/
             ├── email.js             # Email transport (Mailtrap/Gmail)
+            ├── rag.service.js       # Pinecone integration for RAG
+            ├── behavior.service.js  # User conversation metadata extraction
+            ├── prescription.service.js # PDF/Image analysis via Gemini
             └── emailTemplates/
                 └── bloodBridge.js   # HTML email template for blood requests
 ```
@@ -320,9 +340,15 @@ This allows both users AND organizations to comment on posts.
 
 #### AI Chatbot (`/chat`)
 
-| Method | Endpoint | Auth    | Description                |
-| ------ | -------- | ------- | -------------------------- |
-| POST   | `/chat`  | ✅ User | Send message to AI chatbot |
+| Method | Endpoint                | Auth    | Description                          |
+| ------ | ----------------------- | ------- | ------------------------------------ |
+| GET    | `/sessions`             | ✅ User | List all chat sessions               |
+| POST   | `/sessions`             | ✅ User | Create new chat session (max 20)     |
+| GET    | `/sessions/:id`         | ✅ User | Get full session chat history        |
+| DELETE | `/sessions/:id`         | ✅ User | Delete session and vectors           |
+| POST   | `/sessions/:id/message` | ✅ User | Send message with Pinecone RAG       |
+| POST   | `/sessions/:id/upload`  | ✅ User | Upload image/PDF prescription        |
+| GET    | `/behavior`             | ✅ User | Get behavior insights (mood, topics) |
 
 #### Discussion Posts (`/posts`)
 

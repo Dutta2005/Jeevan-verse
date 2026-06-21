@@ -17,12 +17,12 @@
 
 ## Features
 
-### 🩺 AI Symptoms Checker
-- Powered by Gemini API
-- Advanced AI-driven symptom analysis
-- Natural language processing for medical queries
-- Comprehensive health assessment
-- Secure and privacy-compliant diagnostic insights
+### 🩺 Umeed: AI Health Assistant
+- RAG-powered conversational memory using Pinecone Vector DB (llama-text-embed-v2)
+- Multi-modal prescription analysis (Image & PDF support) via Gemini 2.0 Flash
+- Persistent chat sessions (capped at 20 per user) with auto-generated titles
+- Advanced behavioral insights (consultation frequency, mood tracking, topic clouds)
+- Secure, context-aware personalized health advice based on user profiles
 
 ### 🩸 Blood Bridge
 - Real-time blood donor network

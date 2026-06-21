@@ -15,18 +15,18 @@ const prescriptionSchema = {
       items: {
         type: SchemaType.OBJECT,
         properties: {
-          name:      { type: SchemaType.STRING },
-          dosage:    { type: SchemaType.STRING },
+          name: { type: SchemaType.STRING },
+          dosage: { type: SchemaType.STRING },
           frequency: { type: SchemaType.STRING },
-          duration:  { type: SchemaType.STRING }
+          duration: { type: SchemaType.STRING }
         },
         required: ['name']
       }
     },
-    diagnosis:  { type: SchemaType.STRING },
+    diagnosis: { type: SchemaType.STRING },
     doctorName: { type: SchemaType.STRING },
-    date:       { type: SchemaType.STRING },
-    notes:      { type: SchemaType.STRING }
+    date: { type: SchemaType.STRING },
+    notes: { type: SchemaType.STRING }
   },
   required: ['medications']
 };
@@ -46,7 +46,7 @@ const extractJSON = (text) => {
 
   // 3. Find the outermost { } block
   const first = text.indexOf('{');
-  const last  = text.lastIndexOf('}');
+  const last = text.lastIndexOf('}');
   if (first !== -1 && last !== -1 && last > first) {
     try { return JSON.parse(text.slice(first, last + 1)); } catch { /* continue */ }
   }
@@ -100,7 +100,7 @@ export const uploadPrescriptionFile = async (fileBuffer, fileType) => {
 export const analyzePrescriptionImage = async (fileBuffer, mimeType) => {
   try {
     const model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL_ID || 'gemini-2.0-flash',
+      model: process.env.GEMINI_MODEL_ID || 'gemini-2.5-flash',
       generationConfig: {
         maxOutputTokens: 4096,
         temperature: 0.1,
@@ -206,9 +206,9 @@ export const formatPrescriptionSummary = (analysis) => {
     summary += '### Medications:\n';
     analysis.medications.forEach((med, i) => {
       summary += `${i + 1}. **${med.name}**`;
-      if (isValid(med.dosage))    summary += ` — ${med.dosage}`;
+      if (isValid(med.dosage)) summary += ` — ${med.dosage}`;
       if (isValid(med.frequency)) summary += ` | ${med.frequency}`;
-      if (isValid(med.duration))  summary += ` | ${med.duration}`;
+      if (isValid(med.duration)) summary += ` | ${med.duration}`;
       summary += '\n';
     });
     summary += '\n';
