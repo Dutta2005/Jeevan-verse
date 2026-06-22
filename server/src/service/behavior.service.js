@@ -28,7 +28,7 @@ export const extractSessionMetadata = async (messages) => {
     }
 
     const model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL_ID || 'gemini-2.0-flash',
+      model: process.env.GEMINI_MODEL_ID || 'gemini-2.5-flash',
       generationConfig: {
         maxOutputTokens: 2000,
         temperature: 0.1,
@@ -126,7 +126,7 @@ export const analyzeUserBehavior = async (userId) => {
       const firstSession = new Date(sessions[sessions.length - 1].createdAt);
       const daysSinceFirst = Math.max(1, (Date.now() - firstSession) / (1000 * 60 * 60 * 24));
       const sessionsPerWeek = (sessions.length / daysSinceFirst) * 7;
-      
+
       if (sessionsPerWeek >= 5) consultationFrequency = 'very high';
       else if (sessionsPerWeek >= 3) consultationFrequency = 'high';
       else if (sessionsPerWeek >= 1) consultationFrequency = 'moderate';
@@ -171,7 +171,7 @@ export const analyzeUserBehavior = async (userId) => {
 export const generateSessionTitle = async (firstMessage) => {
   try {
     const model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL_ID || 'gemini-2.0-flash',
+      model: process.env.GEMINI_MODEL_ID || 'gemini-2.5-flash',
       generationConfig: {
         maxOutputTokens: 30,
         temperature: 0.3,
