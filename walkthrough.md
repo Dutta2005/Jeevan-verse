@@ -10,14 +10,6 @@ Jeevan Verse is a **full-stack healthcare platform** built as a hackathon projec
 
 ![alt text](./screenshots/hld.png)
 
-### Umeed AI Chatbot Architecture
-
-![Umeed Chatbot Features](./screenshots/umeed.png)
-
-### Chatbot Sequence Flow
-
-![alt text](./screenshots/umeed-arch.png)
-
 ### Architecture Pattern
 
 - **Client**: Single Page Application (SPA) using React 19 + TypeScript + Vite
@@ -249,7 +241,7 @@ hackwars/
 
 ## 4. Database Schema (MongoDB + Mongoose)
 
-![alt text](./screenshots/er.png)
+![alt text](./screenshots/erd.png)
 
 ### Key Model Features
 
@@ -261,6 +253,8 @@ hackwars/
 | **Comment**      | Supports **threaded replies** via `parentComment` + `replies[]` refs. Has a `pre('validate')` hook ensuring either `user` or `organization` is set. Works for both Post and OrgPost.                |
 | **BloodRequest** | Hierarchical location-based donor matching (city → district → state). Has a volunteers array with privacy preferences (`canShareDetails`).                                                          |
 | **Notification** | Linked to users, supports deduplication for grouped comments within a 5-minute window.                                                                                                              |
+| **ChatSession**  | Stores conversation history. Enforces a 20-session cap per user. Metadata includes mood and specific health topics.                                                                                 |
+| **Prescription** | Stores Cloudinary URL of uploaded prescriptions along with Gemini-extracted structured data (medications, dosage, diagnosis).                                                                       |
 
 ---
 
@@ -416,11 +410,12 @@ This allows both users AND organizations to comment on posts.
 
 ### 7.1 🩺 Umeed — AI Symptom Checker
 
-![alt text](./screenshots/ummed.png)
+![alt text](./screenshots/umeed.png)
+![alt text](./screenshots/umeed-arch.png)
 
 **Key Details:**
 
-- Uses **Gemini 2.0 Flash** model with custom generation config (maxTokens: 500, temp: 0.7)
+- Uses **Gemini 2.5 Flash** model with custom generation config (maxTokens: 500, temp: 0.7)
 - **Personalised**: Injects logged-in user's blood group, height, weight, and calculated BMI into the system prompt
 - **Chat context**: Full conversation history is maintained and sent with each request
 - **Safety filter retry**: If Gemini blocks for safety, retries up to 2 times with rephrasing suggestion
@@ -564,7 +559,7 @@ alert-dialog, alert, avatar, badge, border-beam, button, card, dialog, dropdown-
 - `PORT`, `MONGODB_URI`, `CORS_ORIGIN`
 - `ACCESS_TOKEN_SECRET`, `ACCESS_TOKEN_EXPIARY`
 - `REFRESH_TOKEN_SECRET`, `REFRESH_TOKEN_EXPIARY`
-- `GEMINI_API_KEY`
+- `GEMINI_API_KEY`, `GEMINI_MODEL_ID`, `PINECONE_API_KEY`, `PINECONE_HOST`
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
 - `MAILTRAP_*` (dev) / `GMAIL_*` (prod)
 - `FRONTEND_URL`
@@ -597,7 +592,7 @@ alert-dialog, alert, avatar, badge, border-beam, button, card, dialog, dropdown-
 
 > **Jeevan Verse** is a full-stack healthcare platform built with React, Node.js, Express, MongoDB, Socket.IO, and Google Gemini AI. It has four core features:
 >
-> 1. **Umeed (AI Symptom Checker)** — A personalized medical chatbot powered by Gemini AI that considers your blood group, height, weight, and BMI to provide tailored health guidance.
+> 1. **Umeed (AI Health Assistant)** — A personalized medical chatbot with RAG memory (Pinecone) and multi-modal prescription analysis (Gemini Vision) that provides tailored health guidance and tracks user behavior insights.
 > 2. **Blood Bridge** — A real-time blood donation coordination system with location-based donor matching, WebSocket notifications, email alerts, and a volunteer management system with privacy controls.
 > 3. **Chit Chat (Discussion Forums)** — Community health discussion spaces with anonymous posting, threaded comments supporting both users and organizations, and real-time comment notifications.
 > 4. **Health Campaigns** — Organization-driven health awareness posts with image uploads to Cloudinary, enabling hospitals, NGOs, and research organizations to publish health education content.
