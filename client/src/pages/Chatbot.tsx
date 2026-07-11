@@ -338,7 +338,7 @@ const MedicalChatbot: React.FC = () => {
     (symptoms.length > 0 || messageInput.trim() || selectedFile);
 
   return (
-    <div className="flex h-[90vh] md:h-[93vh] max-w-6xl mx-auto md:p-4 -mt-5">
+    <div className="flex h-[calc(100dvh-4rem)] max-w-6xl mx-auto md:p-4 overflow-hidden">
       {/* ── Mobile sidebar overlay ── */}
       <AnimatePresence>
         {mobileSidebarOpen && (
@@ -358,14 +358,14 @@ const MedicalChatbot: React.FC = () => {
         ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"}
         md:translate-x-0
         fixed md:relative z-50 md:z-auto
-        h-full
+        h-full top-0 left-0 md:top-auto md:left-auto
         transition-transform duration-300 ease-in-out
-        ${sidebarCollapsed ? "w-4 md:w-4" : "w-72 md:w-72"}
-        bg-light-bg/80 dark:bg-dark-bg/80 backdrop-blur-xl
+        ${sidebarCollapsed ? "w-0 md:w-4" : "w-[85vw] max-w-[18rem] md:w-72 md:max-w-none"}
+        bg-light-bg dark:bg-dark-bg backdrop-blur-xl
         md:bg-white/50 md:dark:bg-gray-900/50
         md:rounded-l-xl
         border-r border-gray-200/50 dark:border-gray-800/50
-        relative flex-shrink-0
+        flex-shrink-0
       `}
       >
         <SessionSidebar
@@ -382,9 +382,9 @@ const MedicalChatbot: React.FC = () => {
       </div>
 
       {/* ── Main Chat Area ── */}
-      <div className="flex-grow flex flex-col h-full overflow-hidden bg-white/50 dark:bg-gray-900/50 md:rounded-r-xl border border-gray-200/50 dark:border-gray-800/50 md:border-l-0 shadow-xl">
+      <div className="flex-grow flex flex-col h-full min-w-0 overflow-hidden bg-white/50 dark:bg-gray-900/50 rounded-none md:rounded-r-xl border-0 md:border border-gray-200/50 dark:border-gray-800/50 md:border-l-0 shadow-xl">
         {/* Header */}
-        <div className="shrink-0 px-4 md:px-6 py-3 relative border-b border-gray-200/50 dark:border-gray-800/50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md">
+        <div className="shrink-0 px-3 md:px-6 py-2.5 md:py-3 relative border-b border-gray-200/50 dark:border-gray-800/50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {/* Mobile menu button */}
@@ -422,18 +422,18 @@ const MedicalChatbot: React.FC = () => {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-grow overflow-y-auto px-4">
+        <div className="flex-grow overflow-y-auto px-2 md:px-4">
           {!activeSessionId ? (
             /* Empty state — no session selected */
             <div className="flex items-center justify-center h-full">
-              <div className="text-center space-y-6 p-8 max-w-md">
+              <div className="text-center space-y-4 md:space-y-6 p-4 md:p-8 max-w-md">
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.5 }}
-                  className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center shadow-lg"
+                  className="w-14 h-14 md:w-20 md:h-20 mx-auto rounded-2xl bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center shadow-lg"
                 >
-                  <Sparkles className="w-10 h-10 text-secondary/70" />
+                  <Sparkles className="w-7 h-7 md:w-10 md:h-10 text-secondary/70" />
                 </motion.div>
 
                 <motion.div
@@ -441,7 +441,7 @@ const MedicalChatbot: React.FC = () => {
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <h2 className="text-xl font-semibold text-light-text dark:text-dark-text mb-2">
+                  <h2 className="text-lg md:text-xl font-semibold text-light-text dark:text-dark-text mb-2">
                     Welcome to Umeed
                   </h2>
                   <p className="text-sm text-light-text/60 dark:text-dark-text/60 leading-relaxed">
@@ -515,7 +515,7 @@ const MedicalChatbot: React.FC = () => {
 
         {/* ── Input Area ── */}
         {activeSessionId && (
-          <div className="space-y-3 p-4 md:p-6 border-t border-gray-200/50 dark:border-gray-800/50 bg-gradient-to-t from-white/90 to-transparent dark:from-gray-900/90">
+          <div className="space-y-2 md:space-y-3 p-2.5 md:p-6 border-t border-gray-200/50 dark:border-gray-800/50 bg-gradient-to-t from-white/90 to-transparent dark:from-gray-900/90">
             {/* Symptom tags */}
             <AnimatePresence>
               {symptoms.length > 0 && (
@@ -554,7 +554,7 @@ const MedicalChatbot: React.FC = () => {
                 onChange={(e) => setCurrentSymptom(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addSymptom()}
                 placeholder="Add a symptom..."
-                className="flex-grow bg-white/60 dark:bg-gray-800/60 border-gray-200 dark:border-gray-700 focus-visible:ring-1 focus-visible:ring-secondary/40 text-sm rounded-xl"
+                className="flex-grow min-w-0 bg-white/60 dark:bg-gray-800/60 border-gray-200 dark:border-gray-700 focus-visible:ring-1 focus-visible:ring-secondary/40 text-sm rounded-xl"
               />
               <Button
                 onClick={addSymptom}
@@ -589,13 +589,13 @@ const MedicalChatbot: React.FC = () => {
                     : "Ask about health, medications, symptoms..."
                 }
                 disabled={isLoading}
-                className="flex-grow bg-white/60 dark:bg-gray-800/60 border-gray-200 dark:border-gray-700 focus-visible:ring-1 focus-visible:ring-secondary/40 text-sm rounded-xl"
+                className="flex-grow min-w-0 bg-white/60 dark:bg-gray-800/60 border-gray-200 dark:border-gray-700 focus-visible:ring-1 focus-visible:ring-secondary/40 text-sm rounded-xl"
               />
 
               <Button
                 onClick={sendMessage}
                 disabled={!canSend}
-                className="bg-gradient-to-r from-secondary to-accent hover:from-secondary/90 hover:to-accent/90 text-white border-0 shadow-md px-5 rounded-xl transition-all duration-200 hover:shadow-lg disabled:opacity-50 flex-shrink-0"
+                className="bg-gradient-to-r from-secondary to-accent hover:from-secondary/90 hover:to-accent/90 text-white border-0 shadow-md px-3 md:px-5 rounded-xl transition-all duration-200 hover:shadow-lg disabled:opacity-50 flex-shrink-0"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

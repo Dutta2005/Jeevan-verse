@@ -126,7 +126,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 min-w-[240px]"
+            className="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 w-[200px] md:min-w-[240px] max-w-[calc(100vw-3rem)]"
           >
             <div className="flex items-center gap-3">
               {/* Preview */}

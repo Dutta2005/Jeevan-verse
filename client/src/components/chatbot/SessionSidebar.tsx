@@ -74,7 +74,7 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
       {/* Collapse toggle button */}
       <button
         onClick={onToggleCollapse}
-        className="absolute top-4 -right-3 z-20 w-6 h-6 rounded-full bg-secondary text-white flex items-center justify-center shadow-lg hover:bg-secondary/80 transition-colors"
+        className="absolute top-4 -right-3 z-20 w-6 h-6 rounded-full bg-secondary text-white hidden md:flex items-center justify-center shadow-lg hover:bg-secondary/80 transition-colors"
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {isCollapsed ? (
@@ -173,7 +173,7 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
                         {/* Delete button */}
                         <button
                           onClick={(e) => handleDelete(e, session._id)}
-                          className={`p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 ${
+                          className={`p-1.5 md:p-1 rounded-lg opacity-70 md:opacity-0 group-hover:opacity-100 transition-all duration-200 ${
                             deleteConfirm === session._id
                               ? "bg-red-500/10 text-red-500 opacity-100"
                               : "hover:bg-red-500/10 text-light-text/30 dark:text-dark-text/30 hover:text-red-500"
