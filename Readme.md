@@ -19,7 +19,7 @@
 
 ### 🩺 Umeed: AI Health Assistant
 - RAG-powered conversational memory using Pinecone Vector DB (llama-text-embed-v2)
-- Multi-modal prescription analysis (Image & PDF support) via Gemini 2.0 Flash
+- Multi-modal prescription analysis (Image & PDF support) via Gemini 2.5 Flash
 - Persistent chat sessions (capped at 20 per user) with auto-generated titles
 - Advanced behavioral insights (consultation frequency, mood tracking, topic clouds)
 - Secure, context-aware personalized health advice based on user profiles
