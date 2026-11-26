@@ -54,9 +54,7 @@ describe("Organization layout", () => {
     expect(document.body).not.toHaveClass("dark");
 
     rerender(
-      <Provider
-        store={configureStore({ reducer: { auth: authReducer, theme: themeReducer } })}
-      >
+      <Provider store={configureStore({ reducer: { auth: authReducer, theme: themeReducer } })}>
         <MemoryRouter initialEntries={["/organisation"]}>
           <Routes>
             <Route path="/organisation" element={<Layout />}>

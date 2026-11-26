@@ -5,9 +5,7 @@ import { addNotification } from "../notificationSlice";
 
 describe("configured Redux store", () => {
   it("connects auth and notification reducers through the persisted store", () => {
-    store.dispatch(
-      login({ _id: "user-1", name: "Asha", info: { bloodGroup: "O+" } }),
-    );
+    store.dispatch(login({ _id: "user-1", name: "Asha", info: { bloodGroup: "O+" } }));
     store.dispatch(
       addNotification({
         _id: "notification-1",
