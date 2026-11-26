@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { isAxiosError } from "axios";
+import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import { Button } from "../../components/ui/button";
 import {
@@ -19,7 +20,7 @@ import { useToast } from "../../hooks/use-toast";
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { toast } = useToast()
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -41,41 +42,40 @@ const Login = () => {
 
     try {
       const response = await api.post("/users/login", formData);
-      
-      if (response.status === 200) {       
+
+      if (response.status === 200) {
         dispatch(login(response.data.data.user));
         toast({
           title: "Login Successful",
           description: "You have successfully logged in.",
           variant: "success",
-          duration: 2000
-        })
+          duration: 2000,
+        });
         navigate("/");
-      } else{
+      } else {
         toast({
           title: "Login Failed",
           description: response.data.message || "An error occurred during login. Please try again.",
           variant: "destructive",
-          duration: 2000
-        })
+          duration: 2000,
+        });
       }
-
-    } catch (err: any) {
-      if(err.response.status === 401){
-      toast({
-        title: "Login Failed",
-        description: "Invalid email or password.",
-        variant: "destructive",
-        duration: 5000
-      })
-    } else {
-      toast({
-        title: "Login Failed",
-        description: "Something went wrong",
-        variant: "destructive",
-        duration: 5000
-      })
-    }
+    } catch (err: unknown) {
+      if (isAxiosError(err) && err.response?.status === 401) {
+        toast({
+          title: "Login Failed",
+          description: "Invalid email or password.",
+          variant: "destructive",
+          duration: 5000,
+        });
+      } else {
+        toast({
+          title: "Login Failed",
+          description: "Something went wrong",
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -100,12 +100,9 @@ const Login = () => {
             {/* {error && (
               <div className="text-red-500 text-sm text-center">{error}</div>
             )} */}
-            
+
             <div className="space-y-2">
-              <Label
-                htmlFor="email"
-                className="text-light-text dark:text-dark-text font-medium"
-              >
+              <Label htmlFor="email" className="text-light-text dark:text-dark-text font-medium">
                 Email
               </Label>
               <Input
@@ -120,10 +117,7 @@ const Login = () => {
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="password"
-                className="text-light-text dark:text-dark-text font-medium"
-              >
+              <Label htmlFor="password" className="text-light-text dark:text-dark-text font-medium">
                 Password
               </Label>
               <Input
@@ -146,7 +140,7 @@ const Login = () => {
               </Link>
             </div>
 
-            <Button 
+            <Button
               type="submit"
               disabled={isLoading}
               className="w-full h-11 text-md dark:text-white bg-primary dark:bg-primary hover:bg-primary/90 dark:hover:bg-primary/90 transition-colors"

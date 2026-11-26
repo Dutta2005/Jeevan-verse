@@ -58,11 +58,7 @@ const formatTimestamp = (timestamp?: string) => {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
-const MessageList: React.FC<MessageListProps> = ({
-  messages,
-  isLoading,
-  messagesEndRef,
-}) => {
+const MessageList: React.FC<MessageListProps> = ({ messages, isLoading, messagesEndRef }) => {
   return (
     <div className="flex-grow overflow-y-auto min-h-0">
       <div className="space-y-4 p-2">
@@ -72,8 +68,7 @@ const MessageList: React.FC<MessageListProps> = ({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: index === messages.length - 1 ? 0.1 : 0 }}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"
-              }`}
+            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             {msg.role === "user" ? (
               /* User message */
@@ -109,9 +104,9 @@ const MessageList: React.FC<MessageListProps> = ({
                 </div>
                 <div className="space-y-1.5">
                   {/* Check for prescription analysis in previous user message */}
-                  {index > 0 && messages[index - 1]?.attachments?.some(a => a.analysis) && (
+                  {index > 0 && messages[index - 1]?.attachments?.some((a) => a.analysis) && (
                     <PrescriptionAnalysisBlock
-                      attachment={messages[index - 1].attachments!.find(a => a.analysis)!}
+                      attachment={messages[index - 1].attachments!.find((a) => a.analysis)!}
                     />
                   )}
 
@@ -133,13 +128,9 @@ const MessageList: React.FC<MessageListProps> = ({
                             {children}
                           </ol>
                         ),
-                        li: ({ children }) => (
-                          <li className="mb-1">{children}</li>
-                        ),
+                        li: ({ children }) => <li className="mb-1">{children}</li>,
                         h2: ({ children }) => (
-                          <h2 className="text-sm font-semibold mb-2 text-secondary">
-                            {children}
-                          </h2>
+                          <h2 className="text-sm font-semibold mb-2 text-secondary">{children}</h2>
                         ),
                         h3: ({ children }) => (
                           <h3 className="text-sm font-medium mb-1.5 text-light-text dark:text-dark-text">
@@ -166,9 +157,7 @@ const MessageList: React.FC<MessageListProps> = ({
                             {children}
                           </code>
                         ),
-                        hr: () => (
-                          <hr className="my-3 border-gray-200 dark:border-gray-700" />
-                        ),
+                        hr: () => <hr className="my-3 border-gray-200 dark:border-gray-700" />,
                         blockquote: ({ children }) => (
                           <blockquote className="border-l-2 border-secondary/30 pl-3 italic text-sm text-light-text/70 dark:text-dark-text/70 my-2">
                             {children}
@@ -197,9 +186,7 @@ const MessageList: React.FC<MessageListProps> = ({
 };
 
 // Attachment preview in user messages
-const AttachmentPreview: React.FC<{ attachment: Attachment }> = ({
-  attachment,
-}) => {
+const AttachmentPreview: React.FC<{ attachment: Attachment }> = ({ attachment }) => {
   const [showFull, setShowFull] = useState(false);
 
   return (
@@ -244,21 +231,20 @@ const AttachmentPreview: React.FC<{ attachment: Attachment }> = ({
 };
 
 // Prescription analysis block (shown before assistant analysis message)
-const PrescriptionAnalysisBlock: React.FC<{ attachment: Attachment }> = ({
-  attachment,
-}) => {
+const PrescriptionAnalysisBlock: React.FC<{ attachment: Attachment }> = ({ attachment }) => {
+  let analysis;
   try {
-    const analysis = JSON.parse(attachment.analysis || "{}");
-    if (!analysis.medications && !analysis.diagnosis) return null;
-    return (
-      <PrescriptionCard
-        analysis={analysis}
-        imageUrl={attachment.type === "image" ? attachment.url : undefined}
-      />
-    );
+    analysis = JSON.parse(attachment.analysis || "{}");
   } catch {
     return null;
   }
+  if (!analysis || (!analysis.medications && !analysis.diagnosis)) return null;
+  return (
+    <PrescriptionCard
+      analysis={analysis}
+      imageUrl={attachment.type === "image" ? attachment.url : undefined}
+    />
+  );
 };
 
 export default MessageList;

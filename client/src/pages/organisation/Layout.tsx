@@ -1,13 +1,11 @@
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 import Sidebar from "../../components/organisation/navbar/Sidebar";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useEffect } from "react";
 
 function Layout() {
-  let isLoggedIn = useSelector(
-    (state: RootState) => state.auth.isAuthenticated
-  );
+  let isLoggedIn = useSelector((state: RootState) => state.auth.isAuthenticated);
   const role = useSelector((state: RootState) => state.auth.role);
   isLoggedIn = isLoggedIn && role === "organization";
   const theme = useSelector((state: RootState) => state.theme.theme);
@@ -35,9 +33,9 @@ function Layout() {
         </div>
         <Sidebar isLoggedIn={isLoggedIn} theme={theme} />
       </div>
-        <div className="pt-16">
-          <Outlet />
-        </div>
+      <div className="pt-16">
+        <Outlet />
+      </div>
     </div>
   );
 }

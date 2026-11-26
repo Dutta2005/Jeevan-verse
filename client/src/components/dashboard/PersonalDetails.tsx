@@ -1,9 +1,11 @@
+import { getErrorMessage } from "@/lib/error";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardFooter } from "../ui/card";
 import { api } from "../../api/api";
 import { Skeleton } from "../ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import {
+  type LucideIcon,
   GraduationCap,
   Stethoscope,
   Shield,
@@ -38,13 +40,7 @@ interface PersonalDetailsProps {
   updatedAt: string;
 }
 
-const UserIcon = ({
-  status,
-  ...props
-}: {
-  status: string;
-  className?: string;
-}) => {
+const UserIcon = ({ status, ...props }: { status: string; className?: string }) => {
   if (status === "doctor")
     return (
       <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full">
@@ -67,7 +63,7 @@ const DetailRow = ({
   value,
   important,
 }: {
-  icon: any;
+  icon: LucideIcon;
   label: string;
   value: string | number;
   important: boolean;
@@ -78,9 +74,7 @@ const DetailRow = ({
     </div>
     <div className="">
       <div className="flex">
-        <p className="text-sm text-light-text/70 dark:text-dark-text/70">
-          {label}
-        </p>
+        <p className="text-sm text-light-text/70 dark:text-dark-text/70">{label}</p>
         {important && <span className="text-primary">*</span>}
       </div>
       <p className="font-medium">{value}</p>
@@ -93,18 +87,18 @@ export default function PersonalDetails() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const getDetails = async () => {
-    try {
-      const res = await api.get("/users/current-user/details");
-      setDetails(res.data.data);
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Failed to fetch details");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const getDetails = async () => {
+      try {
+        const res = await api.get("/users/current-user/details");
+        setDetails(res.data.data);
+      } catch (error: unknown) {
+        setError(getErrorMessage(error, "Failed to fetch details"));
+      } finally {
+        setLoading(false);
+      }
+    };
+
     getDetails();
   }, []);
 
@@ -145,9 +139,7 @@ export default function PersonalDetails() {
               {details.canDonate && (
                 <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full">
                   <Shield className="w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    Eligible Blood Donor
-                  </span>
+                  <span className="text-sm font-medium">Eligible Blood Donor</span>
                 </div>
               )}
             </div>

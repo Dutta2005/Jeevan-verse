@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { MessageSquareMore } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { api } from "../api/api";
 import CreatePost from "../components/discussion/CreatePost";
 import { Button } from "../components/ui/button";
@@ -30,24 +30,27 @@ const DiscussionsPage: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchPosts = async (page = 1) => {
+  const fetchPosts = useCallback(async (page = 1) => {
     try {
-      setIsLoading(true);
       const response = await api.get(`/posts?page=${page}`);
       const { posts, pagination } = response.data.data;
 
       setPosts(posts);
       setPagination(pagination);
       setIsLoading(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to fetch posts", err);
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    const load = async () => {
+      setIsLoading(true);
+      await fetchPosts();
+    };
+    void load();
+  }, [fetchPosts]);
 
   if (isLoading)
     return (
@@ -78,11 +81,7 @@ const DiscussionsPage: React.FC = () => {
 
       <div className="flex flex-col space-y-4 items-center">
         {posts.map((post) => (
-          <Link
-            key={post._id}
-            to={`/discussions/${post._id}`}
-            className="w-full max-w-2xl"
-          >
+          <Link key={post._id} to={`/discussions/${post._id}`} className="w-full max-w-2xl">
             <PostCard post={post} />
           </Link>
         ))}
@@ -90,7 +89,10 @@ const DiscussionsPage: React.FC = () => {
 
       <div className="flex justify-center items-center mt-8 space-x-4">
         <Button
-          onClick={() => fetchPosts(pagination.currentPage - 1)}
+          onClick={() => {
+            setIsLoading(true);
+            void fetchPosts(pagination.currentPage - 1);
+          }}
           disabled={pagination.currentPage === 1}
           variant="outline"
         >
@@ -102,7 +104,10 @@ const DiscussionsPage: React.FC = () => {
         </span>
 
         <Button
-          onClick={() => fetchPosts(pagination.currentPage + 1)}
+          onClick={() => {
+            setIsLoading(true);
+            void fetchPosts(pagination.currentPage + 1);
+          }}
           disabled={pagination.currentPage === pagination.totalPages}
           variant="outline"
         >

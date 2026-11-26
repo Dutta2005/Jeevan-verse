@@ -1,13 +1,7 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import { LayoutDashboard, FileText, Moon, Menu, Landmark } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "../../ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../../ui/sheet";
 import { Button } from "../../ui/button";
 import OrgLogoutBtn from "../../organisation/OrgLogoutBtn";
 import { Switch } from "../../ui/switch";
@@ -29,7 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isLoggedIn, theme }) => {
     flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 text-light-text dark:text-dark-text
     ${
       isActive
-          ? "bg-primary/10 text-secondary font-medium shadow-sm dark:text-accent"
+        ? "bg-primary/10 text-secondary font-medium shadow-sm dark:text-accent"
         : "hover:text-secondary dark:hover:text-secondary"
     }
   `;
@@ -58,27 +52,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isLoggedIn, theme }) => {
         <nav className="mt-8 flex flex-col gap-2">
           {isLoggedIn ? (
             <div className="space-y-2">
-              <NavLink 
-                to={`/organisation/org-profile/0`} 
-                className={navLinkClasses}
-                end
-              >
+              <NavLink to={`/organisation/org-profile/0`} className={navLinkClasses} end>
                 <Landmark className="h-5 w-5" />
                 <span className="text-base font-medium">Profile</span>
               </NavLink>
-              <NavLink 
-                to="/organisation" 
-                className={navLinkClasses}
-                end
-              >
+              <NavLink to="/organisation" className={navLinkClasses} end>
                 <LayoutDashboard className="h-5 w-5" />
                 <span className="text-base font-medium">Dashboard</span>
               </NavLink>
-              <NavLink 
-                to="/organisation/posts" 
-                className={navLinkClasses}
-                end
-              >
+              <NavLink to="/organisation/posts" className={navLinkClasses} end>
                 <FileText className="h-5 w-5" />
                 <span className="text-base font-medium">Posts</span>
               </NavLink>
@@ -98,9 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isLoggedIn, theme }) => {
             <div className="flex items-center justify-between px-4 py-2">
               <div className="flex items-center gap-2 text-light-text dark:text-dark-text">
                 <Moon className="h-5 w-5 opacity-70" />
-                <span className="font-semibold">
-                  Dark Mode
-                </span>
+                <span className="font-semibold">Dark Mode</span>
               </div>
               <Switch
                 checked={theme === "dark"}
@@ -113,8 +93,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isLoggedIn, theme }) => {
 
           {isLoggedIn && (
             <div className="px-2">
-            <OrgLogoutBtn />
-          </div>)}
+              <OrgLogoutBtn />
+            </div>
+          )}
         </nav>
       </SheetContent>
     </Sheet>

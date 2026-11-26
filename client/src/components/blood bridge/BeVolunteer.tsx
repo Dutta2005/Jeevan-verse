@@ -1,5 +1,6 @@
+import { getErrorMessage } from "@/lib/error";
 import {
-    AlertDialogTitle,
+  AlertDialogTitle,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -29,10 +30,10 @@ export default function BeVolunteer({ id }: { id: string }) {
           duration: 2000,
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.response?.data.message || "Something went wrong",
+        description: getErrorMessage(error, "Something went wrong"),
         variant: "destructive",
         duration: 3000,
       });
@@ -41,11 +42,8 @@ export default function BeVolunteer({ id }: { id: string }) {
 
   return (
     <AlertDialog>
-      <AlertDialogTrigger>
-        <Button
-          variant="ghost"
-          className="text-accent dark:text-accent font-semibold"
-        >
+      <AlertDialogTrigger asChild>
+        <Button variant="ghost" className="text-accent dark:text-accent font-semibold">
           Be a Volunteer
         </Button>
       </AlertDialogTrigger>
@@ -54,20 +52,16 @@ export default function BeVolunteer({ id }: { id: string }) {
           <AlertDialogCancel className="absolute top-4 right-4 dark:text-dark-text">
             <X />
           </AlertDialogCancel>
-          <AlertDialogTitle className="dark:text-dark-text">
-            Share Details
-          </AlertDialogTitle>
+          <AlertDialogTitle className="dark:text-dark-text">Share Details</AlertDialogTitle>
           <AlertDialogDescription>
             Do you want to share your details with this person?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="gap-2">
-          <AlertDialogAction onClick={() => handleSubmit(false)} >
+          <AlertDialogAction onClick={() => handleSubmit(false)}>
             Continue without sharing
           </AlertDialogAction>
-          <AlertDialogAction onClick={() => handleSubmit(true)}>
-            Share
-          </AlertDialogAction>
+          <AlertDialogAction onClick={() => handleSubmit(true)}>Share</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

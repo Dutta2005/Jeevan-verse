@@ -5,19 +5,19 @@ import { RootState } from "@/store/store";
 import { useSelector } from "react-redux";
 
 function OrgHome() {
-    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
-    return (
-        <div>
-            {isAuthenticated ? (
-            <div className="py-7">
-                <Header />
-                <PastActivities />
-            </div>
-            ) : (
-                <OrganizationLandingPage />
-            )}
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  return (
+    <div>
+      {isAuthenticated ? (
+        <div className="py-7">
+          <Header />
+          <PastActivities />
         </div>
-    )
+      ) : (
+        <OrganizationLandingPage />
+      )}
+    </div>
+  );
 }
 
-export default OrgHome
+export default OrgHome;

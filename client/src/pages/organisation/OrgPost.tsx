@@ -1,14 +1,10 @@
+import { getErrorMessage } from "@/lib/error";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { formatDistanceToNow } from "date-fns";
 import { Landmark, Calendar } from "lucide-react";
 import { api } from "../../api/api";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "../../components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "../../components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import PostSkeleton from "../../components/organisation/post/PostSkeleton";
 import CommentSection from "@/components/CommentSection";
@@ -33,7 +29,7 @@ function OrgPost() {
   const postId = useParams<{ id: string }>().id;
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const role = useSelector((state: RootState) => state.auth.role);
 
   useEffect(() => {
@@ -43,8 +39,8 @@ function OrgPost() {
         setError(null);
         const response = await api.get(`/org-posts/${postId}`);
         setPost(response.data.data);
-      } catch (err: any) {
-        setError(error);
+      } catch (err: unknown) {
+        setError(getErrorMessage(err, "Failed to fetch post"));
       } finally {
         setIsLoading(false);
       }
@@ -55,10 +51,7 @@ function OrgPost() {
 
   if (error) {
     return (
-      <Alert
-        variant="destructive"
-        className="max-w-3xl mx-auto mt-8 bg-primary/10 border-primary"
-      >
+      <Alert variant="destructive" className="max-w-3xl mx-auto mt-8 bg-primary/10 border-primary">
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
       </Alert>
@@ -73,9 +66,7 @@ function OrgPost() {
     return (
       <Alert className="max-w-3xl mx-auto mt-8 bg-secondary/10 border-secondary">
         <AlertTitle>Not Found</AlertTitle>
-        <AlertDescription>
-          The requested post could not be found.
-        </AlertDescription>
+        <AlertDescription>The requested post could not be found.</AlertDescription>
       </Alert>
     );
   }

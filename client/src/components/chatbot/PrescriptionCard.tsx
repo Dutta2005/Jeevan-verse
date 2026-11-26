@@ -22,10 +22,7 @@ interface PrescriptionCardProps {
   imageUrl?: string;
 }
 
-const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
-  analysis,
-  imageUrl,
-}) => {
+const PrescriptionCard: React.FC<PrescriptionCardProps> = ({ analysis, imageUrl }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [showImage, setShowImage] = useState(false);
 
@@ -72,9 +69,7 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
                 <p className="text-[11px] text-light-text/50 dark:text-dark-text/50 uppercase tracking-wider font-medium">
                   Diagnosis
                 </p>
-                <p className="text-sm text-light-text dark:text-dark-text">
-                  {analysis.diagnosis}
-                </p>
+                <p className="text-sm text-light-text dark:text-dark-text">{analysis.diagnosis}</p>
               </div>
             </div>
           )}
@@ -90,10 +85,7 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
               </div>
               <div className="space-y-1">
                 {analysis.medications.map((med, i) => (
-                  <div
-                    key={i}
-                    className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-2.5"
-                  >
+                  <div key={i} className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-2.5">
                     <p className="text-sm font-medium text-light-text dark:text-dark-text">
                       {med.name}
                     </p>

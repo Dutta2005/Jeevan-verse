@@ -5,7 +5,7 @@ interface Notification {
   type: string;
   message: string;
   redirectUrl: string;
-  data: any;
+  data: Record<string, unknown>;
   createdAt: string;
   isRead: boolean;
 }
@@ -26,16 +26,14 @@ const notificationSlice = createSlice({
   reducers: {
     addNotifications: (state, action: PayloadAction<Notification[]>) => {
       const newNotifications = action.payload.filter(
-        (newNotif) => !state.notifications.some((n) => n._id === newNotif._id)
+        (newNotif) => !state.notifications.some((n) => n._id === newNotif._id),
       );
       state.notifications.unshift(...newNotifications);
     },
     addNotification: (state, action: PayloadAction<Notification>) => {
       // Check for duplicates before adding
-      const isDuplicate = state.notifications.some(
-        (n) => n._id === action.payload._id
-      );
-      
+      const isDuplicate = state.notifications.some((n) => n._id === action.payload._id);
+
       if (!isDuplicate) {
         state.notifications.unshift(action.payload);
       }
@@ -49,11 +47,7 @@ const notificationSlice = createSlice({
   },
 });
 
-export const { 
-  addNotifications,
-  addNotification, 
-  clearNotifications, 
-  updateLastCheckedAt,
-} = notificationSlice.actions;
+export const { addNotifications, addNotification, clearNotifications, updateLastCheckedAt } =
+  notificationSlice.actions;
 
 export default notificationSlice.reducer;

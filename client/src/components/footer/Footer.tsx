@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
-import { Link } from "react-router-dom";
-import { Mail, Facebook, Instagram, Twitter, Phone, Heart } from "lucide-react";
+import { Link } from "react-router";
+import { Mail, Phone, Heart } from "lucide-react";
+import { FaFacebookF, FaInstagram, FaTwitter } from "react-icons/fa";
 
 const Footer = () => {
   const legalLinks = [
@@ -22,7 +23,8 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-sm text-muted-foreground max-w-xs text-center">
-              Empowering healthcare through innovative digital solutions and comprehensive medical services.
+              Empowering healthcare through innovative digital solutions and comprehensive medical
+              services.
             </p>
           </div>
 
@@ -52,9 +54,9 @@ const Footer = () => {
             <h3 className="text-lg font-semibold text-primary">Connect With Us</h3>
             <div className="flex gap-4">
               {[
-                { Icon: Facebook, href: "#", label: "Facebook" },
-                { Icon: Twitter, href: "#", label: "Twitter" },
-                { Icon: Instagram, href: "#", label: "Instagram" },
+                { Icon: FaFacebookF, href: "#", label: "Facebook" },
+                { Icon: FaTwitter, href: "#", label: "Twitter" },
+                { Icon: FaInstagram, href: "#", label: "Instagram" },
               ].map(({ Icon, href, label }) => (
                 <a
                   key={label}

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -13,7 +13,8 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { useToast } from "../../hooks/use-toast";
 import { api } from "../../api/api";
-import { State, City } from "country-state-city";
+import { isAxiosError } from "axios";
+import { State, City, type IState } from "country-state-city";
 
 interface FormData {
   name: string;
@@ -58,9 +59,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [selectedState, setSelectedState] = useState<any>(null);
-  // @ts-ignore
-  const [selectedCity, setSelectedCity] = useState<any>(null);
+  const [selectedState, setSelectedState] = useState<IState | undefined>(undefined);
 
   const states = State.getStatesOfCountry("IN");
 
@@ -88,15 +87,11 @@ const Signup = () => {
 
   const [errors, setErrors] = useState<Errors>({});
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
 
     const isCheckbox = (e.target as HTMLInputElement).type === "checkbox";
-    const inputValue = isCheckbox
-      ? (e.target as HTMLInputElement).checked
-      : value;
+    const inputValue = isCheckbox ? (e.target as HTMLInputElement).checked : value;
 
     setFormData((prev) => {
       if (id.includes(".")) {
@@ -108,8 +103,8 @@ const Signup = () => {
             parent === "address"
               ? { ...prev.address, [child]: inputValue }
               : parent === "info"
-              ? { ...prev.info, [child]: inputValue }
-              : prev[parent as keyof FormData],
+                ? { ...prev.info, [child]: inputValue }
+                : prev[parent as keyof FormData],
         };
       }
 
@@ -135,11 +130,6 @@ const Signup = () => {
   };
 
   const handleCityChange = (cityName: string) => {
-    const city = City.getCitiesOfState("IN", selectedState.isoCode).find(
-      (c) => c.name === cityName
-    );
-    setSelectedCity(city);
-
     setFormData((prev) => ({
       ...prev,
       address: {
@@ -154,8 +144,7 @@ const Signup = () => {
 
     if (!formData.name) newErrors.name = "Name is required";
     if (!formData.phone) newErrors.phone = "Phone number is required";
-    if (formData.phone.length !== 10)
-      newErrors.phone = "Phone number must be 10 digits";
+    if (formData.phone.length !== 10) newErrors.phone = "Phone number must be 10 digits";
     if (!formData.email) newErrors.email = "Email is required";
     if (!formData.password) newErrors.password = "Password is required";
     if (formData.password !== formData.confirmPassword) {
@@ -165,8 +154,7 @@ const Signup = () => {
     if (!formData.address.state) newErrors.state = "State is required";
     if (!formData.address.district) newErrors.district = "District is required";
     if (!formData.address.city) newErrors.city = "City is required";
-    if (!formData.info.bloodGroup)
-      newErrors.bloodGroup = "Blood group is required";
+    if (!formData.info.bloodGroup) newErrors.bloodGroup = "Blood group is required";
     if (!formData.info.height) newErrors.height = "Height is required";
     if (!formData.info.weight) newErrors.weight = "Weight is required";
     if (!formData.termsAccepted)
@@ -209,8 +197,8 @@ const Signup = () => {
           duration: 2000,
         });
       }
-    } catch (error: any) {
-      if (error.response.status === 409)
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response?.status === 409)
         toast({
           title: "Registration Failed",
           description: "Email or phone number already exists",
@@ -253,9 +241,7 @@ const Signup = () => {
                   placeholder="John Doe"
                   className={`h-11 ${errors.name ? "border-red-500" : ""}`}
                 />
-                {errors.name && (
-                  <p className="text-red-500 text-sm">{errors.name}</p>
-                )}
+                {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
               </div>
 
               <div className="space-y-2">
@@ -267,9 +253,7 @@ const Signup = () => {
                   placeholder="1234567890"
                   className={`h-11 ${errors.phone ? "border-red-500" : ""}`}
                 />
-                {errors.phone && (
-                  <p className="text-red-500 text-sm">{errors.phone}</p>
-                )}
+                {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
               </div>
             </div>
 
@@ -284,9 +268,7 @@ const Signup = () => {
                   placeholder="25"
                   className={`h-11 ${errors.age ? "border-red-500" : ""}`}
                 />
-                {errors.age && (
-                  <p className="text-red-500 text-sm">{errors.age}</p>
-                )}
+                {errors.age && <p className="text-red-500 text-sm">{errors.age}</p>}
               </div>
 
               <div className="space-y-2">
@@ -299,9 +281,7 @@ const Signup = () => {
                   placeholder="john.doe@example.com"
                   className={`h-11 ${errors.email ? "border-red-500" : ""}`}
                 />
-                {errors.email && (
-                  <p className="text-red-500 text-sm">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
               </div>
             </div>
 
@@ -314,9 +294,7 @@ const Signup = () => {
                   className={`w-full h-11 p-2 border rounded bg-white dark:bg-dark-bg 
             text-light-text dark:text-dark-text
             border-secondary 
-            focus:ring-accent focus:border-accent ${
-              errors.state ? "border-red-500" : ""
-            }`}
+            focus:ring-accent focus:border-accent ${errors.state ? "border-red-500" : ""}`}
                 >
                   <option value="">Select State</option>
                   {states.map((state) => (
@@ -325,9 +303,7 @@ const Signup = () => {
                     </option>
                   ))}
                 </select>
-                {errors.state && (
-                  <p className="text-red-500 text-sm">{errors.state}</p>
-                )}
+                {errors.state && <p className="text-red-500 text-sm">{errors.state}</p>}
               </div>
 
               <div className="space-y-2">
@@ -339,9 +315,7 @@ const Signup = () => {
                   placeholder="Enter District"
                   className={`h-11 ${errors.district ? "border-red-500" : ""}`}
                 />
-                {errors.district && (
-                  <p className="text-red-500 text-sm">{errors.district}</p>
-                )}
+                {errors.district && <p className="text-red-500 text-sm">{errors.district}</p>}
               </div>
 
               <div className="space-y-2">
@@ -353,23 +327,17 @@ const Signup = () => {
                   className={`w-full h-11 p-2 border rounded bg-white dark:bg-dark-bg 
             text-light-text dark:text-dark-text
             border-secondary 
-            focus:ring-accent focus:border-accent ${
-              errors.city ? "border-red-500" : ""
-            }`}
+            focus:ring-accent focus:border-accent ${errors.city ? "border-red-500" : ""}`}
                 >
                   <option value="">Select City</option>
                   {selectedState &&
-                    City.getCitiesOfState("IN", selectedState.isoCode).map(
-                      (city) => (
-                        <option key={city.name} value={city.name}>
-                          {city.name}
-                        </option>
-                      )
-                    )}
+                    City.getCitiesOfState("IN", selectedState.isoCode).map((city) => (
+                      <option key={city.name} value={city.name}>
+                        {city.name}
+                      </option>
+                    ))}
                 </select>
-                {errors.city && (
-                  <p className="text-red-500 text-sm">{errors.city}</p>
-                )}
+                {errors.city && <p className="text-red-500 text-sm">{errors.city}</p>}
               </div>
             </div>
 
@@ -388,25 +356,13 @@ const Signup = () => {
                 }`}
                 >
                   <option value="">Blood Group</option>
-                  {[
-                    "A+",
-                    "A-",
-                    "B+",
-                    "B-",
-                    "AB+",
-                    "AB-",
-                    "O+",
-                    "O-",
-                    "Others",
-                  ].map((group) => (
+                  {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Others"].map((group) => (
                     <option key={group} value={group}>
                       {group}
                     </option>
                   ))}
                 </select>
-                {errors.bloodGroup && (
-                  <p className="text-red-500 text-sm">{errors.bloodGroup}</p>
-                )}
+                {errors.bloodGroup && <p className="text-red-500 text-sm">{errors.bloodGroup}</p>}
               </div>
 
               <div className="space-y-2">
@@ -419,9 +375,7 @@ const Signup = () => {
                   placeholder="170"
                   className={`h-11 ${errors.height ? "border-red-500" : ""}`}
                 />
-                {errors.height && (
-                  <p className="text-red-500 text-sm">{errors.height}</p>
-                )}
+                {errors.height && <p className="text-red-500 text-sm">{errors.height}</p>}
               </div>
 
               <div className="space-y-2">
@@ -434,9 +388,7 @@ const Signup = () => {
                   placeholder="65"
                   className={`h-11 ${errors.weight ? "border-red-500" : ""}`}
                 />
-                {errors.weight && (
-                  <p className="text-red-500 text-sm">{errors.weight}</p>
-                )}
+                {errors.weight && <p className="text-red-500 text-sm">{errors.weight}</p>}
               </div>
             </div>
 
@@ -470,9 +422,7 @@ const Signup = () => {
                   placeholder="Create a strong password"
                   className={`h-11 ${errors.password ? "border-red-500" : ""}`}
                 />
-                {errors.password && (
-                  <p className="text-red-500 text-sm">{errors.password}</p>
-                )}
+                {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
               </div>
 
               <div className="space-y-2">
@@ -483,14 +433,10 @@ const Signup = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="Confirm your password"
-                  className={`h-11 ${
-                    errors.confirmPassword ? "border-red-500" : ""
-                  }`}
+                  className={`h-11 ${errors.confirmPassword ? "border-red-500" : ""}`}
                 />
                 {errors.confirmPassword && (
-                  <p className="text-red-500 text-sm">
-                    {errors.confirmPassword}
-                  </p>
+                  <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
                 )}
               </div>
             </div>
@@ -527,9 +473,7 @@ const Signup = () => {
                 </Link>
               </label>
             </div>
-            {errors.termsAccepted && (
-              <p className="text-red-500 text-sm">{errors.termsAccepted}</p>
-            )}
+            {errors.termsAccepted && <p className="text-red-500 text-sm">{errors.termsAccepted}</p>}
 
             <Button
               type="submit"

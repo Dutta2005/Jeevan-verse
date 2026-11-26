@@ -1,22 +1,11 @@
+import { getErrorMessage } from "@/lib/error";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { ArrowRight, ChevronLeft, ChevronRight, HandHelping, Loader2 } from "lucide-react";
 import { RootState } from "../../store/store";
 import { api } from "../../api/api";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import BeVolunteer from "./BeVolunteer";
@@ -52,7 +41,7 @@ interface Request {
   volunteers: [
     {
       user: string;
-    }
+    },
   ];
 }
 
@@ -72,38 +61,37 @@ function Requests() {
     sort: "newest",
   });
 
-  const fetchRequests = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      let url = "/blood-requests";
-
-      if (filters.bloodGroup !== "all") {
-        url = `/blood-requests/blood-group?bloodGroup=${filters.bloodGroup}`;
-      }
-      if (filters.status !== "all") {
-        url = `/blood-requests/status?status=${filters.status}`;
-      }
-
-      url += `${url.includes("?") ? "&" : "?"}page=${currentPage}`;
-      const response = await api.get(url);
-
-      if (response.status === 200) {
-        const data = response.data.data;
-        if (filters.sort === "oldest") {
-          data.bloodRequests = data.bloodRequests.reverse();
-        }
-        setRequests(data);
-      }
-    } catch (error: any) {
-      setError(error?.message || "Failed to fetch requests");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchRequests();
+    const fetchRequests = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        let url = "/blood-requests";
+
+        if (filters.bloodGroup !== "all") {
+          url = `/blood-requests/blood-group?bloodGroup=${filters.bloodGroup}`;
+        }
+        if (filters.status !== "all") {
+          url = `/blood-requests/status?status=${filters.status}`;
+        }
+
+        url += `${url.includes("?") ? "&" : "?"}page=${currentPage}`;
+        const response = await api.get(url);
+
+        if (response.status === 200) {
+          const data = response.data.data;
+          if (filters.sort === "oldest") {
+            data.bloodRequests = data.bloodRequests.reverse();
+          }
+          setRequests(data);
+        }
+      } catch (error: unknown) {
+        setError(getErrorMessage(error, "Failed to fetch requests"));
+      } finally {
+        setLoading(false);
+      }
+    };
+    void fetchRequests();
   }, [currentPage, filters]);
 
   const handleFilterChange = (key: string, value: string) => {
@@ -161,10 +149,7 @@ function Requests() {
             </SelectContent>
           </Select>
 
-          <Select
-            value={filters.sort}
-            onValueChange={(value) => handleFilterChange("sort", value)}
-          >
+          <Select value={filters.sort} onValueChange={(value) => handleFilterChange("sort", value)}>
             <SelectTrigger className="w-[150px] bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border border-accent">
               <SelectValue placeholder="Sort By" />
             </SelectTrigger>
@@ -193,10 +178,7 @@ function Requests() {
         <>
           <div className="grid gap-4 mb-6 ">
             {requests?.bloodRequests.map((request) => (
-              <Card
-                key={request._id}
-                className="hover:shadow-lg transition-shadow dark:bg-dark-bg"
-              >
+              <Card key={request._id} className="hover:shadow-lg transition-shadow dark:bg-dark-bg">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-xl font-semibold flex gap-3 items-center">
                     <Badge
@@ -210,32 +192,28 @@ function Requests() {
                     </Badge>
                   </CardTitle>
                   <div className="flex gap-4">
-                  <p className="flex items-center text-green-400">
-                    <HandHelping className="w-6 h-6 mr-2" />
-                    <span>{request.volunteers?.length}</span>
-                  </p>
-                  <Badge
-                    variant="outline"
-                    className="border-secondary text-secondary dark:border-dark-text dark:text-dark-text"
-                  >
-                    {request.status.charAt(0).toUpperCase() +
-                      request.status.slice(1)}
-                  </Badge>
+                    <p className="flex items-center text-green-400">
+                      <HandHelping className="w-6 h-6 mr-2" />
+                      <span>{request.volunteers?.length}</span>
+                    </p>
+                    <Badge
+                      variant="outline"
+                      className="border-secondary text-secondary dark:border-dark-text dark:text-dark-text"
+                    >
+                      {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <h3 className="font-semibold mb-1">Message</h3>
-                      <p className="text-gray-600 dark:text-dark-text">
-                        {request.message}
-                      </p>
+                      <p className="text-gray-600 dark:text-dark-text">{request.message}</p>
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Location</h3>
                       <p className="text-gray-600 dark:text-dark-text">
-                        {request.address.city}, {request.address.district},{" "}
-                        {request.address.state}
+                        {request.address.city}, {request.address.district}, {request.address.state}
                       </p>
                     </div>
                     <div>
@@ -250,16 +228,16 @@ function Requests() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Link to={`/bloodbridge/request/${request._id}`}
-                  className="text-secondary flex items-center hover:underline font-semibold"
+                  <Link
+                    to={`/bloodbridge/request/${request._id}`}
+                    className="text-secondary flex items-center hover:underline font-semibold"
                   >
                     View details <ArrowRight className="w-4 h-4 ml-2" />
                   </Link>
 
-                  {request.bloodGroup === userBG &&
-                    request.status === "pending" && (
-                      <BeVolunteer id={request._id} />
-                    )}
+                  {request.bloodGroup === userBG && request.status === "pending" && (
+                    <BeVolunteer id={request._id} />
+                  )}
                 </CardFooter>
               </Card>
             ))}

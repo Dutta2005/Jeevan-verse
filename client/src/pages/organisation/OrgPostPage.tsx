@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "../../components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { api } from "../../api/api";
 import { Landmark, ChevronLeft, ChevronRight } from "lucide-react";
@@ -34,9 +29,7 @@ const PostCard = ({ post }: { post: Post }) => {
   };
 
   return (
-    <Link
-      to={`/${role === "organization" ? "organisation/" : ""}post/${post._id}`}
-    >
+    <Link to={`/${role === "organization" ? "organisation/" : ""}post/${post._id}`}>
       <Card className="rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border-l-accent dark:border-l-accent mb-2">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -92,23 +85,23 @@ function OrgPostPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  const fetchPosts = async (page: number) => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/org-posts?page=${page}`);
-      if (response.status === 200) {
-        setPosts(response.data.data.posts);
-        setCurrentPage(response.data.data.pagination.currentPage);
-        setTotalPages(response.data.data.pagination.totalPages);
-      }
-    } catch (error) {
-      console.error("Failed to fetch posts", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchPosts = async (page: number) => {
+      setLoading(true);
+      try {
+        const response = await api.get(`/org-posts?page=${page}`);
+        if (response.status === 200) {
+          setPosts(response.data.data.posts);
+          setCurrentPage(response.data.data.pagination.currentPage);
+          setTotalPages(response.data.data.pagination.totalPages);
+        }
+      } catch (error) {
+        console.error("Failed to fetch posts", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchPosts(currentPage);
   }, [currentPage]);
 
@@ -117,9 +110,7 @@ function OrgPostPage() {
       <div className="max-w-2xl mx-auto">
         <div className="space-y-6">
           {loading
-            ? Array.from({ length: 3 }).map((_, index) => (
-                <PostSkeleton key={index} />
-              ))
+            ? Array.from({ length: 3 }).map((_, index) => <PostSkeleton key={index} />)
             : posts.map((post) => <PostCard key={post._id} post={post} />)}
         </div>
 

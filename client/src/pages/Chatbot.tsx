@@ -1,14 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import {
-  Send,
-  Plus,
-  X,
-  Loader2,
-  MessageSquare,
-  Bot,
-  Sparkles,
-  Menu,
-} from "lucide-react";
+import { Send, Plus, X, Loader2, MessageSquare, Bot, Sparkles, Menu } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -96,6 +87,18 @@ const MedicalChatbot: React.FC = () => {
 
   // ── Load sessions on mount ──
   useEffect(() => {
+    const loadSessions = async () => {
+      try {
+        setSessionsLoading(true);
+        const { data } = await api.get("/chat/sessions");
+        setSessions(data.data || []);
+      } catch (error) {
+        console.error("Failed to load sessions:", error);
+      } finally {
+        setSessionsLoading(false);
+      }
+    };
+
     loadSessions();
   }, []);
 
@@ -105,17 +108,6 @@ const MedicalChatbot: React.FC = () => {
   }, [messages]);
 
   // ── API Calls ──
-  const loadSessions = async () => {
-    try {
-      setSessionsLoading(true);
-      const { data } = await api.get("/chat/sessions");
-      setSessions(data.data || []);
-    } catch (error) {
-      console.error("Failed to load sessions:", error);
-    } finally {
-      setSessionsLoading(false);
-    }
-  };
 
   const loadSession = async (sessionId: string) => {
     try {
@@ -189,9 +181,7 @@ const MedicalChatbot: React.FC = () => {
 
     const symptomsText =
       symptoms.length > 0
-        ? `I have the following symptoms: ${symptoms
-            .map((s) => s.text)
-            .join(", ")}. `
+        ? `I have the following symptoms: ${symptoms.map((s) => s.text).join(", ")}. `
         : "";
 
     const fullMessage = `${symptomsText}${messageInput}`.trim();
@@ -208,10 +198,9 @@ const MedicalChatbot: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { data } = await api.post(
-        `/chat/sessions/${activeSessionId}/message`,
-        { message: fullMessage }
-      );
+      const { data } = await api.post(`/chat/sessions/${activeSessionId}/message`, {
+        message: fullMessage,
+      });
 
       if (data.data?.assistantMessage) {
         setMessages((prev) => [...prev, data.data.assistantMessage]);
@@ -231,8 +220,8 @@ const MedicalChatbot: React.FC = () => {
                   },
                   updatedAt: new Date().toISOString(),
                 }
-              : s
-          )
+              : s,
+          ),
         );
       }
     } catch (error) {
@@ -241,8 +230,7 @@ const MedicalChatbot: React.FC = () => {
         ...prev,
         {
           role: "assistant",
-          content:
-            "I apologize, but I encountered an error. Please try again.",
+          content: "I apologize, but I encountered an error. Please try again.",
           timestamp: new Date().toISOString(),
         },
       ]);
@@ -262,13 +250,9 @@ const MedicalChatbot: React.FC = () => {
     formData.append("prescription", selectedFile);
 
     try {
-      const { data } = await api.post(
-        `/chat/sessions/${activeSessionId}/upload`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const { data } = await api.post(`/chat/sessions/${activeSessionId}/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       if (data.data?.userMessage) {
         setMessages((prev) => [...prev, data.data.userMessage]);
@@ -291,8 +275,8 @@ const MedicalChatbot: React.FC = () => {
                   },
                   updatedAt: new Date().toISOString(),
                 }
-              : s
-          )
+              : s,
+          ),
         );
       }
 
@@ -333,9 +317,7 @@ const MedicalChatbot: React.FC = () => {
   }, []);
 
   const canSend =
-    activeSessionId &&
-    !isLoading &&
-    (symptoms.length > 0 || messageInput.trim() || selectedFile);
+    activeSessionId && !isLoading && (symptoms.length > 0 || messageInput.trim() || selectedFile);
 
   return (
     <div className="flex h-[calc(100dvh-4rem)] max-w-6xl mx-auto md:p-4 overflow-hidden">
@@ -400,9 +382,7 @@ const MedicalChatbot: React.FC = () => {
                   <Bot className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-samarkan text-secondary leading-tight">
-                    Umeed
-                  </h1>
+                  <h1 className="text-lg font-samarkan text-secondary leading-tight">Umeed</h1>
                   <p className="text-[10px] text-light-text/40 dark:text-dark-text/40 -mt-0.5">
                     AI Health Assistant
                   </p>
@@ -445,9 +425,9 @@ const MedicalChatbot: React.FC = () => {
                     Welcome to Umeed
                   </h2>
                   <p className="text-sm text-light-text/60 dark:text-dark-text/60 leading-relaxed">
-                    Your AI-powered health assistant with memory. I remember
-                    your past conversations, prescriptions, and health profile
-                    to give you personalized advice.
+                    Your AI-powered health assistant with memory. I remember your past
+                    conversations, prescriptions, and health profile to give you personalized
+                    advice.
                   </p>
                 </motion.div>
 
@@ -580,9 +560,7 @@ const MedicalChatbot: React.FC = () => {
                 ref={messageInputRef}
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && !e.shiftKey && !isLoading && sendMessage()
-                }
+                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && !isLoading && sendMessage()}
                 placeholder={
                   selectedFile
                     ? "Upload prescription to analyze..."

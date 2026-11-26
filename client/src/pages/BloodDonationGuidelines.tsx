@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle, Clock, Heart } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, Heart } from "lucide-react";
 
 const BloodDonationGuidelines = () => {
   return (
@@ -15,7 +15,9 @@ const BloodDonationGuidelines = () => {
 
       <div className="container mx-auto px-4 py-8">
         <section className="mb-12">
-          <h2 className="mb-6 text-3xl font-bold text-primary text-center">When You Cannot Donate Blood</h2>
+          <h2 className="mb-6 text-3xl font-bold text-primary text-center">
+            When You Cannot Donate Blood
+          </h2>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="transform rounded-lg bg-white p-6 shadow-md transition-all hover:shadow-lg dark:bg-dark-bg dark:shadow-primary/20">
               <div className="mb-4 flex items-center gap-2">

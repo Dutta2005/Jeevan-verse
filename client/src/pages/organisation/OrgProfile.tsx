@@ -28,41 +28,23 @@ function OrgProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const getOrgProfile = async () => {
-    try {
-      setIsLoading(true);
-      setError(null); // Reset error state
-      const response = await api.get(`/organizations/profile`);
-      if (response.status === 200) {
-        setOrgProfile(response.data.data);
-      }
-    } catch (err: any) {
-      setError("Failed to fetch organization profile. Please try again later.");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const getOrgProfileById = async () => {
-    try {
-      setIsLoading(true);
-      setError(null); // Reset error state
-      const response = await api.get(`/organizations/profile/${orgId}`);
-      if (response.status === 200) {
-        setOrgProfile(response.data.data);
-      }
-    } catch (err: any) {
-      setError("Failed to fetch organization profile by ID. Please try again later.");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (orgId === "0") getOrgProfile();
-    else getOrgProfileById();
+    const getOrgProfile = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const endpoint =
+          orgId === "0" ? "/organizations/profile" : `/organizations/profile/${orgId}`;
+        const response = await api.get(endpoint);
+        if (response.status === 200) setOrgProfile(response.data.data);
+      } catch (error: unknown) {
+        setError("Failed to fetch organization profile. Please try again later.");
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    void getOrgProfile();
   }, [orgId]);
 
   const formatDate = (dateString: string) => {
@@ -163,9 +145,7 @@ function OrgProfile() {
             <CardContent className="space-y-4">
               <div className="text-sm text-light-text dark:text-dark-text">
                 <span className="block opacity-70">Member since</span>
-                <span className="font-medium">
-                  {formatDate(orgProfile.createdAt)}
-                </span>
+                <span className="font-medium">{formatDate(orgProfile.createdAt)}</span>
               </div>
             </CardContent>
           </Card>

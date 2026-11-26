@@ -1,11 +1,7 @@
 import { useSelector, useDispatch } from "react-redux";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import { Menu, Moon, User } from "lucide-react";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-} from "../ui/navigation-menu";
+import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from "../ui/navigation-menu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,9 +19,7 @@ import Notifications from "./Notifications";
 
 const Navbar = () => {
   const dispatch = useDispatch();
-  const isAuthenticated = useSelector(
-    (state: RootState) => state.auth.isAuthenticated
-  );
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const theme = useSelector((state: RootState) => state.theme.theme);
 
   const handleThemeToggle = () => {
@@ -48,9 +42,7 @@ const Navbar = () => {
                 return (
                   <NavigationMenuItem
                     key={option.name}
-                    className={`${
-                      option.auth === isAuthenticated ? "" : "hidden"
-                    }`}
+                    className={`${option.auth === isAuthenticated ? "" : "hidden"}`}
                   >
                     <NavLink
                       to={option.link}
@@ -59,8 +51,8 @@ const Navbar = () => {
                           isActive
                             ? "text-secondary"
                             : theme === "dark"
-                            ? "text-dark-text/80"
-                            : "text-light-text"
+                              ? "text-dark-text/80"
+                              : "text-light-text"
                         }`
                       }
                     >
@@ -73,18 +65,14 @@ const Navbar = () => {
           </NavigationMenu>
 
           <div className="flex items-center gap-4">
-          {isAuthenticated && (
-            <Notifications />
-          )}
+            {isAuthenticated && <Notifications />}
             <Sidebar />
             <DropdownMenu>
               <DropdownMenuTrigger className="hidden lg:block" asChild>
                 <Avatar
                   className={`
                     cursor-pointer 
-                    ${
-                    isAuthenticated ? "hover:ring-2 hover:ring-accent transition-all" : ""
-                    }
+                    ${isAuthenticated ? "hover:ring-2 hover:ring-accent transition-all" : ""}
                 `}
                 >
                   <AvatarFallback>
@@ -107,7 +95,7 @@ const Navbar = () => {
                 backdrop-blur-md 
                 border 
                 ${
-                    theme === "dark"
+                  theme === "dark"
                     ? "bg-dark-bg/80 text-dark-text border-secondary/20"
                     : "bg-light-bg/80 text-light-text border-secondary/20"
                 }
@@ -126,10 +114,7 @@ const Navbar = () => {
                       <Moon className="h-4 w-4 opacity-70" />
                       <span>Dark Mode</span>
                     </div>
-                    <Switch
-                      checked={theme === "dark"}
-                      onCheckedChange={handleThemeToggle}
-                    />
+                    <Switch checked={theme === "dark"} onCheckedChange={handleThemeToggle} />
                   </div>
                 </DropdownMenuItem>
 
