@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "test": "vitest run --coverage",
-    "preflight": "npm run lint && npm run typecheck && npm run test",
+    "preflight": "npm run format && npm run lint && npm run typecheck && npm run test &&npm run build",
     "format": "prettier --write ."
   },
   "dependencies": {
