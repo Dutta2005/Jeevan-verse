@@ -10,23 +10,29 @@ vi.mock("@/components/auth/AuthLayout", () => ({
   AuthLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }));
 
-const mocks = vi.hoisted(() => ({ post: vi.fn(), navigate: vi.fn(), toast: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  post: vi.fn(),
+  navigate: vi.fn(),
+  toast: vi.fn(),
+  cities: vi.fn(),
+}));
 vi.mock("../../../api/api", () => ({ api: { post: mocks.post } }));
 vi.mock("../../../hooks/use-toast", () => ({ useToast: () => ({ toast: mocks.toast }) }));
 vi.mock("react-router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-router")>()),
   useNavigate: () => mocks.navigate,
 }));
-vi.mock("country-state-city", () => ({
-  State: {
-    getStatesOfCountry: () => [
-      { name: "Test State", isoCode: "TS" },
-      { name: "Other State", isoCode: "OS" },
-    ],
-  },
-  City: { getCitiesOfState: () => [{ name: "Test City" }] },
+vi.mock("@/lib/india-locations", () => ({
+  indianStates: [
+    { name: "Test State", isoCode: "TS" },
+    { name: "Other State", isoCode: "OS" },
+  ],
+  getIndianCities: mocks.cities,
 }));
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+  vi.resetAllMocks();
+  mocks.cities.mockResolvedValue(["Test City"]);
+});
 const mount = () =>
   render(
     <MemoryRouter>
@@ -57,6 +63,19 @@ async function fill(age = "25") {
 }
 
 describe("user registration", () => {
+  it("loads city options after selecting a state and retries failed downloads", async () => {
+    mocks.cities.mockRejectedValueOnce(new Error("Offline")).mockResolvedValueOnce(["Test City"]);
+    mount();
+    expect(mocks.cities).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("City")).toBeDisabled();
+    await userEvent.selectOptions(screen.getByLabelText("State"), "Test State");
+    await screen.findByText("City suggestions could not be loaded.");
+    expect(screen.getByLabelText("City")).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Retry city suggestions" }));
+    await waitFor(() => expect(screen.getByLabelText("City")).toBeEnabled());
+    await userEvent.selectOptions(screen.getByLabelText("City"), "Test City");
+    expect(screen.getByLabelText("City")).toHaveValue("Test City");
+  });
   it("validates required fields and consent before sending anything", () => {
     mount();
     submit();

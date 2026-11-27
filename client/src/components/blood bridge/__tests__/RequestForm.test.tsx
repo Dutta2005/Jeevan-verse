@@ -8,9 +8,9 @@ import { selectOption } from "../../../test/selectOption";
 const mocks = vi.hoisted(() => ({ post: vi.fn(), navigate: vi.fn() }));
 vi.mock("../../../api/api", () => ({ api: { post: mocks.post } }));
 vi.mock("react-router", () => ({ useNavigate: () => mocks.navigate }));
-vi.mock("country-state-city", () => ({
-  State: { getStatesOfCountry: () => [{ name: "Test State", isoCode: "TS" }] },
-  City: { getCitiesOfState: () => [{ name: "Test City" }] },
+vi.mock("@/lib/india-locations", () => ({
+  indianStates: [{ name: "Test State", isoCode: "TS" }],
+  getIndianCities: async () => ["Test City"],
 }));
 beforeEach(() => vi.resetAllMocks());
 afterEach(() => vi.restoreAllMocks());

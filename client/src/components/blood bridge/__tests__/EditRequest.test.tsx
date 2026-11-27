@@ -7,14 +7,12 @@ import { selectOption } from "../../../test/selectOption";
 
 const mocks = vi.hoisted(() => ({ get: vi.fn(), patch: vi.fn(), save: vi.fn(), cancel: vi.fn() }));
 vi.mock("../../../api/api", () => ({ api: { get: mocks.get, patch: mocks.patch } }));
-vi.mock("country-state-city", () => ({
-  State: {
-    getStatesOfCountry: () => [
-      { name: "Test State", isoCode: "TS" },
-      { name: "Other State", isoCode: "OS" },
-    ],
-  },
-  City: { getCitiesOfState: () => [{ name: "Test City" }, { name: "Other City" }] },
+vi.mock("@/lib/india-locations", () => ({
+  indianStates: [
+    { name: "Test State", isoCode: "TS" },
+    { name: "Other State", isoCode: "OS" },
+  ],
+  getIndianCities: async () => ["Test City", "Other City"],
 }));
 const request = {
   bloodGroup: "O+",

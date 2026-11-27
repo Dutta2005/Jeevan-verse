@@ -16,7 +16,8 @@ import { Input } from "../../components/ui/input";
 import { useToast } from "../../hooks/use-toast";
 import { api } from "../../api/api";
 import { isAxiosError } from "axios";
-import { State, City, type IState } from "country-state-city";
+import { indianStates as states, type IndianState } from "@/lib/india-locations";
+import { useIndianCities } from "@/hooks/useIndianCities";
 
 interface FormData {
   name: string;
@@ -61,9 +62,13 @@ const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [selectedState, setSelectedState] = useState<IState | undefined>(undefined);
-
-  const states = State.getStatesOfCountry("IN");
+  const [selectedState, setSelectedState] = useState<IndianState | undefined>(undefined);
+  const {
+    cities,
+    isLoading: citiesLoading,
+    error: citiesError,
+    retry,
+  } = useIndianCities(selectedState?.isoCode || "");
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -308,17 +313,25 @@ const Signup = () => {
                   {...authFieldProps("address.city", errors.city)}
                   value={formData.address.city}
                   onChange={(e) => handleCityChange(e.target.value)}
-                  disabled={!formData.address.state}
+                  disabled={!selectedState || citiesLoading || !!citiesError}
+                  aria-busy={citiesLoading}
                   className={styles.nativeSelect}
                 >
-                  <option value="">Select City</option>
-                  {selectedState &&
-                    City.getCitiesOfState("IN", selectedState.isoCode).map((city) => (
-                      <option key={city.name} value={city.name}>
-                        {city.name}
-                      </option>
-                    ))}
+                  <option value="">{citiesLoading ? "Loading cities…" : "Select City"}</option>
+                  {cities.map((city, index) => (
+                    <option key={`${city}-${index}`} value={city}>
+                      {city}
+                    </option>
+                  ))}
                 </select>
+                {citiesError && (
+                  <div role="status">
+                    <p>{citiesError}</p>
+                    <Button type="button" variant="link" onClick={retry}>
+                      Retry city suggestions
+                    </Button>
+                  </div>
+                )}
               </AuthField>
             </div>
           </FieldSet>
