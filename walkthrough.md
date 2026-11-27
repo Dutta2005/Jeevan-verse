@@ -99,7 +99,7 @@ hackwars/
 │       │   ├── store.ts             # Redux store config + persist
 │       │   ├── authSlice.ts         # Auth state (user/org, role, isAuthenticated)
 │       │   ├── themeSlice.ts        # Dark/Light theme toggle
-│       │   └── notificationSlice.ts # Real-time notification queue
+│       │   └── notificationSlice.ts # Shared notification inbox state
 │       ├── utils/
 │       │   ├── socket.ts            # Socket.IO client init + event handlers
 │       │   └── userMenu.ts          # Navigation menu options config
@@ -466,16 +466,13 @@ This allows both users AND organizations to comment on posts.
 
 **Socket Events:**
 
-| Event                 | Direction       | Purpose                                              |
-| --------------------- | --------------- | ---------------------------------------------------- |
-| `joinRoom`            | Client → Server | User joins their personal notification room (userId) |
-| `roomJoined`          | Server → Client | Confirmation of room join                            |
-| `bloodRequest`        | Server → Client | New blood request notification                       |
-| `comment`             | Server → Client | New comment on user's post                           |
-| `sendNotification`    | Client → Server | Generic notification relay                           |
-| `receiveNotification` | Server → Client | Relayed notification                                 |
+| Event          | Direction       | Purpose                                              |
+| -------------- | --------------- | ---------------------------------------------------- |
+| `roomJoined`   | Server → Client | Confirms the authenticated notification room is ready |
+| `bloodRequest` | Server → Client | Signals new blood request activity                   |
+| `comment`      | Server → Client | Signals new or grouped comment activity              |
 
-**Client-side debouncing**: Blood request events are debounced with a 100ms delay to prevent duplicate notifications.
+The server assigns the room from the authenticated account. The client loads notification records from the authenticated API after a room join or activity signal. Users can refresh the inbox manually when live updates are unavailable.
 
 ---
 
@@ -485,9 +482,9 @@ This allows both users AND organizations to comment on posts.
 
 **Key Decisions:**
 
-- **Redux Persist**: Entire store is persisted to `localStorage`, so auth state survives page refreshes
+- **Redux Persist**: Auth and theme state survive a page refresh. The notification inbox is kept in memory and loaded for the signed-in account.
 - **Serializable check**: Redux middleware configured to ignore redux-persist's internal actions
-- **Notification deduplication**: Both `addNotification` and `addNotifications` check for duplicate `_id` before adding
+- **Shared notifications**: The bell and inbox read from the same Redux state. The bell counts unread records and previews the five newest items.
 
 ---
 
@@ -555,6 +552,55 @@ The former static campaign carousel and unsubstantiated feature claims have
 been replaced by the confirmed profile and post capabilities.
 
 ### Signed-in workspace
+
+Community discovery lives at `/discussions`, with All, Discussions, and Organizations
+source tabs. The individual `/posts` route redirects to `/discussions?type=organization`;
+organization admin screens remain at `/organisation/posts`. Existing discussion
+and organization detail URLs remain valid. The feed uses self-contained cards,
+optional organization images, explicit organization authorship, and cursor-based
+Load more. Changing tabs resets the loaded list and cancels obsolete requests.
+
+The feed uses self-contained `FeedPostCard` components with author identity,
+optional full-width media, and readable captions. Long captions expand in place;
+Comments opens a shadcn Dialog over the feed, keeping the current route and scroll
+position. Desktop media posts show the image beside the conversation; narrow
+views use one column. Full post content is fetched on demand through the existing
+detail endpoint and cached while the card remains mounted. Comment lists load
+only when their dialog is open. Feed cards do not link to a separate detail page;
+the modal includes owner edit/delete actions. Saving edits updates the card in
+place, and deletion requires confirmation. Existing detail URLs still resolve
+for old links. The feed has no new reactions or saves.
+
+Post cards use a native dialog trigger stretched over the card, so the title,
+image, and empty card area open the same modal. Profile links and Read more sit
+above that trigger; closing the dialog restores focus to the control used to open
+it. `commentCount` includes top-level comments and all nested replies, counted in
+a batched aggregation for only the returned feed page. Legacy replies store no
+post id, so `comment-counts.js` follows indexed `parentComment` links recursively.
+Comment-list responses retain `totalComments` for top-level pagination and add
+`totalDiscussionComments` for the entire thread. CommentSection forwards that
+total after reloads so adding or deleting comments/replies updates the card.
+
+Doctor and medical-student comments and replies have distinct, subdued highlights
+and role badges. These come from the existing profile `status`, are labeled as
+self-reported, and do not claim credential verification.
+
+`GET /api/v1/community/feed` is a public read endpoint matching the visibility of
+the existing two feeds. It queries at most `limit + 1` posts from each included
+source using a `createdAt`/`_id` boundary, then merges by creation time, id, and
+source type before limiting the result. Compound `{ createdAt: -1, _id: -1 }`
+indexes support those reads. Cursors are validated and bound to the source
+filter; the default limit is 20 and maximum is 50. Anonymous discussion authors
+are masked and only names/ids are returned for other authors. Creation, editing,
+deletion, comments, and role-specific authorization use their existing endpoints.
+The API contract is recorded in `docs/api/community-feed.openapi.yaml`.
+
+Discussion and organization post details share `PostDetailLayout.tsx`: a reading
+column, author/date metadata, tags, post body, optional organization image, and
+comments. Feed links retain the selected source in their return destination.
+Comments use compact text actions and lightly indented threads; indentation stops
+growing after two levels so long reply chains retain space on phones. Existing
+comment endpoints and author-only editing/deletion rules are unchanged.
 
 Individual and organization routes share `components/layouts/ProtectedLayout.tsx`:
 a persistent desktop sidebar, compact toolbar, mobile navigation sheet, account
@@ -718,7 +764,7 @@ still require a separate redesign pass.
 | **Anonymous Posting**             | Discussion posts         | Author stored internally but hidden from public API responses                       |
 | **Lazy Loading**                  | Client routing           | All pages lazy-loaded for code splitting                                            |
 | **Redux Persist**                 | Client state             | Auth and theme state survives page refreshes                                        |
-| **Debounced WebSocket Events**    | Client socket            | 100ms debounce on blood request notifications to prevent duplicates                 |
+| **Notification Refresh**        | Client socket            | Refreshes saved notification records after live activity and reconnects             |
 
 ---
 

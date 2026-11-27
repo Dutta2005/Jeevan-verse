@@ -40,6 +40,17 @@ function mount(path = "/", audience?: "individual" | "organization", name = "Ash
 }
 
 describe("protected workspace", () => {
+  it("has one Community destination for discussions and organization updates", () => {
+    mount("/discussions");
+    const navigation = screen.getByRole("navigation", { name: "Workspace navigation" });
+    expect(within(navigation).getByRole("link", { name: "Community" })).toHaveAttribute(
+      "href",
+      "/discussions",
+    );
+    expect(
+      within(navigation).queryByRole("link", { name: "Organization posts" }),
+    ).not.toBeInTheDocument();
+  });
   it.each(["individual", "organization"] as const)(
     "offers the %s navigation and account menu",
     async (audience) => {

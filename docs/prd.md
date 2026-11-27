@@ -88,6 +88,9 @@ Requirements below describe the product represented by the repository. “Curren
 
 ### 5.4 Community discussions
 
+- **Unified discovery:** The Community page combines member discussions and organization updates, with All, Discussions, and Organizations filters. The API merges bounded source queries before cursor pagination in creation order. Both sources retain their existing public read visibility and role-specific publishing rules; organization publishing screens remain separate.
+- **Post cards:** Cards open the discussion modal from their title, image, or background, while profile links and text expansion remain independent. Cards show the full comment-and-reply count. Doctor and medical-student comments/replies use distinct styling and self-reported role labels; these do not establish credential verification or medical advice.
+
 - **Current:** Users can browse posts and open individual discussions. Authenticated users can create, edit, and delete posts. Comments and replies are supported, and users receive comment notifications.
 - **Requirement:** Discussion content must be clearly identified as community-generated and not professional medical advice by default.
 - **Requirement:** Users need a way to report harmful or misleading content and the product needs a corresponding moderation process.
@@ -102,7 +105,7 @@ Requirements below describe the product represented by the repository. “Curren
 
 ### 5.6 Notifications
 
-- **Current:** The client receives real-time blood request and comment events through Socket.IO and provides notification UI.
+- **Current:** The bell shows five recent notifications and shares an unread count with the full inbox. The inbox groups activity by date and offers All and Unread filters. The client refreshes the signed-in user's history when it receives blood request or comment events through Socket.IO.
 - **Requirement:** Notifications should identify the related activity and link users to the relevant request or discussion when available.
 - **Requirement:** The interface should distinguish unread and read notifications and explain when live updates are unavailable.
 

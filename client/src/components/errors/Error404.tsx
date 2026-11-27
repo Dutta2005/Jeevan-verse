@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "../ui/button";
 import { Link, useLocation, useNavigate } from "react-router";
 import { useSelector } from "react-redux";
@@ -27,8 +27,8 @@ function Error404() {
         <div className={styles.actions}>
           <Button asChild>
             <Link to={home}>
+              <ArrowLeft data-icon="inline-start" aria-hidden="true" />
               Back to home
-              <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
             </Link>
           </Button>
           <Button

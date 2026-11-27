@@ -34,7 +34,7 @@ describe("user sidebar", () => {
     );
     await userEvent.click(screen.getByRole("button"));
     expect(await screen.findByText("Test")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Chit Chat" })).toHaveAttribute("href", "/discussions");
+    expect(screen.getByRole("link", { name: "Community" })).toHaveAttribute("href", "/discussions");
     expect(screen.getByRole("button", { name: "Logout" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("switch"));
     expect(mocks.dispatch).toHaveBeenCalledWith(toggleTheme());

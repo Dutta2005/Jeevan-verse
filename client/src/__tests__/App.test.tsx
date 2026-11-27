@@ -2,7 +2,7 @@
 
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import App from "../App";
@@ -12,7 +12,9 @@ import notificationReducer from "../store/notificationSlice";
 import { initializeSocket } from "../utils/socket";
 import type { ReactNode } from "react";
 
-const socketMock = vi.hoisted(() => ({ on: vi.fn(), disconnect: vi.fn() }));
+const socketMock = vi.hoisted(() => ({ on: vi.fn(), connect: vi.fn(), disconnect: vi.fn() }));
+const get = vi.hoisted(() => vi.fn());
+vi.mock("../api/api", () => ({ api: { get } }));
 vi.mock("../components/navbar/Navbar", () => ({ default: () => <nav>App navigation</nav> }));
 vi.mock("../components/layouts/ProtectedLayout", () => ({
   default: ({ children }: { children: ReactNode }) => (
@@ -53,9 +55,10 @@ function renderApp(signedIn: boolean, light = false) {
 }
 
 describe("App shell", () => {
-  it("applies dark mode and connects notification events for an authenticated user", () => {
+  it("fetches authenticated history and refreshes when the live room is ready or activity arrives", async () => {
     socketMock.on.mockClear();
     socketMock.disconnect.mockClear();
+    get.mockReset().mockResolvedValue({ data: { data: [] } });
     document.documentElement.classList.remove("dark");
     const { store, unmount } = renderApp(true);
 
@@ -64,15 +67,21 @@ describe("App shell", () => {
     expect(document.documentElement).toHaveClass("dark");
     expect(initializeSocket).toHaveBeenCalledWith("user-1");
 
-    const bloodRequestHandler = socketMock.on.mock.calls.find(
-      ([event]) => event === "bloodRequest",
-    )?.[1] as ((notification: { _id: string; type: string; message: string }) => void) | undefined;
-    bloodRequestHandler?.({ _id: "n1", type: "bloodRequest", message: "New request" });
-    expect(store.getState().notification.notifications[0]?.message).toBe("New request");
-    const commentHandler = socketMock.on.mock.calls.find(([event]) => event === "comment")?.[1];
-    expect(commentHandler).toBeTypeOf("function");
-    commentHandler({ _id: "n2", type: "comment", message: "New comment" });
-    expect(store.getState().notification.notifications[0]?.message).toBe("New comment");
+    await waitFor(() => expect(store.getState().notification.status).toBe("ready"));
+    const emit = (event: string) => {
+      const handler = socketMock.on.mock.calls.find(([name]) => name === event)?.[1];
+      expect(handler).toBeTypeOf("function");
+      act(() => handler());
+    };
+    emit("roomJoined");
+    expect(store.getState().notification.live).toBe(true);
+    for (const event of ["bloodRequest", "comment"]) {
+      emit(event);
+    }
+    await waitFor(() => expect(store.getState().notification.status).toBe("ready"));
+    expect(get).toHaveBeenCalledTimes(4);
+    emit("disconnect");
+    expect(store.getState().notification.live).toBe(false);
 
     unmount();
     expect(socketMock.disconnect).toHaveBeenCalledOnce();

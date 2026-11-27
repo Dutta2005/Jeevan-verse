@@ -5,6 +5,7 @@ import {ApiResponse} from "../utils/apiResponse.js"
 import {asyncHandler} from "../utils/asynchandler.js"
 import {getIO} from "../utils/webSocket.js"
 import { Notification } from "../models/notification.model.js"
+import { getPostCommentCounts } from "../service/comment-counts.js";
 
 const getComments = asyncHandler(async (req, res) => {
     const { postId, parentCommentId } = req.params;
@@ -38,11 +39,15 @@ const getComments = asyncHandler(async (req, res) => {
         .limit(parseInt(limit))
         .sort({createdAt: -1});
 
-    const totalComments = await Comment.countDocuments(query);
+    const [totalComments, threadCounts] = await Promise.all([
+        Comment.countDocuments(query),
+        postId ? getPostCommentCounts([postId]) : Promise.resolve(null),
+    ]);
 
     return res.status(200).json(new ApiResponse(200, "Comments fetched successfully",{
         comments, 
         totalComments, 
+        ...(threadCounts ? { totalDiscussionComments: threadCounts.get(postId) ?? 0 } : {}),
         currentPage: page, 
         totalPages: Math.ceil(totalComments / limit)
     }));
@@ -65,6 +70,7 @@ const createNotification = async ({ userId, message, type = "comment", redirectU
 
             existingNotification.message = `${newCount} people commented on your post`;
             existingNotification.data = { ...existingNotification.data, ...data };
+            existingNotification.isRead = false;
             await existingNotification.save();
         } else {
             await Notification.create({
@@ -78,13 +84,7 @@ const createNotification = async ({ userId, message, type = "comment", redirectU
 
         // Emit the updated notification
         const io = getIO();
-        io.to(userId.toString()).emit("comment", {
-            type,
-            message,
-            redirectUrl,
-            data,
-            createdAt: new Date()
-        });
+        io.to(userId.toString()).emit("comment");
 
     } catch (error) {
         console.error("Error creating notification:", error);

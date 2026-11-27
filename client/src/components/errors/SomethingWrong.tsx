@@ -1,4 +1,4 @@
-import { AlertCircle, RefreshCcw, HomeIcon, Syringe } from "lucide-react";
+import { AlertCircle, RefreshCcw, ArrowLeft, Syringe } from "lucide-react";
 import { Button } from "../ui/button";
 import { useNavigate } from "react-router";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
@@ -44,7 +44,7 @@ function SomethingWrong() {
             size="lg"
             className="bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/80 space-x-2"
           >
-            <HomeIcon className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             <span>Back to Homepage</span>
           </Button>
         </div>

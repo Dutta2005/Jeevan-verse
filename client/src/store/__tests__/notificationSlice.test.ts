@@ -1,60 +1,38 @@
-import { describe, expect, it } from "vitest";
-import notificationReducer, {
-  addNotification,
-  addNotifications,
-  clearNotifications,
-  updateLastCheckedAt,
-} from "../notificationSlice";
+﻿import { describe, expect, it } from "vitest";
+import notificationReducer, { loadNotifications, setNotificationOwner } from "../notificationSlice";
 
-const makeNotification = (id: string) => ({
-  _id: id,
+const notification = {
+  _id: "n1",
   type: "comment",
-  message: `New comment ${id}`,
-  redirectUrl: `/discussions/${id}`,
-  data: {},
-  createdAt: "2026-11-26T00:00:00.000Z",
+  message: "Synthetic comment",
+  redirectUrl: "/discussions/post-1",
   isRead: false,
-});
+};
 
 describe("notification state", () => {
-  it("adds a notification once", () => {
-    const notification = makeNotification("n1");
-    const once = notificationReducer(undefined, addNotification(notification));
-    const twice = notificationReducer(
-      once,
-      addNotification({ ...notification, message: "Duplicate event" }),
+  it("drops the old list and pending results on account changes", () => {
+    const account = notificationReducer(undefined, setNotificationOwner("first"));
+    const pending = notificationReducer(account, loadNotifications.pending("one", "first"));
+    const loaded = notificationReducer(
+      pending,
+      loadNotifications.fulfilled([notification], "one", "first"),
     );
-
-    expect(twice.notifications).toEqual([notification]);
+    expect(loaded.notifications).toEqual([notification]);
+    const switched = notificationReducer(loaded, setNotificationOwner("second"));
+    expect(
+      notificationReducer(switched, loadNotifications.fulfilled([notification], "one", "first"))
+        .notifications,
+    ).toEqual([]);
   });
 
-  it("adds only notifications not already in the list", () => {
-    const existing = makeNotification("n1");
-    const initial = notificationReducer(undefined, addNotification(existing));
-    const result = notificationReducer(
-      initial,
-      addNotifications([existing, makeNotification("n2")]),
-    );
-
-    expect(result.notifications.map(({ _id }) => _id)).toEqual(["n2", "n1"]);
-  });
-
-  it("clears the list without resetting the last-checked timestamp", () => {
-    const withNotification = notificationReducer(
-      undefined,
-      addNotification(makeNotification("n1")),
-    );
-    const checked = notificationReducer(withNotification, updateLastCheckedAt());
-    const cleared = notificationReducer(checked, clearNotifications());
-
-    expect(cleared.notifications).toEqual([]);
-    expect(cleared.lastCheckedAt).toBe(checked.lastCheckedAt);
-  });
-
-  it("records the last-checked time as a valid ISO timestamp", () => {
-    const result = notificationReducer(undefined, updateLastCheckedAt());
-
-    expect(result.lastCheckedAt).not.toBeNull();
-    expect(Date.parse(result.lastCheckedAt ?? "")).not.toBeNaN();
+  it("keeps the latest reload when responses finish out of order", () => {
+    const account = notificationReducer(undefined, setNotificationOwner("first"));
+    const pending = notificationReducer(account, loadNotifications.pending("one", "first"));
+    const newer = notificationReducer(pending, loadNotifications.pending("two", "first"));
+    const current = notificationReducer(newer, loadNotifications.fulfilled([], "two", "first"));
+    expect(
+      notificationReducer(current, loadNotifications.fulfilled([notification], "one", "first"))
+        .notifications,
+    ).toEqual([]);
   });
 });

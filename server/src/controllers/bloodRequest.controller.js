@@ -64,7 +64,7 @@ const createBloodRequest = asyncHandler(async (req, res) => {
         // Create one notification per user
         const notifications = await Promise.all(users.map(async (user) => {
             try {
-                const notification = await Notification.create({
+                await Notification.create({
                     userId: user._id,
                     type: "blood_request",
                     message: `A blood request for ${bloodGroup} is needed in ${city}.`,
@@ -73,13 +73,7 @@ const createBloodRequest = asyncHandler(async (req, res) => {
                 });
                 
                 // Emit websocket event to the specific user
-                io.to(user._id.toString()).emit("bloodRequest", {
-                    type: notification.type,
-                    message: notification.message,
-                    redirectUrl: notification.redirectUrl,
-                    data: notification.data,
-                    createdAt: notification.createdAt
-                });
+                io.to(user._id.toString()).emit("bloodRequest");
 
                 await sendBloodRequestEmail({
                     to: user.email,

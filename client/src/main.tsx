@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import Protected from "./components/layouts/Protected";
 import PublicRoutes from "./components/layouts/Public";
 import BloodDonationGuidelines from "./pages/BloodDonationGuidelines.js";
@@ -89,7 +89,7 @@ const router = createBrowserRouter([
         path: "posts",
         element: (
           <Protected role="user">
-            <OrgPostPage />
+            <Navigate to="/discussions?type=organization" replace />
           </Protected>
         ),
       },

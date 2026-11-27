@@ -41,4 +41,7 @@ commentSchema.pre('validate', function(next) {
     next();
 });
 
+commentSchema.index({ post: 1, parentComment: 1 });
+commentSchema.index({ parentComment: 1 });
+
 export const Comment = mongoose.model('Comment', commentSchema);

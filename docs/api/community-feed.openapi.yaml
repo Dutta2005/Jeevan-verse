@@ -1,0 +1,133 @@
+openapi: 3.0.3
+info:
+  title: Jeevan Verse Community Feed
+  version: 1.0.0
+paths:
+  /api/v1/community/feed:
+    get:
+      summary: Read the combined public community feed
+      description: >-
+        Preserves the public visibility of the existing discussion and organization feeds.
+        Ordered by createdAt descending, id descending, then type descending.
+        Cursors are opaque and bound to the selected type. Restart pagination when changing type.
+        New posts appear on refresh; edits do not change a post's creation order.
+      operationId: getCommunityFeed
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [all, discussion, organization]
+            default: all
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - in: query
+          name: cursor
+          description: nextCursor returned by the previous page with the same type.
+          schema:
+            type: string
+            maxLength: 512
+      responses:
+        "200":
+          description: A globally ordered page with safe author metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [statusCode, success, message, data]
+                properties:
+                  statusCode: { type: integer, enum: [200] }
+                  success: { type: boolean, enum: [true] }
+                  message: { type: string }
+                  data:
+                    type: object
+                    required: [items, nextCursor, hasMore]
+                    properties:
+                      nextCursor: { type: string, nullable: true }
+                      hasMore: { type: boolean }
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                            [
+                              id,
+                              type,
+                              title,
+                              excerpt,
+                              tags,
+                              thumbnail,
+                              createdAt,
+                              commentCount,
+                              author,
+                            ]
+                          properties:
+                            id: { type: string }
+                            type:
+                              { type: string, enum: [discussion, organization] }
+                            title: { type: string }
+                            excerpt: { type: string, maxLength: 280 }
+                            tags: { type: array, items: { type: string } }
+                            thumbnail: { type: string }
+                            createdAt: { type: string, format: date-time }
+                            commentCount:
+                              type: integer
+                              minimum: 0
+                              description: All top-level comments and nested replies in the discussion, including retained deletion placeholders.
+                            author:
+                              type: object
+                              required: [id, name]
+                              properties:
+                                id: { type: string, nullable: true }
+                                name: { type: string }
+        "400":
+          description: Invalid type, limit, or cursor; no database reads performed
+        "500":
+          description: Feed unavailable; response does not expose database or account details
+  /api/v1/comments/post/{postId}:
+    get:
+      summary: Read a page of top-level comments with full-thread count metadata
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, default: 10 }
+      responses:
+        "200":
+          description: Existing comment-list response with an additional whole-thread total
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required:
+                      [
+                        comments,
+                        totalComments,
+                        totalDiscussionComments,
+                        totalPages,
+                      ]
+                    properties:
+                      comments: { type: array, items: { type: object } }
+                      totalComments:
+                        type: integer
+                        minimum: 0
+                        description: Top-level total used for pagination.
+                      totalDiscussionComments:
+                        type: integer
+                        minimum: 0
+                        description: All comments and nested replies in this post's thread.
+                      totalPages: { type: integer, minimum: 0 }

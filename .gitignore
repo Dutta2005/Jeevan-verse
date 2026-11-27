@@ -4,3 +4,6 @@ server/*.log
 server/.env
 
 client/.env
+
+
+docs/superpowers

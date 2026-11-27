@@ -7,8 +7,7 @@ describe("menuOptions", () => {
       ["Home", "/", true],
       ["Umeed", "/chatbot", true],
       ["Blood Bridge", "/bloodbridge", true],
-      ["Chit Chat", "/discussions", true],
-      ["Campaigns", "/posts", true],
+      ["Community", "/discussions", true],
     ]);
   });
 });

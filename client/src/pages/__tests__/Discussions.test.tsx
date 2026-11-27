@@ -1,66 +1,120 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import Discussions from "../Discussions";
 
 const get = vi.hoisted(() => vi.fn());
 vi.mock("../../api/api", () => ({ api: { get } }));
 vi.mock("../../components/discussion/CreatePost", () => ({
-  default: () => <button>Create Post</button>,
+  default: () => <button>Create post</button>,
 }));
-beforeEach(() => {
-  get.mockReset();
+
+const item = (id: string, type = "discussion") => ({
+  id,
+  type,
+  title: `Post ${id}`,
+  excerpt: "Synthetic content",
+  tags: [],
+  thumbnail: "",
+  createdAt: "2026-11-27T10:00:00.000Z",
+  author: { id: "author", name: "Synthetic author" },
 });
-afterEach(() => vi.restoreAllMocks());
-const response = (page: number) => ({
-  data: {
-    data: {
-      posts: [
-        {
-          _id: `post-${page}`,
-          title: `Page ${page} post`,
-          content: "Synthetic post",
-          createdAt: "2026-01-01T00:00:00Z",
-        },
-      ],
-      pagination: { currentPage: page, totalPages: 2, totalPosts: 2, postsPerPage: 1 },
-    },
-  },
-});
-const mount = () =>
+const response = (
+  items = [item("one"), item("two", "organization")],
+  nextCursor: string | null = null,
+) => ({ data: { data: { items, nextCursor, hasMore: nextCursor !== null } } });
+const mount = (url = "/discussions") =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[url]}>
       <Discussions />
     </MemoryRouter>,
   );
+beforeEach(() => {
+  get.mockReset();
+  get.mockResolvedValue(response());
+});
 
-describe("discussion listing", () => {
-  it("shows placeholders while loading", () => {
-    get.mockReturnValue(new Promise(() => {}));
-    expect(mount().container.querySelector(".animate-pulse")).toBeInTheDocument();
+describe("unified Community feed", () => {
+  it.each([
+    ["/discussions", "No posts yet"],
+    ["/discussions?type=organization", "No organization updates yet"],
+  ])("explains an empty feed at %s", async (url, title) => {
+    get.mockResolvedValue(response([]));
+    mount(url);
+    expect(await screen.findByText(title)).toBeInTheDocument();
+    if (url.includes("organization")) {
+      expect(
+        screen.getByText("Organization updates will appear here when published."),
+      ).toBeInTheDocument();
+    }
   });
-  it("loads posts and paginates forward and back", async () => {
-    get.mockImplementation((url: string) => Promise.resolve(response(url.endsWith("2") ? 2 : 1)));
+  it("shows both post types directly in cards without detail-page links", async () => {
     mount();
-    expect(await screen.findByRole("link", { name: /Page 1 post/ })).toHaveAttribute(
-      "href",
-      "/discussions/post-1",
+    expect(await screen.findByRole("heading", { name: "Post one" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Post two" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Open post/ })).not.toBeInTheDocument();
+    expect(screen.getByText("Organization")).toBeInTheDocument();
+    expect(get).toHaveBeenCalledWith(
+      "/community/feed?type=all",
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
-    expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
-    await userEvent.click(screen.getByRole("button", { name: "Next" }));
-    expect(await screen.findByText("Page 2 of 2")).toBeInTheDocument();
-    expect(get).toHaveBeenCalledWith("/posts?page=2");
-    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
-    await userEvent.click(screen.getByRole("button", { name: "Previous" }));
-    expect(await screen.findByText("Page 1 of 2")).toBeInTheDocument();
   });
-  it("exits the loading state after a failed request", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    get.mockRejectedValue(new Error("Offline"));
+  it("appends the next cursor page without replacing earlier posts", async () => {
+    get
+      .mockResolvedValueOnce(response([item("one")], "next"))
+      .mockResolvedValueOnce(response([item("two")]));
     mount();
-    expect(await screen.findByRole("button", { name: "Create Post" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+    await userEvent.click(await screen.findByRole("button", { name: "Load more" }));
+    expect(await screen.findByText("Post two")).toBeInTheDocument();
+    expect(screen.getByText("Post one")).toBeInTheDocument();
+    expect(get).toHaveBeenLastCalledWith("/community/feed?type=all&cursor=next", expect.anything());
+    expect(screen.queryByRole("button", { name: "Load more" })).not.toBeInTheDocument();
+  });
+  it("changes source filters and resets the list", async () => {
+    get
+      .mockResolvedValueOnce(response([item("one")]))
+      .mockResolvedValueOnce(response([item("two", "organization")]));
+    mount();
+    await screen.findByText("Post one");
+    await userEvent.click(screen.getByRole("tab", { name: "Organizations" }));
+    expect(await screen.findByText("Post two")).toBeInTheDocument();
+    expect(screen.queryByText("Post one")).not.toBeInTheDocument();
+    expect(get).toHaveBeenLastCalledWith("/community/feed?type=organization", expect.anything());
+  });
+  it("keeps already loaded posts after a pagination failure and retries", async () => {
+    get
+      .mockResolvedValueOnce(response([item("one")], "next"))
+      .mockRejectedValueOnce(new Error("Offline"))
+      .mockResolvedValueOnce(response([item("two")]));
+    mount();
+    await userEvent.click(await screen.findByRole("button", { name: "Load more" }));
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByText("Post one")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByText("Post two")).toBeInTheDocument();
+  });
+  it("displays an empty state for a source without posts", async () => {
+    get.mockResolvedValue(response([]));
+    mount("/discussions?type=discussion");
+    expect(await screen.findByText("No discussions yet")).toBeInTheDocument();
+  });
+  it("ignores responses from a previous source after switching", async () => {
+    let resolveOld!: (value: ReturnType<typeof response>) => void;
+    get
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveOld = resolve;
+        }),
+      )
+      .mockResolvedValueOnce(response([item("two", "organization")]));
+    mount();
+    await userEvent.click(screen.getByRole("tab", { name: "Organizations" }));
+    await screen.findByText("Post two");
+    await act(async () => {
+      resolveOld(response([item("one")]));
+    });
+    expect(screen.queryByText("Post one")).not.toBeInTheDocument();
   });
 });

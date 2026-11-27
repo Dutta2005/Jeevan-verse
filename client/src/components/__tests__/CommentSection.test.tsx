@@ -2,7 +2,7 @@
 
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import authReducer, { login, loginOrganization } from "../../store/authSlice";
@@ -44,7 +44,10 @@ const comments = [
   },
 ];
 
-function renderComments(account: "guest" | "user" | "organization") {
+function renderComments(
+  account: "guest" | "user" | "organization",
+  onCountChange?: (count: number) => void,
+) {
   const store = configureStore({ reducer: { auth: authReducer } });
   if (account === "user") {
     store.dispatch(login({ _id: "user-1", name: "Asha", info: { bloodGroup: "O+" } }));
@@ -55,26 +58,213 @@ function renderComments(account: "guest" | "user" | "organization") {
 
   return render(
     <Provider store={store}>
-      <CommentSection postId="post-1" />
+      <CommentSection postId="post-1" onCountChange={onCountChange} />
     </Provider>,
   );
 }
 
 describe("CommentSection", () => {
+  it("does not publish a stale discussion count after unmount", async () => {
+    let resolveOld!: (response: unknown) => void;
+    apiMocks.get.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveOld = resolve;
+      }),
+    );
+    const onCountChange = vi.fn();
+    const view = renderComments("guest", onCountChange);
+    view.unmount();
+    await act(async () => {
+      resolveOld({ data: { data: { comments: [], totalPages: 1, totalDiscussionComments: 1 } } });
+    });
+    expect(onCountChange).not.toHaveBeenCalled();
+  });
+  it("keeps the newest total when an older read finishes after a comment submission", async () => {
+    let resolveOld!: (response: unknown) => void;
+    apiMocks.get.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveOld = resolve;
+      }),
+    );
+    apiMocks.get.mockResolvedValueOnce({
+      data: { data: { comments: [], totalPages: 1, totalDiscussionComments: 3 } },
+    });
+    apiMocks.post.mockResolvedValue({});
+    const onCountChange = vi.fn();
+    renderComments("user", onCountChange);
+    await userEvent.type(screen.getByRole("textbox", { name: "Your comment" }), "A new comment");
+    await userEvent.click(screen.getByRole("button", { name: "Post comment" }));
+    await waitFor(() => expect(onCountChange).toHaveBeenLastCalledWith(3));
+    await act(async () => {
+      resolveOld({ data: { data: { comments: [], totalPages: 1, totalDiscussionComments: 1 } } });
+    });
+    expect(onCountChange).toHaveBeenLastCalledWith(3);
+  });
   beforeEach(() => {
     apiMocks.get.mockReset();
     apiMocks.post.mockReset();
     apiMocks.patch.mockReset();
     apiMocks.delete.mockReset();
   });
+  it("refreshes the card's full-thread total after submitting a reply", async () => {
+    const onCountChange = vi.fn();
+    apiMocks.get.mockResolvedValueOnce({
+      data: {
+        data: {
+          comments: [comments[0]],
+          totalPages: 1,
+          totalComments: 1,
+          totalDiscussionComments: 2,
+        },
+      },
+    });
+    apiMocks.get.mockResolvedValueOnce({
+      data: {
+        data: {
+          comments: [comments[0]],
+          totalPages: 1,
+          totalComments: 1,
+          totalDiscussionComments: 3,
+        },
+      },
+    });
+    apiMocks.post.mockResolvedValue({});
+    renderComments("user", onCountChange);
+    await waitFor(() => expect(onCountChange).toHaveBeenLastCalledWith(2));
+    await userEvent.click(screen.getAllByRole("button", { name: "Reply" })[0]);
+    await userEvent.type(screen.getByRole("textbox", { name: "Your reply" }), "New reply");
+    await userEvent.click(
+      within(screen.getByRole("group", { name: "Write a reply" })).getByRole("button", {
+        name: "Reply",
+      }),
+    );
+    await waitFor(() => expect(onCountChange).toHaveBeenLastCalledWith(3));
+  });
+  it("identifies and highlights self-reported doctor and medical-student comments and replies", async () => {
+    const professionalComments = [
+      {
+        ...comments[0],
+        replies: [
+          {
+            _id: "student-reply",
+            content: "A student reply",
+            user: { _id: "student", name: "Example student", status: "medical student" },
+            createdAt: "2026-11-20T11:00:00Z",
+          },
+        ],
+      },
+    ];
+    apiMocks.get.mockResolvedValue({
+      data: { data: { comments: professionalComments, totalPages: 1 } },
+    });
+    renderComments("guest");
+    expect(await screen.findByLabelText("Self-reported role: Doctor")).toBeInTheDocument();
+    expect(screen.getByLabelText("Self-reported role: Medical student")).toBeInTheDocument();
+    expect(screen.getByText("Question by the doctor").closest("[data-profession]")).toHaveAttribute(
+      "data-profession",
+      "doctor",
+    );
+    expect(screen.getByText("A student reply").closest("[data-profession]")).toHaveAttribute(
+      "data-profession",
+      "medical student",
+    );
+    expect(screen.queryByText(/verified/i)).not.toBeInTheDocument();
+    const doctorHighlight = screen
+      .getByLabelText("Self-reported role: Doctor")
+      .closest("[data-profession]") as HTMLElement;
+    expect(within(doctorHighlight).queryByText("A student reply")).not.toBeInTheDocument();
+  });
+
+  it.each(["user", "organization"] as const)(
+    "keeps main and reply drafts independent for a %s",
+    async (account) => {
+      const user = userEvent.setup();
+      apiMocks.get.mockResolvedValue({ data: { data: { comments, totalPages: 1 } } });
+      apiMocks.post.mockResolvedValue({});
+      renderComments(account);
+      await screen.findByText("Question by the doctor");
+      const mainInput = screen.getByRole("textbox", { name: "Your comment" });
+      await user.type(mainInput, "My main comment draft");
+      await user.click(screen.getAllByRole("button", { name: "Reply" })[0]);
+      const replyInput = screen.getByRole("textbox", { name: "Your reply" });
+      expect(replyInput).toHaveValue("");
+      await user.type(replyInput, "A separate reply");
+      expect(mainInput).toHaveValue("My main comment draft");
+      await user.click(
+        within(screen.getByRole("group", { name: "Write a reply" })).getByRole("button", {
+          name: "Reply",
+        }),
+      );
+      await waitFor(() =>
+        expect(apiMocks.post).toHaveBeenCalledWith("/comments/comment/comment-user", {
+          content: "A separate reply",
+        }),
+      );
+      expect(mainInput).toHaveValue("My main comment draft");
+      expect(screen.queryByRole("textbox", { name: "Your reply" })).not.toBeInTheDocument();
+    },
+  );
+
+  it("posts to the main thread while an independent reply is open", async () => {
+    const user = userEvent.setup();
+    apiMocks.get.mockResolvedValue({ data: { data: { comments, totalPages: 1 } } });
+    apiMocks.post.mockResolvedValue({});
+    renderComments("user");
+    await screen.findByText("Question by the doctor");
+    const mainInput = screen.getByRole("textbox", { name: "Your comment" });
+    await user.type(mainInput, "A top-level comment");
+    await user.click(screen.getAllByRole("button", { name: "Reply" })[0]);
+    const replyInput = screen.getByRole("textbox", { name: "Your reply" });
+    await user.type(replyInput, "An unfinished reply");
+    await user.click(screen.getByRole("button", { name: "Post comment" }));
+    await waitFor(() =>
+      expect(apiMocks.post).toHaveBeenCalledWith("/comments/post/post-1", {
+        content: "A top-level comment",
+      }),
+    );
+    expect(mainInput).toHaveValue("");
+    expect(replyInput).toHaveValue("An unfinished reply");
+  });
+
+  it("cancels only the selected reply draft", async () => {
+    const user = userEvent.setup();
+    apiMocks.get.mockResolvedValue({ data: { data: { comments, totalPages: 1 } } });
+    renderComments("user");
+    await screen.findByText("Question by the doctor");
+    const mainInput = screen.getByRole("textbox", { name: "Your comment" });
+    await user.type(mainInput, "Keep my main draft");
+    await user.click(screen.getAllByRole("button", { name: "Reply" })[0]);
+    await user.type(screen.getByRole("textbox", { name: "Your reply" }), "Discard this reply");
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(mainInput).toHaveValue("Keep my main draft");
+    await user.click(screen.getAllByRole("button", { name: "Reply" })[0]);
+    expect(screen.getByRole("textbox", { name: "Your reply" })).toHaveValue("");
+    expect(apiMocks.post).not.toHaveBeenCalled();
+  });
+
+  it("keeps reply drafts attached to their own comments when switching threads", async () => {
+    const user = userEvent.setup();
+    apiMocks.get.mockResolvedValue({ data: { data: { comments, totalPages: 1 } } });
+    renderComments("user");
+    await screen.findByText("Question by the doctor");
+    await user.click(screen.getAllByRole("button", { name: "Reply" })[0]);
+    await user.type(screen.getByRole("textbox", { name: "Your reply" }), "First thread draft");
+    const secondComment = screen.getByText("Organization update").closest("article")!;
+    await user.click(within(secondComment).getByRole("button", { name: "Reply" }));
+    expect(screen.getByRole("textbox", { name: "Your reply" })).toHaveValue("");
+    await user.type(screen.getByRole("textbox", { name: "Your reply" }), "Second thread draft");
+    await user.click(screen.getAllByRole("button", { name: "Reply" })[0]);
+    expect(screen.getByRole("textbox", { name: "Your reply" })).toHaveValue("First thread draft");
+    expect(screen.getByRole("textbox", { name: "Your comment" })).toHaveValue("");
+  });
 
   it("shows the sign-in prompt and empty state to a visitor", async () => {
     apiMocks.get.mockResolvedValue({ data: { data: { comments: [], totalPages: 1 } } });
     renderComments("guest");
 
-    expect(screen.getByRole("heading", { name: "Authentication Required" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Join the conversation" })).toBeInTheDocument();
     expect(await screen.findByText("No comments yet")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Post Comment" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Post comment" })).not.toBeInTheDocument();
   });
 
   it("creates a top-level comment and clears the input after success", async () => {
@@ -85,7 +275,7 @@ describe("CommentSection", () => {
 
     const input = await screen.findByPlaceholderText("Add a comment...");
     await user.type(input, "  Helpful response  ");
-    await user.click(screen.getByRole("button", { name: "Post Comment" }));
+    await user.click(screen.getByRole("button", { name: "Post comment" }));
 
     await waitFor(() =>
       expect(apiMocks.post).toHaveBeenCalledWith("/comments/post/post-1", {
@@ -114,7 +304,7 @@ describe("CommentSection", () => {
     await user.click(screen.getAllByRole("button", { name: "Reply" })[0]);
     const replyInput = screen.getByPlaceholderText("Reply to comment...");
     await user.type(replyInput, "A nested reply");
-    const replyForm = replyInput.closest("div.mt-2");
+    const replyForm = screen.getByRole("group", { name: "Write a reply" });
     expect(replyForm).not.toBeNull();
     await user.click(within(replyForm as HTMLElement).getByRole("button", { name: "Reply" }));
     await waitFor(() =>
@@ -178,7 +368,7 @@ describe("CommentSection", () => {
 
     const input = screen.getByPlaceholderText("Add a comment...");
     await user.type(input, "Try post");
-    await user.click(screen.getByRole("button", { name: "Post Comment" }));
+    await user.click(screen.getByRole("button", { name: "Post comment" }));
     expect(await screen.findByText("Post failed")).toBeInTheDocument();
   });
 

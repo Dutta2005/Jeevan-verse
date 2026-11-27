@@ -2,26 +2,31 @@ import { Notification } from "../models/notification.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asynchandler.js";
+import mongoose from "mongoose";
 
 // Mark a single notification as read
 const markNotificationAsRead = asyncHandler(async (req, res) => {
     try {
         const notificationId = req.params.notificationId;
 
-        const notification = await Notification.findById(notificationId);
+        if (!mongoose.isObjectIdOrHexString(notificationId)) {
+            return res.status(400).json(new ApiResponse(400, "Invalid notification ID"));
+        }
+        const notification = await Notification.findOneAndUpdate(
+            { _id: notificationId, userId: req.user._id },
+            { $set: { isRead: true } },
+            { new: true }
+        );
         if (!notification) {
-            throw new ApiError(404, "Notification not found");
+            return res.status(404).json(new ApiResponse(404, "Notification not found"));
         }
 
-        notification.isRead = true;
-        const updatedNotification = await notification.save();
-
         return res.status(200).json(
-            new ApiResponse(200, "Notification marked as read", updatedNotification)
+            new ApiResponse(200, "Notification marked as read", notification)
         );
-    } catch (error) {
+    } catch {
         return res.status(500).json(
-            new ApiResponse(500, error?.message || "Something went wrong while marking notification as read")
+            new ApiResponse(500, "Something went wrong while marking notification as read")
         );
     }
 });
@@ -68,17 +73,23 @@ const deleteNotification = asyncHandler(async (req, res) => {
     try {
         const { notificationId } = req.params;
 
-        const notification = await Notification.findByIdAndDelete(notificationId);
+        if (!mongoose.isObjectIdOrHexString(notificationId)) {
+            return res.status(400).json(new ApiResponse(400, "Invalid notification ID"));
+        }
+        const notification = await Notification.findOneAndDelete({
+            _id: notificationId,
+            userId: req.user._id,
+        });
         if (!notification) {
-            throw new ApiError(404, "Notification not found");
+            return res.status(404).json(new ApiResponse(404, "Notification not found"));
         }
 
         return res.status(200).json(
             new ApiResponse(200, "Notification deleted successfully", notification)
         );
-    } catch (error) {
+    } catch {
         return res.status(500).json(
-            new ApiResponse(500, error?.message || "Something went wrong while deleting notification")
+            new ApiResponse(500, "Something went wrong while deleting notification")
         );
     }
 });

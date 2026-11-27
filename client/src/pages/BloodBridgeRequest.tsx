@@ -1,4 +1,5 @@
 import { Link, useLocation, useParams } from "react-router";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store/store";
@@ -73,7 +74,10 @@ export default function BloodBridgeRequest() {
   return (
     <div className={styles.page}>
       <Button variant="ghost" asChild className="mb-6">
-        <Link to={backTo}>Back to requests</Link>
+        <Link to={backTo}>
+          <ArrowLeft data-icon="inline-start" aria-hidden="true" />
+          Back to requests
+        </Link>
       </Button>
       {loading ? (
         <div className="flex flex-col gap-6" aria-label="Loading request details">

@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode } from "react";
 import { Link } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { Moon, Sun } from "lucide-react";
+import { ArrowLeft, Moon, Sun } from "lucide-react";
 import type { RootState } from "@/store/store";
 import { toggleTheme } from "@/store/themeSlice";
 import { Button } from "../ui/button";
@@ -68,6 +68,7 @@ function AuthLayout({ audience, mode, title, description, children }: AuthLayout
           className={styles.photo}
         />
         <Link to={audience === "organization" ? "/organisation" : "/"} className={styles.backLink}>
+          <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
           Back to Jeevan Verse
         </Link>
       </aside>

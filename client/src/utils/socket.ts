@@ -1,67 +1,14 @@
-import { io, Socket, XHR, WebSocket } from "socket.io-client";
-import { store } from "../store/store"; // Import your Redux store
-import { addNotification } from "../store/notificationSlice";
+﻿import { io, type Socket } from "socket.io-client";
+
 const SOCKET_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-let socket: Socket | null = null;
 
-let isHandlingBloodRequest = false;
-let bloodRequestTimeout: ReturnType<typeof setTimeout> | null = null;
-
-export const initializeSocket = (userId: string): Socket => {
-  if (!socket) {
-    socket = io(SOCKET_URL, {
-      withCredentials: true,
-      transports: ["websocket", "polling"],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      auth: { userId },
-      path: "/socket.io/",
-    });
-
-    socket.on("connect", () => {
-      socket?.emit("joinRoom", userId);
-    });
-
-    // Debounced blood request handler
-    socket.on("bloodRequest", (notification) => {
-      if (isHandlingBloodRequest) {
-        return;
-      }
-
-      isHandlingBloodRequest = true;
-
-      if (bloodRequestTimeout) {
-        clearTimeout(bloodRequestTimeout);
-      }
-
-      bloodRequestTimeout = setTimeout(() => {
-        store.dispatch(
-          addNotification({
-            ...notification,
-            timestamp: Date.now(),
-          }),
-        );
-        isHandlingBloodRequest = false;
-        bloodRequestTimeout = null;
-      }, 100); // Small delay to prevent duplicate events
-    });
-
-    socket.on("connect_error", (error) => {
-      console.error("Socket connection error:", error);
-      if (socket?.io.opts.transports?.some((transport) => transport === WebSocket)) {
-        socket.io.opts.transports = [XHR];
-      }
-    });
-
-    socket.on("disconnect", (reason) => {
-      if (reason === "io server disconnect") {
-        socket?.connect();
-      }
-    });
-  } else if (!socket.connected) {
-    socket.connect();
-  }
-
-  return socket;
-};
+export function initializeSocket(owner: string): Socket {
+  return io(SOCKET_URL, {
+    autoConnect: false,
+    forceNew: true,
+    auth: { userId: owner },
+    withCredentials: true,
+    reconnectionAttempts: 5,
+    path: "/socket.io/",
+  });
+}

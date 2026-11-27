@@ -1,0 +1,209 @@
+.card {
+  overflow: hidden;
+  position: relative;
+}
+.openPost {
+  text-align: left;
+  cursor: pointer;
+}
+.openPost::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.openPost:focus-visible {
+  outline: none;
+}
+.openPost:focus-visible::after {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+.author a,
+.expand,
+.cardFooter button,
+.cardContent [role="alert"] {
+  position: relative;
+  z-index: 1;
+}
+.cardHeader {
+  padding: 20px;
+}
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.byline {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.author {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.author a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.byline time,
+.topics,
+.status {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.media {
+  width: 100%;
+  max-height: 640px;
+  object-fit: contain;
+  display: block;
+  background: var(--muted);
+}
+.cardContent {
+  padding: 0 20px;
+  overflow-wrap: anywhere;
+}
+.media + .cardContent {
+  padding-top: 20px;
+}
+.caption {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.expand {
+  padding: 0;
+  margin-top: 4px;
+  height: auto;
+  min-height: 36px;
+}
+.topics {
+  margin-top: 12px;
+}
+.cardFooter {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+.ownerActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.dialog {
+  width: calc(100vw - 64px);
+  max-width: 640px;
+  height: min(760px, calc(100dvh - 64px));
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+.dialog[data-media="true"] {
+  max-width: 1080px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 1fr);
+}
+.dialogMedia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--muted);
+  min-width: 0;
+  min-height: 0;
+}
+.dialogMedia img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.dialogPanel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.dialogHeader {
+  padding: 20px 48px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.dialogScroll {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px;
+  overscroll-behavior: contain;
+}
+.dialogPostTitle {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.comments {
+  margin-top: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.status {
+  margin-top: 12px;
+}
+.mobileMedia {
+  display: none;
+}
+@media (max-width: 767px) {
+  .dialog[data-media="true"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dialogMedia {
+    display: none;
+  }
+  .mobileMedia {
+    display: block;
+    width: 100%;
+    max-height: 55dvh;
+    object-fit: contain;
+    margin-bottom: 20px;
+  }
+}
+@media (max-width: 479px) {
+  .cardHeader {
+    padding: 16px;
+  }
+  .cardContent {
+    padding: 0 16px;
+  }
+  .media + .cardContent {
+    padding-top: 16px;
+  }
+  .cardFooter {
+    padding: 8px;
+  }
+  .dialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+    border: 0;
+  }
+  .dialogHeader {
+    padding: 16px 48px 16px 16px;
+  }
+  .dialogScroll {
+    padding: 16px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}

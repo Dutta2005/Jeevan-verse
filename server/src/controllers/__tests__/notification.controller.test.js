@@ -4,6 +4,8 @@ import {
   getNotificationsAfterTime,
   markAllNotificationsAsRead,
   deleteAllNotifications,
+  markNotificationAsRead,
+  deleteNotification,
 } from "../notification.controller.js";
 import { Notification } from "../../models/notification.model.js";
 
@@ -14,6 +16,7 @@ function invoke(handler, query = {}) {
         user: { _id: "self" },
         query: { userId: "other", ...query },
         body: { userId: "other" },
+        params: { notificationId: "507f1f77bcf86cd799439011" },
       },
       {
         status: (statusCode) => ({
@@ -26,6 +29,27 @@ function invoke(handler, query = {}) {
 }
 
 describe("account-scoped notifications", () => {
+  it("limits individual read updates to the owner", async () => {
+    const update = vi.spyOn(Notification, "findOneAndUpdate").mockResolvedValue(null);
+    vi.spyOn(Notification, "findById").mockResolvedValue(null);
+    expect(await invoke(markNotificationAsRead)).toMatchObject({ statusCode: 404 });
+    expect(update).toHaveBeenCalledWith(
+      { _id: "507f1f77bcf86cd799439011", userId: "self" },
+      { $set: { isRead: true } },
+      { new: true },
+    );
+  });
+
+  it("limits individual deletions to the owner", async () => {
+    const remove = vi.spyOn(Notification, "findOneAndDelete").mockResolvedValue(null);
+    vi.spyOn(Notification, "findByIdAndDelete").mockResolvedValue(null);
+    expect(await invoke(deleteNotification)).toMatchObject({ statusCode: 404 });
+    expect(remove).toHaveBeenCalledWith({
+      _id: "507f1f77bcf86cd799439011",
+      userId: "self",
+    });
+  });
+
   it("lists only the authenticated account's notifications, newest first", async () => {
     const records = [{ message: "Synthetic notification" }];
     const sort = vi.fn().mockResolvedValue(records);

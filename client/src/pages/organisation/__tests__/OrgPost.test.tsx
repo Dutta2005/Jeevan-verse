@@ -56,6 +56,12 @@ describe("organization post", () => {
       role === "user" ? "/org-profile/org-1" : "/organisation/org-profile/org-1",
     );
     expect(screen.getByText("Comments for post-1")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: role === "user" ? "Back to Community" : "Back to posts" }),
+    ).toHaveAttribute(
+      "href",
+      role === "user" ? "/discussions?type=organization" : "/organisation/posts",
+    );
     expect(screen.queryByAltText("Test campaign") !== null).toBe(role === "user");
   });
   it("shows a skeleton while fetching", () => {

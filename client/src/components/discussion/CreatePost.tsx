@@ -27,9 +27,10 @@ interface PostFormProps {
   post?: Post;
   trigger?: React.ReactNode;
   currentUserId?: string;
+  onUpdated?: (post: Post) => void;
 }
 
-const CreatePost: React.FC<PostFormProps> = ({ post, trigger, currentUserId }) => {
+const CreatePost: React.FC<PostFormProps> = ({ post, trigger, currentUserId, onUpdated }) => {
   const tags = ["Help", "Discussion", "Advice", "Question", "General"];
   const isEditing = !!post;
   const { toast } = useToast();
@@ -79,6 +80,10 @@ const CreatePost: React.FC<PostFormProps> = ({ post, trigger, currentUserId }) =
       setOpen(false);
 
       if (isEditing) {
+        if (onUpdated) {
+          onUpdated({ ...post, ...postData });
+          return;
+        }
         navigate(`/discussions/${post._id}`);
         window.location.reload();
       } else {
