@@ -56,7 +56,6 @@ describe("discussion detail", () => {
     expect(mocks.get).toHaveBeenCalledWith("/posts/p1");
     expect(screen.getByText("Test author")).toBeInTheDocument();
     expect(screen.getByText("Comments for p1")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "" }));
     expect(await screen.findByRole("button", { name: "Edit discussion" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
   });
@@ -64,14 +63,20 @@ describe("discussion detail", () => {
     mocks.userId = "other";
     mount();
     await screen.findByText("Synthetic title");
-    expect(screen.queryByRole("button", { name: "" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit discussion" })).not.toBeInTheDocument();
+  });
+  it("keeps anonymous posts readable without exposing author controls", async () => {
+    mocks.get.mockResolvedValue({ data: { data: { ...post, author: null } } });
+    mount();
+    expect(await screen.findByText("Anonymous")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit discussion" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
   });
   it.each([true, false])("handles post deletion (success: %s)", async (success) => {
     if (success) mocks.delete.mockResolvedValue({});
     else mocks.delete.mockRejectedValue(new Error("Offline"));
     mount();
     await screen.findByText("Synthetic title");
-    await userEvent.click(screen.getByRole("button", { name: "" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(mocks.delete).toHaveBeenCalledWith("/posts/delete/p1");
     if (success) await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith("/discussions"));

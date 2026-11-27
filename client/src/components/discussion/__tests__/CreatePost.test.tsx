@@ -29,6 +29,19 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("discussion post form", () => {
+  it("updates a modal post through its callback without navigating to details", async () => {
+    const onUpdated = vi.fn();
+    render(<CreatePost post={post} currentUserId="u1" onUpdated={onUpdated} />);
+    await userEvent.click(screen.getByRole("button", { name: "Edit Post" }));
+    fireEvent.change(screen.getByPlaceholderText("Title"), { target: { value: "Updated title" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save Changes" }));
+    await waitFor(() =>
+      expect(onUpdated).toHaveBeenCalledWith(
+        expect.objectContaining({ _id: "p1", title: "Updated title", content: "Original content" }),
+      ),
+    );
+    expect(mocks.navigate).not.toHaveBeenCalled();
+  });
   it.each([false, true])("creates a discussion (anonymous: %s)", async (anonymous) => {
     render(<CreatePost />);
     await userEvent.click(screen.getByRole("button", { name: "Create Post" }));

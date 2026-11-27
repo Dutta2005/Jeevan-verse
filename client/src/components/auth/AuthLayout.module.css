@@ -51,6 +51,9 @@
   border-radius: 12px;
 }
 .backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   width: fit-content;
   color: var(--muted-foreground);
   font-size: 12px;

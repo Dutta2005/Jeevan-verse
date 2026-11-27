@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import layout from "@/components/blood bridge/BloodBridge.module.css";
@@ -8,7 +9,10 @@ export default function BloodDonationGuidelines() {
   return (
     <div className={layout.page}>
       <Button variant="ghost" asChild className="mb-6">
-        <Link to="/bloodbridge">Back to requests</Link>
+        <Link to="/bloodbridge">
+          <ArrowLeft data-icon="inline-start" aria-hidden="true" />
+          Back to requests
+        </Link>
       </Button>
       <header className={styles.header}>
         <h1>Blood donation guidelines</h1>

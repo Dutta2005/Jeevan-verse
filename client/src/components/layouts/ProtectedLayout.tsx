@@ -33,7 +33,6 @@ const individualLinks = [
   ["Umeed", "/chatbot"],
   ["Blood Bridge", "/bloodbridge"],
   ["Community", "/discussions"],
-  ["Organization posts", "/posts"],
 ];
 const organizationLinks = [
   ["Home", "/organisation"],

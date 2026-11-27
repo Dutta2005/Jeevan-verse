@@ -8,11 +8,20 @@ import {
     getNotificationsAfterTime,
 } from "../controllers/notification.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { ApiResponse } from "../utils/apiResponse.js";
 
 const router = express.Router();
 
 // Routes for notifications
 router.use(verifyJWT);
+router.use((req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    const expectedAccount = req.get("X-Notification-Account");
+    if (expectedAccount !== undefined && expectedAccount !== req.user._id.toString()) {
+        return res.status(403).json(new ApiResponse(403, "Notification account changed"));
+    }
+    next();
+});
 
 // /api/v1/notifications
 

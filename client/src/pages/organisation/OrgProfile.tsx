@@ -107,7 +107,10 @@ function OrgProfile() {
             </EmptyDescription>
           </EmptyHeader>
           <Button asChild>
-            <Link to={home}>Back to home</Link>
+            <Link to={home}>
+              <ArrowLeft data-icon="inline-start" aria-hidden="true" />
+              Back to home
+            </Link>
           </Button>
         </Empty>
       ) : (

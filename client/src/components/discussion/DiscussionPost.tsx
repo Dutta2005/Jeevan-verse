@@ -2,19 +2,15 @@ import { getErrorMessage } from "@/lib/error";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { api } from "../../api/api";
-import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
-import { Badge } from "../ui/badge";
-import { Clock, User, AlertCircle, Pencil, EllipsisVertical, Trash2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import DiscussionPostSkeleton from "./DiscussionPostSkeleton";
 import CommentSection from "../CommentSection";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import CreatePost from "./CreatePost";
 import { Button } from "../ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "../../hooks/use-toast";
-import BackBtn from "../BackButton";
+import PostDetailLayout, { PostDetailSkeleton } from "./PostDetailLayout";
+import styles from "./PostDetail.module.css";
 
 interface PostDetail {
   _id: string;
@@ -24,7 +20,7 @@ interface PostDetail {
   author: {
     name: string;
     _id: string;
-  };
+  } | null;
   createdAt: string;
 }
 
@@ -81,97 +77,44 @@ const DiscussionPost = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  if (isLoading) return <DiscussionPostSkeleton />;
+  if (isLoading) return <PostDetailSkeleton />;
 
   if (error)
     return (
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <div className={styles.page}>
         <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
+          <AlertTitle>Could not load post</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
     );
-
   if (!post) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <BackBtn cn="mb-2" />
-      <Card className="bg-light-bg dark:bg-dark-bg border-none shadow-lg">
-        <CardHeader className="space-y-4">
-          <div className="flex justify-between items-start">
-            <h1 className="text-3xl font-bold text-primary">{post.title}</h1>
-            {userId === post.author._id && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <EllipsisVertical className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-light-bg dark:bg-dark-bg p-2">
-                  <CreatePost
-                    post={post}
-                    trigger={
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start gap-2 hover:bg-primary/10"
-                      >
-                        <Pencil className="w-4 h-4" />
-                        <span>Edit</span>
-                      </Button>
-                    }
-                    currentUserId={userId}
-                  />
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-2 hover:bg-primary/10 text-primary"
-                    onClick={deletePost}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Delete</span>
-                  </Button>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-4 items-center text-sm">
-            <div className="flex items-center gap-2 text-primary">
-              <User size={16} />
-              <span>{post.author.name}</span>
-            </div>
-            <div className="flex items-center gap-2 text-primary">
-              <Clock size={16} />
-              <span>{formatDate(post.createdAt)}</span>
-            </div>
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-              {post.tags[0]}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="max-w-none">
-            <p className="text-light-text dark:text-dark-text leading-relaxed">{post.content}</p>
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col border-t border-primary/10 mt-6">
-          <div className="w-full pt-6">
-            <CommentSection postId={post._id} />
-          </div>
-        </CardFooter>
-      </Card>
-    </div>
+    <PostDetailLayout
+      title={post.title}
+      author={<span>{post.author?.name || "Anonymous"}</span>}
+      authorName={post.author?.name || "Anonymous"}
+      createdAt={post.createdAt}
+      tags={post.tags}
+      actions={
+        userId && userId === post.author?._id ? (
+          <>
+            <CreatePost
+              post={post}
+              currentUserId={userId}
+              trigger={<Button variant="outline">Edit post</Button>}
+            />
+            <Button variant="ghost" onClick={deletePost}>
+              Delete
+            </Button>
+          </>
+        ) : undefined
+      }
+      comments={<CommentSection key={post._id} postId={post._id} />}
+    >
+      <p>{post.content}</p>
+    </PostDetailLayout>
   );
 };
 

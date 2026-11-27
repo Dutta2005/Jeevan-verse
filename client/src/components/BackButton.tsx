@@ -7,7 +7,7 @@ function BackBtn({ cn = "" }: { cn?: string }) {
 
   return (
     <Button variant={"ghost"} className={`${cn} flex items-center`} onClick={() => navigate(-1)}>
-      <ArrowLeft className="w-4 h-4 mr-1" />
+      <ArrowLeft className="w-4 h-4 mr-1" aria-hidden="true" />
       <span>Back</span>
     </Button>
   );

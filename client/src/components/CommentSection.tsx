@@ -1,10 +1,11 @@
 import { getErrorMessage } from "@/lib/error";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useId, useRef } from "react";
 import { api } from "../api/api";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
-import { User, Building2, MessageSquare, Trash2, Edit2 } from "lucide-react";
+import { InputGroup, InputGroupTextarea, InputGroupAddon } from "./ui/input-group";
+import { Field, FieldLabel } from "./ui/field";
+import { Badge } from "./ui/badge";
+import styles from "./CommentSection.module.css";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
@@ -28,13 +29,16 @@ interface Comment {
 
 interface CommentSectionProps {
   postId: string;
+  onCountChange?: (count: number) => void;
 }
 
-const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
+const CommentSection: React.FC<CommentSectionProps> = ({ postId, onCountChange }) => {
+  const composerId = useId();
   const user = useSelector((state: RootState) => state.auth.user);
   const organization = useSelector((state: RootState) => state.auth.organization);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [replyTo, setReplyTo] = useState<{
     commentId: string | null;
     parentId: string | null;
@@ -47,42 +51,60 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const requestSequence = useRef(0);
 
   const fetchComments = useCallback(
     (pageNum = 1) => {
+      const requestId = ++requestSequence.current;
       return api
         .get(`/comments/post/${postId}`, {
           params: { page: pageNum, limit: 10 },
         })
         .then((response) => {
-          const { comments, totalPages: pages } = response.data.data;
+          if (requestId !== requestSequence.current) return;
+          const { comments, totalPages: pages, totalDiscussionComments } = response.data.data;
           setComments(comments);
           setTotalPages(pages);
           setPage(pageNum);
+          if (Number.isSafeInteger(totalDiscussionComments) && totalDiscussionComments >= 0)
+            onCountChange?.(totalDiscussionComments);
         })
         .catch((err: unknown) => {
+          if (requestId !== requestSequence.current) return;
           setError(getErrorMessage(err, "Failed to fetch comments"));
         });
     },
-    [postId],
+    [postId, onCountChange],
   );
 
   useEffect(() => {
     void fetchComments();
+    return () => {
+      requestSequence.current += 1;
+    };
   }, [fetchComments]);
 
-  const handleAddComment = async () => {
+  const handleAddComment = async (replyCommentId: string | null = null) => {
+    const content = replyCommentId ? replyDrafts[replyCommentId] || "" : newComment;
     try {
-      if (!newComment.trim()) return;
+      if (!content.trim()) return;
 
-      const endpoint = replyTo.commentId
-        ? `/comments/comment/${replyTo.commentId}`
+      const endpoint = replyCommentId
+        ? `/comments/comment/${replyCommentId}`
         : `/comments/post/${postId}`;
 
-      await api.post(endpoint, { content: newComment });
+      await api.post(endpoint, { content });
 
-      setNewComment("");
-      setReplyTo({ commentId: null, parentId: null });
+      if (replyCommentId) {
+        setReplyDrafts((drafts) =>
+          drafts[replyCommentId] === content ? { ...drafts, [replyCommentId]: "" } : drafts,
+        );
+        setReplyTo((current) =>
+          current.commentId === replyCommentId ? { commentId: null, parentId: null } : current,
+        );
+      } else {
+        setNewComment((draft) => (draft === content ? "" : draft));
+      }
       fetchComments();
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to add comment"));
@@ -127,199 +149,199 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
     return false;
   };
 
-  const getCommentAuthorDetails = (comment: Comment) => {
-    if (comment.user) {
-      return {
-        name: comment.user.name,
-        status: comment.user.status,
-        icon: <User size={16} className="text-light-text/50 dark:text-dark-text/50" />,
-        type: "user",
-      };
-    }
-    if (comment.organization) {
-      return {
-        name: comment.organization.name,
-        status: "organization",
-        icon: <Building2 size={16} className="text-light-text/50 dark:text-dark-text/50" />,
-        type: "organization",
-      };
-    }
-    return {
-      name: "Unknown",
-      status: "",
-      icon: <User size={16} className="text-light-text/50 dark:text-dark-text/50" />,
-      type: "unknown",
-    };
-  };
-
-  const getCommentBackground = (status?: string) => {
-    if (status === "doctor") return "bg-green-200/80 dark:bg-green-900/40";
-    if (status === "medical student") return "bg-blue-200/80 dark:bg-blue-900/40";
-    return "";
-  };
-
   const renderCommentInput = (
     commentId: string | null,
     parentId: string | null,
-    isEditing: boolean = false,
+    isEditing = false,
   ) => {
     const placeholder = isEditing
       ? "Edit your comment..."
       : parentId
         ? "Reply to comment..."
         : "Add a comment...";
-    const value = isEditing ? editContent : newComment;
-    const onChange = isEditing
-      ? (e: React.ChangeEvent<HTMLTextAreaElement>) => setEditContent(e.target.value)
-      : (e: React.ChangeEvent<HTMLTextAreaElement>) => setNewComment(e.target.value);
-    const onSubmit = isEditing ? () => handleUpdateComment(commentId!) : handleAddComment;
-
+    const replyCommentId = !isEditing && parentId ? commentId : null;
+    const value = isEditing
+      ? editContent
+      : replyCommentId
+        ? replyDrafts[replyCommentId] || ""
+        : newComment;
+    const inputId = `${composerId}-${isEditing ? "edit" : "comment"}-${commentId || "new"}`;
+    const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      if (isEditing) setEditContent(event.target.value);
+      else if (replyCommentId) {
+        const nextDraft = event.target.value;
+        setReplyDrafts((drafts) => ({ ...drafts, [replyCommentId]: nextDraft }));
+      } else setNewComment(event.target.value);
+    };
     return (
-      <div className="mt-2 bg-light-bg dark:bg-dark-bg p-1 rounded-lg">
-        <Textarea
-          placeholder={placeholder}
-          value={value}
-          onChange={onChange}
-          className="w-full mb-2 text-light-text dark:text-dark-text"
-        />
-        <div className="flex justify-between items-center">
-          <Button
-            onClick={onSubmit}
-            disabled={!value.trim()}
-            className="mr-2 bg-primary dark:bg-primary dark:text-dark-text hover:bg-primary/90"
-          >
-            {isEditing ? "Save" : parentId ? "Reply" : "Post Comment"}
-          </Button>
-        </div>
+      <div
+        className={styles.composer}
+        role="group"
+        aria-label={isEditing ? "Edit comment" : parentId ? "Write a reply" : "Write a comment"}
+      >
+        <Field>
+          <FieldLabel htmlFor={inputId} className="sr-only">
+            {isEditing ? "Edit comment" : parentId ? "Your reply" : "Your comment"}
+          </FieldLabel>
+          <InputGroup>
+            <InputGroupTextarea
+              id={inputId}
+              rows={2}
+              placeholder={placeholder}
+              value={value}
+              onChange={onChange}
+              className={styles.textarea}
+            />
+            <InputGroupAddon align="block-end" className={styles.composerActions}>
+              {(isEditing || parentId) && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    if (isEditing) setEditingCommentId(null);
+                    else {
+                      if (replyCommentId) {
+                        setReplyDrafts((drafts) => {
+                          const remaining = { ...drafts };
+                          delete remaining[replyCommentId];
+                          return remaining;
+                        });
+                      }
+                      setReplyTo({ commentId: null, parentId: null });
+                    }
+                  }}
+                >
+                  Cancel
+                </Button>
+              )}
+              <Button
+                disabled={!value.trim()}
+                onClick={
+                  isEditing
+                    ? () => handleUpdateComment(commentId!)
+                    : () => handleAddComment(replyCommentId)
+                }
+              >
+                {isEditing ? "Save" : parentId ? "Reply" : "Post comment"}
+              </Button>
+            </InputGroupAddon>
+          </InputGroup>
+        </Field>
       </div>
     );
   };
 
-  const renderComments = (commentList: Comment[]) => {
-    return commentList.map((comment) => {
-      const authorDetails = getCommentAuthorDetails(comment);
-      const bgColor = getCommentBackground(comment.user?.status);
-
-      return (
-        <div key={comment._id} className={`mb-4 w-full ${bgColor} p-2 rounded-lg`}>
-          <div className="flex flex-col md:flex-row justify-between items-start">
-            <div className="flex items-center space-x-2 mb-2">
-              {authorDetails.icon}
-              <span className="font-medium text-sm text-light-text dark:text-dark-text">
-                {authorDetails.name}
-              </span>
-              <span className="text-xs text-light-text/70 dark:text-dark-text/70">
-                {formatDate(comment.createdAt)}
-              </span>
-            </div>
-            <div className="flex space-x-2 flex-wrap justify-end">
+  const renderComments = (commentList: Comment[], depth = 0): React.ReactNode =>
+    commentList.map((comment) => (
+      <article key={comment._id} className={styles.comment}>
+        <div
+          className={styles.commentBody}
+          data-profession={
+            comment.user?.status === "doctor" || comment.user?.status === "medical student"
+              ? comment.user.status
+              : undefined
+          }
+        >
+          <div className={styles.metadata}>
+            <span className={styles.author}>
+              {comment.user?.name || comment.organization?.name || "Unknown"}
+            </span>
+            {comment.organization && <Badge variant="outline">Organization</Badge>}
+            {(comment.user?.status === "doctor" || comment.user?.status === "medical student") && (
+              <Badge
+                variant="outline"
+                title="Self-reported profile role"
+                aria-label={`Self-reported role: ${comment.user.status === "doctor" ? "Doctor" : "Medical student"}`}
+              >
+                {comment.user.status === "doctor" ? "Doctor" : "Medical student"}
+              </Badge>
+            )}
+            <time dateTime={comment.createdAt}>{formatDate(comment.createdAt)}</time>
+          </div>
+          {editingCommentId === comment._id ? (
+            renderCommentInput(comment._id, null, true)
+          ) : (
+            <p className={styles.content}>{comment.content}</p>
+          )}
+          <div className={styles.actions}>
+            {(user || organization) && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setReplyTo({ commentId: comment._id, parentId: comment._id })}
-                className="text-light-text/70 dark:text-dark-text/70 hover:bg-light-bg/50 dark:hover:bg-dark-bg/50"
               >
-                <MessageSquare size={14} className="mr-1" /> Reply
+                Reply
               </Button>
-              {canModifyComment(comment) && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setEditingCommentId(comment._id);
-                      setEditContent(comment.content);
-                    }}
-                    className="text-light-text/70 dark:text-dark-text/70 hover:bg-light-bg/50 dark:hover:bg-dark-bg/50"
-                  >
-                    <Edit2 size={14} className="mr-1" /> Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteComment(comment._id)}
-                    className="text-primary/70 hover:bg-primary/10"
-                  >
-                    <Trash2 size={14} className="mr-1" /> Delete
-                  </Button>
-                </>
-              )}
-            </div>
+            )}
+            {canModifyComment(comment) && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEditingCommentId(comment._id);
+                    setEditContent(comment.content);
+                  }}
+                >
+                  Edit
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => handleDeleteComment(comment._id)}>
+                  Delete
+                </Button>
+              </>
+            )}
           </div>
-
-          {editingCommentId === comment._id ? (
-            renderCommentInput(comment._id, null, true)
-          ) : (
-            <p className="text-sm text-light-text dark:text-dark-text">{comment.content}</p>
-          )}
-
           {replyTo.commentId === comment._id &&
             renderCommentInput(replyTo.commentId, replyTo.parentId)}
-
-          {comment.replies && comment.replies.length > 0 && (
-            <div className="ml-4 md:ml-8 border-l-2 border-primary pl-4 mt-2">
-              {renderComments(comment.replies)}
-            </div>
-          )}
         </div>
-      );
-    });
-  };
-
-  return (
-    <Card className="mt-6 bg-light-bg dark:bg-dark-bg w-full">
-      <CardHeader>
-        <CardTitle className="text-center text-light-text dark:text-dark-text text-xl">
-          Comments
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="max-w-4xl mx-auto w-full">
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {user || organization ? (
-          renderCommentInput(null, null)
-        ) : (
-          <Alert className="mb-4">
-            <AlertTitle>Authentication Required</AlertTitle>
-            <AlertDescription>Please sign in to comment</AlertDescription>
-          </Alert>
-        )}
-
-        <div className="space-y-4 mt-6 max-w-2xl mx-auto">
-          {comments.length === 0 ? (
-            <p className="text-center text-light-text/50 dark:text-dark-text/50">No comments yet</p>
-          ) : (
-            renderComments(comments)
-          )}
-        </div>
-
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-6 space-x-2">
-            <Button
-              variant="outline"
-              disabled={page === 1}
-              onClick={() => fetchComments(page - 1)}
-              className="border-primary text-light-text dark:text-dark-text"
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              disabled={page === totalPages}
-              onClick={() => fetchComments(page + 1)}
-              className="border-primary text-light-text dark:text-dark-text"
-            >
-              Next
-            </Button>
+        {comment.replies && comment.replies.length > 0 && (
+          <div className={depth < 2 ? styles.replies : styles.deepReplies}>
+            {renderComments(comment.replies, depth + 1)}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </article>
+    ));
+
+  return (
+    <section className={styles.section} aria-label="Comments">
+      <h2 className={styles.heading}>Comments</h2>
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {user || organization ? (
+        renderCommentInput(null, null)
+      ) : (
+        <Alert>
+          <AlertTitle>Join the conversation</AlertTitle>
+          <AlertDescription>Please sign in to comment</AlertDescription>
+        </Alert>
+      )}
+      <div className={styles.list}>
+        {comments.length === 0 ? (
+          <p className={styles.empty}>No comments yet</p>
+        ) : (
+          renderComments(comments)
+        )}
+      </div>
+      {totalPages > 1 && (
+        <div className={styles.pagination}>
+          <Button variant="outline" disabled={page === 1} onClick={() => fetchComments(page - 1)}>
+            Previous
+          </Button>
+          <span>
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            disabled={page === totalPages}
+            onClick={() => fetchComments(page + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+    </section>
   );
 };
 
