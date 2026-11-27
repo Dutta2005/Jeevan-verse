@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "test": "vitest run --coverage",
-    "preflight": "npm run format && npm run lint && npm run typecheck && npm run test &&npm run build",
+    "preflight": "npm run format:check && npm run lint && npm run test && npm run build",
+    "format:check": "prettier --check .",
     "format": "prettier --write ."
   },
   "dependencies": {

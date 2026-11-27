@@ -1,4 +1,6 @@
-# Client testing
+# Testing
+
+## Client testing
 
 Tests live in a `__tests__` directory beside the module or feature they cover.
 Use `ModuleName.test.ts` for non-React modules and `ComponentName.test.tsx` for
@@ -45,7 +47,13 @@ client/
 Keep `src/test/` for shared setup and helpers, rather than feature suites. Keep
 generated coverage output in `client/coverage/`, which is ignored by Git.
 
-## Commands
+### Commands
+
+Before opening or updating a PR, `npm.cmd run preflight` must pass in both
+`client/` and `server/` on the final proposed changes. Do not merge the PR.
+Client preflight checks formatting without rewriting files, runs lint and
+coverage tests, then builds (including TypeScript checking). Use `format`
+separately only when intentionally applying formatting fixes.
 
 Run from `client/`. On Windows, use `npm.cmd` if PowerShell blocks `npm.ps1`.
 
@@ -65,7 +73,7 @@ writes an HTML report to `coverage/index.html` and a machine-readable summary to
 `coverage/coverage-summary.json`. The default environment is Node; DOM suites
 declare `// @vitest-environment jsdom` at the top of their file.
 
-## Coverage scope and safeguards
+### Coverage scope and safeguards
 
 Coverage includes application `.ts` and `.tsx` files, including files no test
 imports. The existing exclusions are unchanged: generated-style UI primitives
@@ -106,7 +114,7 @@ Location tests compare every generated Indian state and ordered city list with
 the installed source package, and exercise deferred loading, retry, manual city
 entry, and state changes while a download is pending.
 
-## Limits
+### Limits
 
 jsdom provides no layout engine or actual navigation/reloads. Setup provides
 minimal observer, scrolling, and pointer-capture stubs so real Radix controls can
@@ -130,5 +138,64 @@ names are a 40.45 kB dynamic chunk (18.97 kB gzipped) loaded after state selecti
 city-data bundle is no longer shipped. These checks do not establish asset
 delivery or bundle performance in a deployed browser.
 
-The server has no test script in the current checkout. These client tests do
-not establish server coverage.
+## Server testing
+
+Vitest runs JavaScript tests in Node. Put each `*.test.js` suite in a
+`__tests__/` directory beside the server module it covers. The starter suites
+exercise Blood Bridge schema validation and controller behavior with synthetic
+fixtures and stubbed database calls. Running them requires the server's npm
+dependencies and no database connection, service credentials, or running API.
+
+Use Node.js 20.19+ on the 20.x line or Node.js 22.12+. Run from `server/`
+after installing dependencies with `npm.cmd ci`.
+
+```powershell
+npm.cmd test
+npm.cmd run test:watch
+npm.cmd run preflight
+npm.cmd test -- src/controllers/__tests__/bloodRequest.controller.test.js
+```
+
+Server preflight runs `check:syntax` followed by the full Vitest suite. The
+syntax check parses `.js`, `.mjs`, and `.cjs` files throughout `server/`,
+excluding dependencies, Git metadata, coverage, and build output. It does not
+execute the application or load environment files. It is not a linter or a
+type checker, and it does not establish live integration correctness. The
+server's recursive `build` script is not part of preflight.
+
+For a bug fix, add a case to the closest suite or create a focused suite. Make
+the assertion describe the expected behavior and run it against the current
+implementation. Confirm the failure reproduces the bug, then fix the production
+code. Rerun the case and the server suite. Add a test name filter with
+`-t "test name"` after the suite path to run one case.
+
+Keep fixtures synthetic. Stub external services at their calling boundary and
+avoid importing the API entry point, which starts the live server and connects
+to MongoDB. The starter suites exercise schema validation in memory and
+controller behavior in isolation. HTTP routing, real MongoDB operations, and
+provider integrations require their own tests.
+
+The expanded server suite has 37 tests across five files. In addition to the
+Blood Bridge schema and list-filter tests, it covers:
+
+- User and organization authentication: missing/invalid/expired credentials,
+  cookie and header sources, missing accounts, failed account lookups, and
+  excluding password/refresh-token fields from database selection.
+- Volunteer contact visibility for anonymous viewers, other users, the request
+  creator, and the volunteer themself; consent updates affect only the
+  signed-in volunteer and reject non-volunteers without saving.
+- Account-scoped notification lists, bulk updates/deletes, timestamp filters,
+  and query failures.
+
+JWT verification and database calls are stubbed in these tests. They verify
+middleware/controller decisions, not cryptographic verification, HTTP cookie
+behavior, MongoDB execution, or end-to-end authorization. No backend coverage
+percentage has been measured; passing these tests is not complete coverage.
+
+An inspection during test expansion found that the single-notification
+mark-read and delete handlers query by notification ID without checking its
+owner. Their routes require authentication but do not add record ownership
+checks. This remains an unresolved authorization issue, not behavior endorsed
+by the new tests. Some validation errors are also returned as HTTP 500 by
+existing controller catch blocks; the rejection tests do not certify those
+status codes as correct.

@@ -36,8 +36,8 @@ unless the feature and its operating process support that claim.
 ## Skills
 
 Repository-specific skills live under `.agents/skills/`. Before starting a
-task, check this table and read each matching `SKILL.md`; more than one skill
-may apply.
+task, use this table to identify skills for the current phase; more than one
+skill may apply. Load their entrypoints only when that phase begins.
 
 Load each matching skill entrypoint only if it is not already available in
 the current context, then read only the rules needed for the change. Use `rg`
@@ -46,12 +46,52 @@ to locate relevant rules rather than reading every rule or a compiled skill
 are adapted to this repository; preserve those adaptations during upstream
 skill updates.
 
+- Match skills to concrete work, not a speculative possibility. This
+  overrides the local `using-superpowers` skill's "1% chance" loading rule.
+- Load `using-superpowers` once, then only the current process skill and
+  relevant domain skills. Planning does not require preloading implementation,
+  review, and finishing skills. Load those when reaching their steps.
+- A skill reference is navigation, not an instruction to recursively load
+  every linked skill or reference. Follow links only for the current task;
+  retain applicable safety rules and prerequisites.
+- Reuse entrypoints already present in context unless changed or no longer
+  available. Do not read both repository and plugin copies of the same skill.
+- Give subagents their task, ownership, acceptance criteria, and necessary
+  references. Do not copy the full conversation or every loaded skill.
+
 | When the task involves | Use |
 | --- | --- |
 | Building a new screen or materially reshaping the visual design | `frontend-design` |
 | Writing, reviewing, or refactoring React code; client performance, rendering, or bundle size | `vercel-react-best-practices` |
 | Designing reusable component APIs, compound components, or refactoring boolean-heavy components | `vercel-composition-patterns` |
 | An explicit UI, accessibility, or web-interface guidelines audit | `web-design-guidelines` |
+| Planning, test-driven development, debugging, code review, or verification workflows | Repository Superpowers skills described below |
+| Implementing Express routes, middleware, authentication, or request validation | `nodejs-backend-patterns` |
+| Designing MongoDB schemas, indexes, aggregations, or queries | `mongodb-schema-design`, `mongodb-query-optimizer`, or `mongodb-natural-language-querying` as applicable |
+| Evaluating backend transactions, idempotency, concurrency, or service boundaries | `backend-engineering` |
+
+### Superpowers
+
+This checkout includes [Superpowers](https://github.com/obra/superpowers)
+7.0.1 under `.agents/skills/`, with its [MIT license](.agents/SUPERPOWERS-LICENSE.txt).
+Use the repository copies even when a personal plugin is installed. Agents
+without skill discovery can read the same `SKILL.md` files directly.
+
+Start with `.agents/skills/using-superpowers/SKILL.md`, then load the skills
+that fit the task. Resolve upstream names such as
+`superpowers:test-driven-development` to the corresponding local directory.
+
+- For feature design and implementation planning, use `brainstorming` and
+  `writing-plans` as applicable.
+- For bug fixes, use `systematic-debugging` and `test-driven-development`.
+  Follow the client and server regression steps in step 6 below.
+- For reviews and authorized verification, use the applicable code-review
+  skill and `verification-before-completion`.
+- Use `executing-plans` for inline implementation when delegation is
+  unavailable or outside the task's scope.
+
+Apply the repository workflow below when an upstream skill suggests checks,
+Git operations, or other steps that require separate authorization.
 
 Skills do not override this file or the user's request. Apply React/Next.js
 guidance to this Vite client only where the advice fits React and the existing
@@ -94,6 +134,9 @@ assume a repo-local Postman skill exists unless it is present in the checkout.
 
 ## Workflow
 
+The eight steps below are the canonical workflow. Use the local Superpowers
+skills within these steps; do not create a competing sequence.
+
 ### 1. Understand
 
 - For feature, entity, screen, or user-flow changes, read the relevant
@@ -106,16 +149,38 @@ assume a repo-local Postman skill exists unless it is present in the checkout.
   contact are ambiguous, identify the uncertainty and avoid inventing a
   product policy.
 
-### 2. Plan
+### 2. Brainstorm
+
+- For non-trivial features, use `brainstorming` to clarify uncertainties,
+  compare approaches, and write a design with acceptance criteria.
+- Small, fully specified documentation or cosmetic edits may skip steps 2
+  and 3. A localized bug with established expected behavior may use the
+  shortcut below. If product behavior or architecture needs a decision,
+  return to brainstorming instead of inventing requirements.
+
+### 3. Approve the design — human gate
+
+- Present the design for the user's explicit approval before writing
+  implementation code or dispatching implementation agents. Reading code
+  and investigating behavior may continue before approval.
+- Silence, elapsed time, or approval of an earlier proposal is not approval
+  of the presented design. Reuse approval already given for that design;
+  ask again only if a material scope or design change needs a new decision.
+
+### 4. Write the implementation plan
 
 - For work spanning multiple files or layers, give a short plan before
   editing: the affected areas and how the change will be checked.
+- After design approval, use `writing-plans`. Record acceptance criteria,
+  dependencies, file ownership, and verification commands. Delegate only
+  independent tasks; assign one writer per file and agree on shared API
+  contracts before frontend and backend work proceeds in parallel.
 - Prefer the smallest change that fully satisfies the request. Avoid
   unrelated refactors and formatting churn.
 - Keep existing client/server boundaries: UI in `client/`, API behavior in
   `server/`, and shared product documentation in `docs/`.
 
-### 3. Implement
+### 5. Implement
 
 - Follow the existing flow: client API module/component → Express route →
   controller → service/model as appropriate. Keep business rules out of UI
@@ -130,19 +195,28 @@ assume a repo-local Postman skill exists unless it is present in the checkout.
   changes product behavior or makes their descriptions inaccurate.
 - Do not add dependencies unless they are needed and fit the existing stack.
 
-### 4. Verify
+### 6. Test and review
 
-Do not run tests or verification commands unless the user asks for testing or
-verification. A request to fix tests or increase coverage authorizes the
-relevant checks throughout that task; do not ask again for each run. For
-instruction-only edits, review the changed text and references without
-running application checks unless requested.
+For client and server bug fixes, write or update a regression test and
+observe it fail for the reported behavior before changing production code.
+A setup error or unavailable service does not establish reproduction. Run
+the focused test after the fix, then the affected application's suite. If
+automated reproduction is infeasible, report the limitation and agree on an
+alternative with the user before implementing the fix.
+
+Bug-fix regression checks and the PR gate in step 7 are standing
+authorization to run those checks. For other tasks outside that gate, run
+tests or verification commands when the user requests them. A
+request to set up or fix tests or increase coverage authorizes the relevant
+checks throughout that task. For instruction-only edits, review the changed
+text and references without running application checks unless requested or
+preparing a PR.
 
 When checks are requested, choose the scripts appropriate to the change.
 Run from `client/`; use `npm.cmd` on Windows if PowerShell blocks `npm.ps1`:
 
 ```powershell
-# Lint, TypeScript checks, and all tests with coverage
+# Formatting, lint, TypeScript, tests with coverage, and production build
 npm.cmd run preflight
 
 # Individual checks, when the full preflight is unnecessary
@@ -166,27 +240,102 @@ do not exclude application code or manufacture internal states solely to
 raise coverage. Report measured coverage and remaining gaps honestly.
 
 For server changes, inspect `server/package.json` before selecting checks.
-It currently declares no test script, and its `build` script calls itself;
-do not run that recursive script. Do not claim tests passed if none were
-run. Report missing configuration or external-service limits plainly.
+Run `npm.cmd test` from `server/` for the Vitest suite. For server bug fixes,
+write or update a regression test and confirm it fails for the reported issue
+before changing production code. Run the focused test again after the fix,
+then run the server suite. See `docs/testing.md` for placement and commands.
+The server's `build` script calls itself. Do not run it. Report missing
+configuration or external-service limits plainly.
 
-### 5. Review
+#### Review and retry limits
 
 - Review the diff for accidental changes, exposed secrets, authorization
   gaps, and inconsistent client/server assumptions.
+- Independent review is required for a new feature, changes to API
+  contracts or schemas, authentication/authorization, sensitive-data or
+  consent handling, concurrency, or behavior spanning multiple application
+  modules. Count production modules, not adjacent test files. Use the local
+  review skills and a separate reviewer agent when available. If no
+  independent reviewer is available, report that gate as pending rather
+  than calling self-review independent review.
+- A localized bug fix outside those categories, documentation-only change,
+  or cosmetic edit may use self-review. Record why it qualifies.
 - For UI work, inspect the changed screen at the relevant viewport when
   browser tooling is available.
 - Preserve unrelated pre-existing workspace changes. Do not revert files
   merely because they are outside the task.
+- After an initial check or review failure, allow at most three repair and
+  recheck cycles for the same unresolved issue. Then stop that work and
+  report the failure, attempted fixes, evidence, and the decision needed.
+  Do not reset the counter by changing agents or starting a new session.
+  Unrelated authorized work may continue; do not open the PR with a failed
+  or pending gate.
 
-### 6. Report
+### 7. Pass PR gates and open the authorized PR
+
+Before opening any PR, both commands must pass on the final proposed changes:
+
+```powershell
+# Working directory: client/
+npm.cmd run preflight
+
+# Working directory: server/
+npm.cmd run preflight
+```
+
+- Client preflight checks formatting, lint, TypeScript, tests with coverage,
+  and the production build. Server preflight checks JavaScript syntax and
+  runs its Vitest suite; it does not run the recursive server build script.
+- These are the concrete "final PR checks," including for the bug shortcut.
+  Do not substitute a focused test or claim a skipped check passed.
+- Reuse successful results only while the checked content and relevant
+  configuration/dependencies are unchanged. Rerun affected checks after fixes
+  or integration changes, and before updating an existing PR.
+- Preflight must not rewrite source files. Formatting fixes are a separate,
+  explicit action limited to owned files. Checks may generate build/coverage
+  output; do not run competing checks in the same output directories.
+- Open or update the PR only within the user's authorization, after required
+  review and checks pass. If checks are blocked, report the blocker.
+- Never merge the PR, enable auto-merge, or bypass required checks. This
+  overrides any merge option suggested by a finishing skill.
+
+### 8. Report evidence and stop
 
 End with a concise summary of:
 
 - What changed and which files.
 - Checks run and their results, or that checks were not requested/run.
+- For bugs, the regression test's observed failure before the fix and pass
+  afterward. For a PR, include the checked revision or working-tree state,
+  command outcomes, review outcome, diff summary, and PR link.
 - Any unresolved product or implementation question and any material limit
   on verification.
+
+#### Shortcut and workflow diagram
+
+Small, localized bugs with established expected behavior may follow:
+understand → failing regression test → fix → checks and applicable review →
+PR gate → authorized PR → report and stop. They skip feature design approval,
+not regression evidence, review criteria, retry limits, or the no-merge rule.
+
+```mermaid
+flowchart TD
+    A[1. Understand] --> B{Localized bug with established behavior?}
+    B -->|No: non-trivial feature| C[2. Brainstorm and write design]
+    C --> D[3. HUMAN GATE: explicit design approval]
+    D --> E[4. Write implementation plan]
+    B -->|Yes| F[Observe failing regression test]
+    F --> G[5. Implement]
+    E --> G
+    G --> H[6. Test and review using stated criteria]
+    H -->|Pass| I[7. Client preflight and server preflight]
+    I -->|Pass| J[Open or update authorized PR]
+    H -->|Fail| K{Three repair cycles exhausted?}
+    I -->|Fail| K
+    K -->|No| G
+    K -->|Yes| L[Report blocker and stop affected work]
+    J --> M[8. Report evidence and stop: never merge]
+```
 
 ## Repository layout
 
@@ -214,7 +363,7 @@ server/                     Express + MongoDB API
 
 - `docs/prd.md` — product scope, requirements, safety, and open decisions
 - `walkthrough.md` — implementation, architecture, routes, and screens
-- `docs/testing.md` — client test structure, coverage scope, and check commands
+- `docs/testing.md` — client and server test structure, commands, and limits
 - `Readme.md` — setup and developer quick start
 
 When repository documentation conflicts with the current code, inspect both
