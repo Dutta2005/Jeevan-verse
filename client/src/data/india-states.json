@@ -1,0 +1,146 @@
+[
+  {
+    "name": "Andaman and Nicobar Islands",
+    "isoCode": "AN"
+  },
+  {
+    "name": "Andhra Pradesh",
+    "isoCode": "AP"
+  },
+  {
+    "name": "Arunachal Pradesh",
+    "isoCode": "AR"
+  },
+  {
+    "name": "Assam",
+    "isoCode": "AS"
+  },
+  {
+    "name": "Bihar",
+    "isoCode": "BR"
+  },
+  {
+    "name": "Chandigarh",
+    "isoCode": "CH"
+  },
+  {
+    "name": "Chhattisgarh",
+    "isoCode": "CT"
+  },
+  {
+    "name": "Dadra and Nagar Haveli and Daman and Diu",
+    "isoCode": "DH"
+  },
+  {
+    "name": "Delhi",
+    "isoCode": "DL"
+  },
+  {
+    "name": "Goa",
+    "isoCode": "GA"
+  },
+  {
+    "name": "Gujarat",
+    "isoCode": "GJ"
+  },
+  {
+    "name": "Haryana",
+    "isoCode": "HR"
+  },
+  {
+    "name": "Himachal Pradesh",
+    "isoCode": "HP"
+  },
+  {
+    "name": "Jammu and Kashmir",
+    "isoCode": "JK"
+  },
+  {
+    "name": "Jharkhand",
+    "isoCode": "JH"
+  },
+  {
+    "name": "Karnataka",
+    "isoCode": "KA"
+  },
+  {
+    "name": "Kerala",
+    "isoCode": "KL"
+  },
+  {
+    "name": "Ladakh",
+    "isoCode": "LA"
+  },
+  {
+    "name": "Lakshadweep",
+    "isoCode": "LD"
+  },
+  {
+    "name": "Madhya Pradesh",
+    "isoCode": "MP"
+  },
+  {
+    "name": "Maharashtra",
+    "isoCode": "MH"
+  },
+  {
+    "name": "Manipur",
+    "isoCode": "MN"
+  },
+  {
+    "name": "Meghalaya",
+    "isoCode": "ML"
+  },
+  {
+    "name": "Mizoram",
+    "isoCode": "MZ"
+  },
+  {
+    "name": "Nagaland",
+    "isoCode": "NL"
+  },
+  {
+    "name": "Odisha",
+    "isoCode": "OR"
+  },
+  {
+    "name": "Puducherry",
+    "isoCode": "PY"
+  },
+  {
+    "name": "Punjab",
+    "isoCode": "PB"
+  },
+  {
+    "name": "Rajasthan",
+    "isoCode": "RJ"
+  },
+  {
+    "name": "Sikkim",
+    "isoCode": "SK"
+  },
+  {
+    "name": "Tamil Nadu",
+    "isoCode": "TN"
+  },
+  {
+    "name": "Telangana",
+    "isoCode": "TG"
+  },
+  {
+    "name": "Tripura",
+    "isoCode": "TR"
+  },
+  {
+    "name": "Uttar Pradesh",
+    "isoCode": "UP"
+  },
+  {
+    "name": "Uttarakhand",
+    "isoCode": "UT"
+  },
+  {
+    "name": "West Bengal",
+    "isoCode": "WB"
+  }
+]

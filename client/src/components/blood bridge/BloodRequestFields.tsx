@@ -1,5 +1,7 @@
-import { useMemo, type ReactNode } from "react";
-import { State, City } from "country-state-city";
+import { type ReactNode } from "react";
+import { indianStates as states } from "@/lib/india-locations";
+import { useIndianCities } from "@/hooks/useIndianCities";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -22,7 +24,6 @@ import {
 import { bloodGroups, type RequestDraft } from "./blood-request-form";
 import styles from "./BloodBridge.module.css";
 
-const states = State.getStatesOfCountry("IN");
 function RequestField({
   name,
   label,
@@ -54,7 +55,12 @@ export default function BloodRequestFields({
   disabled: boolean;
 }) {
   const stateCode = states.find((state) => state.name === data.state)?.isoCode || "";
-  const cities = useMemo(() => City.getCitiesOfState("IN", stateCode) || [], [stateCode]);
+  const {
+    cities,
+    isLoading: citiesLoading,
+    error: citiesError,
+    retry,
+  } = useIndianCities(stateCode);
   const control = (name: keyof RequestDraft) => ({
     id: `request-${name}`,
     disabled,
@@ -149,12 +155,24 @@ export default function BloodRequestFields({
               value={data.city}
               onChange={(event) => onChange("city", event.target.value)}
               placeholder="Enter city or town"
+              aria-busy={citiesLoading}
             />
             <datalist id="request-city-options">
-              {cities.map((city) => (
-                <option key={`${city.name}-${city.latitude}`} value={city.name} />
+              {cities.map((city, index) => (
+                <option key={`${city}-${index}`} value={city} />
               ))}
             </datalist>
+            {citiesLoading && (
+              <FieldDescription role="status">Loading city suggestions…</FieldDescription>
+            )}
+            {citiesError && (
+              <FieldDescription role="status">
+                {citiesError} You can still enter your city or town.
+                <Button type="button" variant="link" onClick={retry}>
+                  Retry city suggestions
+                </Button>
+              </FieldDescription>
+            )}
           </RequestField>
         </div>
       </FieldSet>

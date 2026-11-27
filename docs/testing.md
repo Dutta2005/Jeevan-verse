@@ -79,15 +79,15 @@ least 99% statements, functions, and lines, and 95% branches. These are minimum
 floors; 100% remains the target. Do not remove application files from coverage
 or add ignore comments merely to satisfy a threshold.
 
-The verified result after the workspace updates and preflight fixes is 376
-passing tests across 66 suites. `npm.cmd run preflight` passes formatting, lint,
+The verified result after the workspace updates and lazy city-data loading is 384
+passing tests across 69 suites. `npm.cmd run preflight` passes formatting, lint,
 TypeScript checks, tests with coverage, and the production build.
 
 | Metric | Before | After |
 | --- | ---: | ---: |
-| Statements | 23.39% | 99.21% |
-| Branches | 17.38% | 96.10% |
-| Functions | 26.10% | 99.63% |
+| Statements | 23.39% | 99.22% |
+| Branches | 17.38% | 96.27% |
+| Functions | 26.10% | 99.64% |
 | Lines | 23.46% | 99.74% |
 
 The four uncovered lines are in `PostForm.tsx` (outside-interaction handling),
@@ -102,6 +102,9 @@ child components that have their own independent behavior suites.
 Additional suites cover account layouts, mobile workspace navigation, legacy
 filter URLs, chat history actions, account changes, preview URL cleanup, and
 requests settling after their screen unmounts.
+Location tests compare every generated Indian state and ordered city list with
+the installed source package, and exercise deferred loading, retry, manual city
+entry, and state changes while a download is pending.
 
 ## Limits
 
@@ -122,9 +125,10 @@ deletion. Mobile workspace links close the drawer through their click handlers
 and retain React Router's active-link styling. The volunteer dialog trigger
 uses Radix's `asChild` option so consent actions remain unambiguous.
 
-The production build reports non-blocking warnings for `/grid.svg` and the large
-city-data bundle. These checks do not establish asset delivery or bundle
-performance in a deployed browser.
+The production build reports a non-blocking warning for `/grid.svg`. Indian city
+names are a 40.45 kB dynamic chunk (18.97 kB gzipped) loaded after state selection; the global
+city-data bundle is no longer shipped. These checks do not establish asset
+delivery or bundle performance in a deployed browser.
 
 The server has no test script in the current checkout. These client tests do
 not establish server coverage.

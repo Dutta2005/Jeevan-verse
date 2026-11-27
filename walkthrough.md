@@ -610,6 +610,12 @@ become full-width on phones. Forms group blood needed, location, contact details
 and an optional message; their body scrolls independently of the header and
 actions. Creation drafts stay in component memory when dismissed. State changes
 clear dependent district/city values; city suggestions allow manual town entry.
+Registration and blood-request forms share a generated India-only location
+subset from the installed `country-state-city` dependency. The small state list
+loads with the forms; city names use a dynamic import after state selection,
+with loading feedback and retry on failure. The full worldwide city dataset is
+not included in the browser bundle. Regenerate the committed data with
+`npm.cmd run generate:locations` from `client/` after changing the dependency.
 Validation identifies fields, focuses the first error, preserves failed drafts,
 and prevents duplicate submissions. Successful creation opens the request detail.
 
