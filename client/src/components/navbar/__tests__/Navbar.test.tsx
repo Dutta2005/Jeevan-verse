@@ -24,32 +24,35 @@ beforeEach(() => {
 describe("user navigation", () => {
   it.each(["light", "dark"])("renders signed-in navigation and toggles %s mode", async (theme) => {
     mocks.theme = theme;
-    const { container } = render(
+    render(
       <MemoryRouter initialEntries={["/discussions"]}>
         <Navbar />
       </MemoryRouter>,
     );
     expect(screen.getByText("Notification menu")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Jeevan Verse" })).toHaveAttribute("href", "/");
-    await userEvent.click(container.querySelector<HTMLElement>('[aria-haspopup="menu"]')!);
-    expect(await screen.findByRole("switch")).toHaveAttribute(
-      "aria-checked",
-      String(theme === "dark"),
+    await userEvent.click(
+      screen.getByRole("button", {
+        name: theme === "dark" ? "Switch to light mode" : "Switch to dark mode",
+      }),
     );
-    expect(screen.getByRole("menuitem", { name: "Logout" })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("switch"));
     expect(mocks.dispatch).toHaveBeenCalledWith(toggleTheme());
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByLabelText("Account menu"));
+    expect(await screen.findByRole("menuitem", { name: "Logout" })).toBeInTheDocument();
   });
   it("hides notifications and logout for visitors", async () => {
     mocks.authenticated = false;
-    const { container } = render(
+    render(
       <MemoryRouter>
         <Navbar />
       </MemoryRouter>,
     );
     expect(screen.queryByText("Notification menu")).not.toBeInTheDocument();
-    await userEvent.click(container.querySelector<HTMLElement>('[aria-haspopup="menu"]')!);
-    expect(await screen.findByRole("switch")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+    expect(mocks.dispatch).toHaveBeenCalledWith(toggleTheme());
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Account menu")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Logout" })).not.toBeInTheDocument();
   });
 });

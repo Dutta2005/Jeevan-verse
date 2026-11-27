@@ -1,266 +1,147 @@
-import { useEffect, useState } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
-import { api } from "../../api/api";
-import { State, City } from "country-state-city";
-import { z } from "zod";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { api } from "@/api/api";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import BloodRequestForm from "./BloodRequestForm";
+import { requestSchema, requestPayload, type RequestDraft } from "./blood-request-form";
+import styles from "./BloodBridge.module.css";
 
-const requestFormSchema = z.object({
-  bloodGroup: z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]),
-  urgency: z.enum(["low", "medium", "high"]),
-  message: z.string().optional(),
-  phone: z
-    .string()
-    .min(10)
-    .max(15)
-    .regex(/^[0-9+\-\s()]*$/, "Invalid phone number format"),
-  email: z.string().email().optional().or(z.literal("")),
-  state: z.string().min(1, "State is required"),
-  district: z.string().min(1, "District is required"),
-  city: z.string().min(1, "City is required"),
-});
-
-type FormData = z.infer<typeof requestFormSchema>;
-
-interface EditRequestProps {
+export default function EditRequest({
+  requestId,
+  onSave,
+  onCancel,
+  onPendingChange,
+}: {
   requestId: string;
   onSave: () => void;
   onCancel: () => void;
-}
-
-function EditRequest({ requestId, onSave, onCancel }: EditRequestProps) {
-  const [formData, setFormData] = useState<FormData | null>(null);
-  const [selectedStateCode, setSelectedStateCode] = useState<string>("");
+  onPendingChange?: (pending: boolean) => void;
+}) {
+  const [data, setData] = useState<RequestDraft | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [pending, setPending] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState<boolean>(true);
-
-  // Fetch the existing request data when the component mounts
+  const saving = useRef(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const requestKey = requestId;
+  const [previousRequestKey, setPreviousRequestKey] = useState(requestKey);
+  if (previousRequestKey !== requestKey) {
+    setPreviousRequestKey(requestKey);
+    setLoading(true);
+    setData(null);
+    setErrors({});
+  }
   useEffect(() => {
-    const fetchRequestData = async () => {
-      try {
-        const response = await api.get(`/blood-requests/${requestId}`);
-        if (response.status === 200) {
-          const data = response.data.data;
-          setFormData({
-            bloodGroup: data.bloodGroup,
-            urgency: data.urgency,
-            message: data.message || "",
-            phone: data.contactDetails?.phone || "",
-            email: data.contactDetails?.email || "",
-            state: data.address?.state || "",
-            district: data.address?.district || "",
-            city: data.address?.city || "",
+    let active = true;
+
+    api
+      .get(`/blood-requests/${requestId}`)
+      .then((response) => {
+        if (response.status !== 200 || !response.data?.data) throw new Error("Unavailable");
+        const value = response.data.data;
+        if (active)
+          setData({
+            bloodGroup: value.bloodGroup,
+            urgency: value.urgency,
+            message: value.message || "",
+            phone: value.contactDetails?.phone || "",
+            email: value.contactDetails?.email || "",
+            state: value.address?.state || "",
+            district: value.address?.district || "",
+            city: value.address?.city || "",
           });
-
-          const state = State.getStatesOfCountry("IN").find((s) => s.name === data.address.state);
-          if (state) setSelectedStateCode(state.isoCode);
-        }
-      } catch (error) {
-        console.error("Failed to fetch blood request data:", error);
-      } finally {
-        setLoading(false);
-      }
+      })
+      .catch(() => {
+        if (active) setErrors({ submit: "Failed to load request details." });
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
     };
-
-    fetchRequestData();
   }, [requestId]);
-
-  const handleChange = (name: keyof FormData, value: string) => {
-    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+  const change = (name: keyof RequestDraft, value: string) => {
+    setData((previous) =>
+      previous
+        ? name === "state"
+          ? { ...previous, state: value, city: "", district: "" }
+          : { ...previous, [name]: value }
+        : null,
+    );
+    setErrors((previous) => ({
+      ...previous,
+      [name]: "",
+      ...(name === "state" ? { city: "", district: "" } : {}),
+    }));
   };
-
-  const validateForm = () => {
-    try {
-      requestFormSchema.parse(formData);
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const newErrors: Record<string, string> = {};
-        error.issues.forEach((err) => {
-          const field = err.path[0];
-          if (typeof field === "string") {
-            newErrors[field] = err.message;
-          }
-        });
-        setErrors(newErrors);
-      }
-      return false;
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!data || saving.current) return;
+    const result = requestSchema.safeParse(data);
+    if (!result.success) {
+      setErrors(
+        Object.fromEntries(
+          result.error.issues.map((issue) => [String(issue.path[0]), issue.message]),
+        ),
+      );
+      requestAnimationFrame(() =>
+        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),
+      );
+      return;
     }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData || !validateForm()) return;
-
+    saving.current = true;
+    setPending(true);
+    onPendingChange?.(true);
+    setErrors({});
     try {
+      const payload = requestPayload(result.data);
       const response = await api.patch(`/blood-requests/update/${requestId}`, {
-        bloodGroup: formData.bloodGroup,
-        urgency: formData.urgency,
-        message: formData.message || undefined,
+        ...payload,
+        message: payload.message || undefined,
         contactDetails: {
-          phone: formData.phone,
-          email: formData.email || undefined,
-        },
-        address: {
-          state: formData.state,
-          district: formData.district,
-          city: formData.city,
+          ...payload.contactDetails,
+          email: payload.contactDetails.email || undefined,
         },
       });
-
-      if (response.status === 200) onSave();
-    } catch (error) {
-      console.error("Error updating blood request:", error);
+      if (response.status !== 200) throw new Error("Unexpected response");
+      onSave();
+    } catch {
       setErrors({ submit: "Failed to update the request. Please try again." });
+    } finally {
+      saving.current = false;
+      setPending(false);
+      onPendingChange?.(false);
     }
   };
-
-  if (loading) {
-    return <p>Loading request details...</p>;
-  }
-
-  if (!formData) {
-    return <p>Failed to load request details.</p>;
-  }
-
+  if (loading)
+    return (
+      <div className={styles.drawerBody} aria-label="Loading request details">
+        <div className="flex flex-col gap-5">
+          {[1, 2, 3, 4].map((key) => (
+            <Skeleton key={key} className="h-16 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  if (!data)
+    return (
+      <div className={styles.drawerBody}>
+        <Alert variant="destructive">
+          <AlertDescription>{errors.submit}</AlertDescription>
+        </Alert>
+      </div>
+    );
   return (
-    <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-      {errors.submit && <p className="text-red-600 text-sm">{errors.submit}</p>}
-
-      <div className="space-y-4">
-        <div>
-          <Label>Blood Group *</Label>
-          <Select
-            value={formData.bloodGroup}
-            onValueChange={(value) => handleChange("bloodGroup", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select blood group" />
-            </SelectTrigger>
-            <SelectContent>
-              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((group) => (
-                <SelectItem key={group} value={group}>
-                  {group}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label>Urgency *</Label>
-          <Select
-            value={formData.urgency}
-            onValueChange={(value) => handleChange("urgency", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select urgency" />
-            </SelectTrigger>
-            <SelectContent>
-              {["low", "medium", "high"].map((level) => (
-                <SelectItem key={level} value={level}>
-                  {level.charAt(0).toUpperCase() + level.slice(1)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Message */}
-        <div>
-          <Label htmlFor="message">Message</Label>
-          <Input
-            type="text"
-            id="message"
-            placeholder="Optional message"
-            value={formData.message}
-            onChange={(e) => handleChange("message", e.target.value)}
-          />
-        </div>
-
-        <div>
-          <Label>Phone *</Label>
-          <Input
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => handleChange("phone", e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <Label>Email</Label>
-          <Input
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleChange("email", e.target.value)}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div>
-            <Label>State *</Label>
-            <Select
-              value={selectedStateCode}
-              onValueChange={(stateCode) => {
-                const state = State.getStatesOfCountry("IN").find((s) => s.isoCode === stateCode);
-                if (state) {
-                  handleChange("state", state.name);
-                  setSelectedStateCode(stateCode);
-                }
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select state" />
-              </SelectTrigger>
-              <SelectContent>
-                {State.getStatesOfCountry("IN").map((state) => (
-                  <SelectItem key={state.isoCode} value={state.isoCode}>
-                    {state.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label>District *</Label>
-            <Input
-              type="text"
-              value={formData.district}
-              onChange={(e) => handleChange("district", e.target.value)}
-            />
-          </div>
-
-          <div>
-            <Label>City *</Label>
-            <Select value={formData.city} onValueChange={(value) => handleChange("city", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select city" />
-              </SelectTrigger>
-              <SelectContent>
-                {City.getCitiesOfState("IN", selectedStateCode)?.map((city) => (
-                  <SelectItem key={city.name} value={city.name}>
-                    {city.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex gap-4 pt-4 justify-center">
-        <Button type="submit">Save Changes</Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-      </div>
-    </form>
+    <BloodRequestForm
+      data={data}
+      errors={errors}
+      onChange={change}
+      onSubmit={(event) => void submit(event)}
+      onCancel={onCancel}
+      pending={pending}
+      submitLabel="Save changes"
+      formRef={formRef}
+    />
   );
 }
-
-export default EditRequest;

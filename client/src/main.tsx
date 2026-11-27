@@ -119,6 +119,16 @@ const router = createBrowserRouter([
       {
         path: "",
         element: <OrgHome />,
+        children: [
+          {
+            path: "create",
+            element: (
+              <Protected role="organization">
+                <PostForm />
+              </Protected>
+            ),
+          },
+        ],
       },
       { path: "org-profile/:id", element: <OrgProfile /> },
       {
@@ -136,14 +146,6 @@ const router = createBrowserRouter([
       {
         path: "post/:id",
         element: <OrgPost />,
-      },
-      {
-        path: "create",
-        element: (
-          <Protected role="organization">
-            <PostForm />
-          </Protected>
-        ),
       },
       {
         path: "edit/:id",

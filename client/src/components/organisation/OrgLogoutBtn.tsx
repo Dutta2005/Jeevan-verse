@@ -5,8 +5,10 @@ import { useDispatch } from "react-redux";
 import { logout } from "../../store/authSlice";
 import { useNavigate } from "react-router";
 import { useToast } from "../../hooks/use-toast";
+import type { ComponentProps } from "react";
+import { cn } from "@/lib/utils";
 
-function OrgLogoutBtn() {
+function OrgLogoutBtn(props: ComponentProps<"button">) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { toast } = useToast();
@@ -34,10 +36,14 @@ function OrgLogoutBtn() {
   };
   return (
     <button
-      className="w-full flex items-center justify-center gap-2 text-red-600"
+      {...props}
+      className={cn(
+        "flex h-9 w-full items-center justify-center gap-2 rounded-md text-sm text-destructive hover:bg-muted",
+        props.className,
+      )}
       onClick={signOut}
     >
-      <span className="text-lg font-semibold">Logout</span>
+      <span>Logout</span>
       <LogOut className="w-5 h-5" />
     </button>
   );

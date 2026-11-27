@@ -1,7 +1,12 @@
 // @vitest-environment jsdom
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
+
+vi.mock("@/components/auth/AuthLayout", () => ({
+  AuthLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+}));
 
 const mocks = vi.hoisted(() => ({
   post: vi.fn(),
@@ -35,7 +40,7 @@ describe("Login", () => {
     renderLogin();
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "person@example.com" } });
     fireEvent.change(screen.getByLabelText("Password"), { target: { value: "secret" } });
-    fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
     await waitFor(() =>
       expect(mocks.post).toHaveBeenCalledWith("/users/login", {
@@ -55,7 +60,7 @@ describe("Login", () => {
     renderLogin();
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "person@example.com" } });
     fireEvent.change(screen.getByLabelText("Password"), { target: { value: "wrong" } });
-    fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
     await waitFor(() =>
       expect(mocks.toast).toHaveBeenCalledWith(
@@ -75,7 +80,7 @@ describe("Login", () => {
         target: { value: "person@example.test" },
       });
       fireEvent.change(screen.getByLabelText("Password"), { target: { value: "test-password" } });
-      fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+      fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
       await waitFor(() =>
         expect(mocks.toast).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -93,12 +98,12 @@ describe("Login", () => {
     renderLogin();
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "person@example.test" } });
     fireEvent.change(screen.getByLabelText("Password"), { target: { value: "test-password" } });
-    fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
     await waitFor(() =>
       expect(mocks.toast).toHaveBeenCalledWith(
         expect.objectContaining({ description: "Something went wrong" }),
       ),
     );
-    expect(screen.getByRole("button", { name: "Sign In" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeEnabled();
   });
 });

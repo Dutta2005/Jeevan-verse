@@ -160,7 +160,7 @@ const CreatePost: React.FC<PostFormProps> = ({ post, trigger, currentUserId }) =
           <Button
             onClick={handleSubmit}
             disabled={!formData.title || !formData.content || !formData.tag}
-            className="bg-accent dark:bg-accent w-full"
+            className="bg-primary dark:bg-primary w-full"
           >
             {isEditing ? "Save Changes" : "Post"}
           </Button>

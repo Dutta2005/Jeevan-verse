@@ -15,9 +15,9 @@ function SomethingWrong() {
       <div className="text-center space-y-8 max-w-2xl mx-auto">
         {/* Animated Icons */}
         <div className="flex justify-center gap-6 mb-8">
-          <Syringe className="w-12 h-12 text-secondary -rotate-45 animate-bounce" />
+          <Syringe className="w-12 h-12 text-primary -rotate-45 animate-bounce" />
           <AlertCircle className="w-12 h-12 text-primary animate-pulse" />
-          <Syringe className="w-12 h-12 text-secondary rotate-45 animate-bounce" />
+          <Syringe className="w-12 h-12 text-primary rotate-45 animate-bounce" />
         </div>
 
         {/* Error Message */}
@@ -55,7 +55,7 @@ function SomethingWrong() {
             Health System Status
           </h3>
           <div className="flex items-center justify-center gap-2 text-sm text-light-text dark:text-dark-text">
-            <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span>System recovery in progress</span>
           </div>
         </div>

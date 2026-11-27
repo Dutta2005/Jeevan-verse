@@ -1,32 +1,22 @@
-import { useSelector } from "react-redux";
-import { RootState } from "../../store/store";
 import PersonalDetails from "./PersonalDetails";
 import { LatestsPosts } from "./LatestsPosts";
+import styles from "./Dashboard.module.css";
 
-function Dashboard() {
-  const name = useSelector((state: RootState) => state.auth.user?.name);
-
+export default function Dashboard() {
   return (
-    <div className="container mx-auto px-4 py-10">
-      <header className="mb-12">
-        <h1 className="text-3xl lg:text-4xl text-center font-semibold">
-          Welcome back, <span className="text-primary">{name}</span>
-        </h1>
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:mx-4">
-        <div className="lg:col-span-4">
-          <div className="sticky top-4">
-            <PersonalDetails />
-          </div>
-        </div>
-
-        <div className="lg:col-span-8">
+    <div className={styles.page}>
+      <div className={styles.columns}>
+        <section aria-label="Your community activity">
           <LatestsPosts />
-        </div>
+        </section>
+        <aside aria-label="Your profile">
+          <PersonalDetails />
+        </aside>
       </div>
+      <p className={styles.footnote}>
+        Umeed and community discussions offer information and support. For medical advice, speak
+        with a qualified clinician.
+      </p>
     </div>
   );
 }
-
-export default Dashboard;

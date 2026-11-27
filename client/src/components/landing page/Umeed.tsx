@@ -88,20 +88,20 @@ export default function Umeed() {
 
       <div className="relative container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center space-y-8">
-          <span className="inline-flex items-center px-4 py-2 rounded-full bg-secondary/10 backdrop-blur-sm">
-            <span className="text-sm font-medium text-secondary">AI-Powered Medical Assistant</span>
+          <span className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 backdrop-blur-sm">
+            <span className="text-sm font-medium text-primary">AI-Powered Medical Assistant</span>
           </span>
 
           <div className="space-y-4">
             <h2 className="text-5xl sm:text-6xl font-bold tracking-tight">
-              <span className="bg-gradient-to-r from-secondary via-secondary/80 to-secondary bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent">
                 Umeed
               </span>
             </h2>
             <p className="text-sm text-light-text/70 dark:text-dark-text/70 italic">
               Hope in every interaction
             </p>
-            <div className="h-1 w-24 mx-auto bg-gradient-to-r from-transparent via-secondary/30 to-transparent rounded-full"></div>
+            <div className="h-1 w-24 mx-auto bg-gradient-to-r from-transparent via-primary/30 to-transparent rounded-full"></div>
           </div>
 
           <p className="text-xl font-light leading-relaxed text-light-text dark:text-dark-text/70">
@@ -110,23 +110,23 @@ export default function Umeed() {
             healthcare journey.
           </p>
 
-          <div className="mt-8 bg-white dark:bg-dark-bg/80 rounded-xl shadow-lg p-6 border border-secondary/10">
+          <div className="mt-8 bg-white dark:bg-dark-bg/80 rounded-xl shadow-lg p-6 border border-primary/10">
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full text-sm bg-secondary/10 text-light-text dark:text-dark-text/90">
+                <span className="px-3 py-1 rounded-full text-sm bg-primary/10 text-light-text dark:text-dark-text/90">
                   Fever
                 </span>
-                <span className="px-3 py-1 rounded-full text-sm bg-secondary/10 text-light-text dark:text-dark-text/90">
+                <span className="px-3 py-1 rounded-full text-sm bg-primary/10 text-light-text dark:text-dark-text/90">
                   Headache
                 </span>
-                <span className="px-3 py-1 rounded-full text-sm bg-secondary/10 text-light-text dark:text-dark-text/90 flex items-center gap-1">
-                  <span className="w-4 h-4 flex items-center justify-center rounded-full bg-secondary/20">
+                <span className="px-3 py-1 rounded-full text-sm bg-primary/10 text-light-text dark:text-dark-text/90 flex items-center gap-1">
+                  <span className="w-4 h-4 flex items-center justify-center rounded-full bg-primary/20">
                     +
                   </span>
                   Add Symptom
                 </span>
               </div>
-              <div className="border border-secondary/10 rounded-lg p-4 flex justify-between">
+              <div className="border border-primary/10 rounded-lg p-4 flex justify-between">
                 <p className="text-left text-sm text-light-text/70 dark:text-dark-text/70">
                   Any message goes here...
                 </p>

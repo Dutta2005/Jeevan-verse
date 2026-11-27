@@ -78,7 +78,7 @@ Requirements below describe the product represented by the repository. “Curren
 
 ### 5.3 Blood Bridge — blood requests and volunteers
 
-- **Current:** Authenticated users can browse requests, filter by blood group or status, view request details, create and update requests, change status, and delete their own requests where authorized.
+- **Current:** Authenticated users can browse requests, combine blood-group and status filters, view request details, create and update requests, change status, and delete their own requests where authorized.
 - **Current:** Users can volunteer for a request and configure whether their details can be shared. Request records include blood group, urgency, location, contact information, status, and volunteers.
 - **Current:** The server and client include real-time notifications and email support associated with blood request activity.
 - **Requirement:** Request listings and details must show the blood group, urgency, location, status, and contact or volunteering action clearly.

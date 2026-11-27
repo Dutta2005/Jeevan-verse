@@ -23,8 +23,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isLoggedIn, theme }) => {
     flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 text-light-text dark:text-dark-text
     ${
       isActive
-        ? "bg-primary/10 text-secondary font-medium shadow-sm dark:text-accent"
-        : "hover:text-secondary dark:hover:text-secondary"
+        ? "bg-primary/10 text-primary font-medium shadow-sm dark:text-primary"
+        : "hover:text-primary dark:hover:text-primary"
     }
   `;
 
@@ -32,6 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isLoggedIn, theme }) => {
     <Sheet>
       <SheetTrigger asChild className="h-10 w-10 mr-2">
         <Button
+          aria-label="Open organization navigation"
           variant="ghost"
           size="icon"
           className="hover:bg-primary/10 transition-colors dark:text-dark-text"
@@ -41,10 +42,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isLoggedIn, theme }) => {
       </SheetTrigger>
       <SheetContent
         side="right"
-        className="border-l border-accent/20 bg-light-bg dark:bg-dark-bg w-72"
+        className="border-l border-primary/20 bg-light-bg dark:bg-dark-bg w-72"
       >
         <SheetHeader>
-          <SheetTitle className="text-2xl font-semibold text-accent dark:text-accent">
+          <SheetTitle className="text-2xl font-semibold text-primary dark:text-primary">
             Menu
           </SheetTitle>
         </SheetHeader>

@@ -1,0 +1,32 @@
+.track {
+  width: 160px;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 1px;
+  background: var(--border);
+}
+
+.segment {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+  animation: loading-line 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes loading-line {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(350%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segment {
+    animation: none;
+    transform: translateX(75%);
+  }
+}

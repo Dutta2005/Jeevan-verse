@@ -1,229 +1,254 @@
-import { useParams } from "react-router";
-import { Badge } from "../components/ui/badge";
-import { Card, CardHeader, CardContent, CardFooter } from "../components/ui/card";
+import { Link, useLocation, useParams } from "react-router";
 import { useEffect, useState } from "react";
-import { api } from "../api/api";
 import { useSelector } from "react-redux";
-import { RootState } from "../store/store";
-import { Skeleton } from "../components/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
-import { MapPin, Phone, Mail, Users, Clock } from "lucide-react";
-import BeVolunteer from "../components/blood bridge/BeVolunteer";
-import BackBtn from "@/components/BackButton";
-
-interface Address {
-  state: string;
-  district: string;
-  city: string;
-}
-
-interface ContactDetails {
-  email: string;
-  phone: string;
-}
+import type { RootState } from "@/store/store";
+import { api } from "@/api/api";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import BeVolunteer from "@/components/blood bridge/BeVolunteer";
+import styles from "@/components/blood bridge/BloodBridge.module.css";
 
 interface Volunteer {
-  user: {
-    _id: string;
-    name: string;
-    email: string;
-    phone: string;
-  };
+  _id?: string;
+  user: { _id: string; name: string; email?: string; phone?: string } | null;
   canShareDetails: boolean;
 }
-
-interface Request {
+interface RequestDetails {
   _id: string;
+  userId: string;
   bloodGroup: string;
   urgency: string;
-  message: string;
-  contactDetails: ContactDetails;
   status: string;
-  userId: string;
-  address: Address;
+  message: string;
   createdAt: string;
+  address: { city: string; district: string; state: string };
+  contactDetails: { phone: string; email?: string };
   volunteers: Volunteer[];
 }
 
 export default function BloodBridgeRequest() {
   const { id } = useParams();
-  const [request, setRequest] = useState<Request | null>(null);
+  const { state } = useLocation();
+  const backTo =
+    typeof state?.from === "string" && /^\/bloodbridge(?:\?|$)/.test(state.from)
+      ? state.from
+      : "/bloodbridge";
+  const userId = useSelector((state: RootState) => state.auth.user?.id);
+  const [request, setRequest] = useState<RequestDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const userId = useSelector((state: RootState) => state.auth.user?.id);
-
+  const [retry, setRetry] = useState(0);
+  const requestKey = JSON.stringify([id, retry]);
+  const [previousRequestKey, setPreviousRequestKey] = useState(requestKey);
+  if (previousRequestKey !== requestKey) {
+    setPreviousRequestKey(requestKey);
+    setLoading(true);
+    setError("");
+    setRequest(null);
+  }
   useEffect(() => {
-    const getRequest = async () => {
-      try {
-        const response = await api.get(`blood-requests/${id}`);
-        setRequest(response.data.data);
-      } catch {
-        setError("Failed to load request details. Please try again.");
-      } finally {
-        setLoading(false);
-      }
+    let active = true;
+
+    api
+      .get(`/blood-requests/${id}`)
+      .then((response) => {
+        if (active) setRequest(response.data.data);
+      })
+      .catch(() => {
+        if (active) setError("Failed to load request details. Please try again.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
     };
-    getRequest();
-  }, [id]);
-
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency.toLowerCase()) {
-      case "high":
-        return "bg-red-600 text-white dark:bg-red-600 dark:text-white";
-      case "medium":
-        return "bg-yellow-500 text-white dark:bg-yellow-500 dark:text-white";
-      case "low":
-        return "bg-accent text-white dark:bg-accent dark:text-white";
-      default:
-        return "bg-gray-500 text-white";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "rejected":
-        return "bg-accent/20 text-accent border-accent dark:border-accent dark:text-accent dark:bg-accent/20";
-      case "completed":
-        return "bg-secondary/20 text-secondary border-secondary dark:border-secondary dark:text-secondary dark:bg-secondary/20";
-      case "pending":
-        return "bg-primary/20 text-primary border-primary dark:border-primary dark:text-primary dark:bg-primary/20";
-      default:
-        return "bg-gray-200 text-gray-700 border-gray-700";
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
+  }, [id, retry]);
+  const owner = request?.userId === userId;
+  const volunteered = request?.volunteers?.some((volunteer) => volunteer.user?._id === userId);
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <BackBtn cn={"mb-3"} />
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
+    <div className={styles.page}>
+      <Button variant="ghost" asChild className="mb-6">
+        <Link to={backTo}>Back to requests</Link>
+      </Button>
       {loading ? (
-        <Card className="p-6">
-          <Skeleton className="h-8 w-1/3 mb-4" />
-          <Skeleton className="h-6 w-1/2 mb-4" />
+        <div className="flex flex-col gap-6" aria-label="Loading request details">
           <Skeleton className="h-24 w-full" />
-        </Card>
-      ) : request ? (
-        <Card className="hover:shadow-xl transition-all duration-300 dark:bg-dark-bg">
-          <CardHeader className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <Badge className="px-4 py-2 text-lg bg-primary text-white dark:bg-primary dark:text-white">
-                {request.bloodGroup}
-              </Badge>
-              <Badge className={`px-4 py-2 border ${getStatusColor(request.status)}`}>
-                {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-              </Badge>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Badge className={`${getUrgencyColor(request.urgency)} px-3 py-1`}>
-                {request.urgency.toUpperCase()} URGENCY
-              </Badge>
-              <Badge className="bg-secondary/20 text-secondary border-secondary dark:border-secondary dark:text-secondary dark:bg-secondary/20 px-3 py-1">
-                <Users className="w-4 h-4 mr-1 inline" />
-                {request.volunteers.length} volunteer{request.volunteers.length !== 1 ? "s" : ""}
-              </Badge>
-              <Badge className="bg-gray-200 text-gray-700 dark:bg-gray-400 px-3 py-1">
-                <Clock className="w-4 h-4 mr-1 inline" />
-                {formatDate(request.createdAt)}
-              </Badge>
-            </div>
-          </CardHeader>
-
-          <CardContent className="space-y-6">
-            <div className="bg-light-bg dark:bg-dark-bg/50 p-4 rounded-lg">
-              <h3 className="font-semibold text-lg mb-2 text-primary">Message</h3>
-              <p className="text-light-text dark:text-dark-text leading-relaxed">
-                {request.message}
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-light-bg dark:bg-dark-bg/50 p-4 rounded-lg">
-                <h3 className="font-semibold text-lg mb-3 text-primary flex items-center">
-                  <MapPin className="w-5 h-5 mr-2" />
-                  Location
-                </h3>
-                <p className="text-light-text dark:text-dark-text">
-                  {request.address.city}, {request.address.district}, {request.address.state}
-                </p>
-              </div>
-
-              <div className="bg-light-bg dark:bg-dark-bg/50 p-4 rounded-lg">
-                <h3 className="font-semibold text-lg mb-3 text-primary">Contact Details</h3>
-                <div className="space-y-2">
-                  <p className="flex items-center text-light-text dark:text-dark-text">
-                    <Phone className="w-4 h-4 mr-2" />
-                    {request.contactDetails.phone}
-                  </p>
-                  <p className="flex items-center text-light-text dark:text-dark-text">
-                    <Mail className="w-4 h-4 mr-2" />
-                    {request.contactDetails.email}
-                  </p>
-                </div>
-              </div>
-            </div>
-            {userId !== request.userId && <BeVolunteer id={request._id} />}
-          </CardContent>
-
-          {userId === request.userId && (
-            <CardFooter className="block p-6 text-center">
-              <h3 className="font-semibold text-xl text-primary mb-4">Volunteers</h3>
-              <div className="bg-light-bg dark:bg-dark-bg/50 rounded-lg overflow-hidden">
-                <div className="grid grid-cols-2 bg-secondary/10 p-4">
-                  <p className="font-semibold text-light-text dark:text-dark-text">Name</p>
-                  <p className="font-semibold text-light-text dark:text-dark-text">Contact</p>
-                </div>
-                {request.volunteers.length === 0 ? (
-                  <p className="text-gray-600 dark:text-dark-text p-4 text-center">
-                    No volunteers yet.
-                  </p>
-                ) : (
-                  request.volunteers.map((volunteer) => (
-                    <div
-                      key={volunteer.user._id}
-                      className="grid grid-cols-2 p-4 border-t border-gray-200 dark:border-gray-700"
-                    >
-                      <p className="text-light-text dark:text-dark-text">{volunteer.user.name}</p>
-                      {volunteer.canShareDetails ? (
-                        <div className="space-y-1">
-                          <p className="text-light-text dark:text-dark-text flex items-center">
-                            <Phone className="w-4 h-4 mr-2" />
-                            {volunteer.user.phone || "-"}
-                          </p>
-                          <p className="text-light-text dark:text-dark-text flex items-center">
-                            <Mail className="w-4 h-4 mr-2" />
-                            {volunteer.user.email || "-"}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="italic text-gray-500">Contact details hidden</p>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardFooter>
-          )}
-        </Card>
-      ) : (
-        <div className="text-center p-8">
-          <p className="text-gray-600 dark:text-dark-text text-lg">No request found.</p>
+          <Skeleton className="h-56 w-full" />
         </div>
+      ) : error ? (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+          <Button variant="outline" className="mt-3" onClick={() => setRetry((value) => value + 1)}>
+            Try again
+          </Button>
+        </Alert>
+      ) : !request ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>No request found.</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
+      ) : (
+        <>
+          <header className={styles.header}>
+            <div className={styles.cardHeading}>
+              <span className={styles.bloodType} aria-hidden="true">
+                {request.bloodGroup}
+              </span>
+              <div>
+                <h1>{request.bloodGroup} blood request</h1>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Badge variant={request.urgency === "high" ? "destructive" : "secondary"}>
+                    {request.urgency[0]?.toUpperCase() + request.urgency.slice(1)} urgency
+                  </Badge>
+                  <Badge variant="outline">
+                    {request.status === "pending"
+                      ? "Open"
+                      : request.status[0]?.toUpperCase() + request.status.slice(1)}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+            {owner ? (
+              <Button variant="outline" asChild>
+                <Link to="/bloodbridge?view=mine">Manage your requests</Link>
+              </Button>
+            ) : request.status === "pending" ? (
+              volunteered ? (
+                <span className="text-sm text-muted-foreground">You volunteered</span>
+              ) : (
+                <BeVolunteer id={request._id} onJoined={() => setRetry((value) => value + 1)} />
+              )
+            ) : null}
+          </header>
+          <div className={styles.detailGrid}>
+            <div className={styles.detailMain}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    <h2>Request details</h2>
+                  </CardTitle>
+                  {request.createdAt && !Number.isNaN(Date.parse(request.createdAt)) && (
+                    <CardDescription>
+                      <time dateTime={request.createdAt}>
+                        Posted{" "}
+                        {new Date(request.createdAt).toLocaleDateString("en", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </time>
+                    </CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <p className={styles.requestMessage}>
+                    {request.message || "No additional details"}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    <h2>Location</h2>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className={styles.location}>
+                    {[request.address?.city, request.address?.district, request.address?.state]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                </CardContent>
+              </Card>
+              {owner && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      <h2>Volunteers</h2>
+                    </CardTitle>
+                    <CardDescription>
+                      Contact details appear only when a volunteer chooses to share them
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {!request.volunteers?.length ? (
+                      <Empty className="px-0 py-4">
+                        <EmptyHeader>
+                          <EmptyTitle>No volunteers yet.</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
+                    ) : (
+                      <ul className={styles.volunteers}>
+                        {request.volunteers.map((volunteer, index) => (
+                          <li key={volunteer._id || volunteer.user?._id || index}>
+                            <p className="text-sm font-medium">
+                              {volunteer.user?.name || "Member unavailable"}
+                            </p>
+                            {volunteer.canShareDetails ? (
+                              <div className={styles.volunteerContact}>
+                                <p>{volunteer.user?.phone || "-"}</p>
+                                <p>{volunteer.user?.email || "-"}</p>
+                              </div>
+                            ) : (
+                              <p className="text-xs text-muted-foreground">
+                                Contact details hidden
+                              </p>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+            <aside aria-label="Request contact and coordination">
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    <h2>Contact details</h2>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <dl className={styles.contactList}>
+                    <div>
+                      <dt>Phone</dt>
+                      <dd>
+                        <a href={`tel:${request.contactDetails.phone.replace(/[^\d+]/g, "")}`}>
+                          {request.contactDetails.phone}
+                        </a>
+                      </dd>
+                    </div>
+                    {request.contactDetails.email && (
+                      <div>
+                        <dt>Email</dt>
+                        <dd>
+                          <a href={`mailto:${request.contactDetails.email}`}>
+                            {request.contactDetails.email}
+                          </a>
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                  <p className="mt-6 text-xs text-muted-foreground">
+                    {request.volunteers?.length || 0}{" "}
+                    {(request.volunteers?.length || 0) === 1 ? "volunteer" : "volunteers"}
+                  </p>
+                </CardContent>
+              </Card>
+            </aside>
+          </div>
+          <p className={styles.note}>
+            Volunteer coordination does not verify donor eligibility or guarantee a donation.
+            Confirm requirements and arrangements with the hospital or blood bank.
+          </p>
+        </>
       )}
     </div>
   );

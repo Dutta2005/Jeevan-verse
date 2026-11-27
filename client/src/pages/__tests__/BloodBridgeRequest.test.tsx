@@ -1,11 +1,17 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import BloodBridgeRequest from "../BloodBridgeRequest";
+import userEvent from "@testing-library/user-event";
 
 const mocks = vi.hoisted(() => ({ get: vi.fn(), userId: "owner" }));
 vi.mock("../../api/api", () => ({ api: { get: mocks.get } }));
+vi.mock("../../components/blood bridge/BeVolunteer", () => ({
+  default: ({ onJoined }: { onJoined: () => void }) => (
+    <button onClick={onJoined}>Be a Volunteer</button>
+  ),
+}));
 vi.mock("react-router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react-router")>()),
   useParams: () => ({ id: "request-1" }),
@@ -38,6 +44,83 @@ const mount = () =>
   );
 
 describe("blood request detail", () => {
+  it.each(["resolve", "reject"])(
+    "ignores late detail results after unmount (%s)",
+    async (outcome) => {
+      let finish!: (value: unknown) => void;
+      let fail!: (reason: unknown) => void;
+      mocks.get.mockReturnValue(
+        new Promise((resolve, reject) => {
+          finish = resolve;
+          fail = reject;
+        }),
+      );
+      const view = mount();
+      view.unmount();
+      await act(async () => {
+        if (outcome === "resolve") finish({ data: { data: request } });
+        else fail(new Error("Offline"));
+      });
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    },
+  );
+  it("retries a failed load and refreshes after joining", async () => {
+    mocks.userId = "other";
+    mocks.get
+      .mockRejectedValueOnce(new Error("Offline"))
+      .mockResolvedValue({ data: { data: request } });
+    mount();
+    await screen.findByRole("alert");
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Be a Volunteer" }));
+    expect(mocks.get).toHaveBeenCalledTimes(3);
+  });
+  it.each(["/bloodbridge?page=2", "/outside"])(
+    "returns safely to the request list from %s",
+    async (from) => {
+      mocks.get.mockResolvedValue({ data: { data: request } });
+      render(
+        <MemoryRouter
+          initialEntries={[{ pathname: "/bloodbridge/request/request-1", state: { from } }]}
+        >
+          <BloodBridgeRequest />
+        </MemoryRouter>,
+      );
+      expect(screen.getByRole("link", { name: "Back to requests" })).toHaveAttribute(
+        "href",
+        from.startsWith("/bloodbridge?") ? from : "/bloodbridge",
+      );
+      await screen.findByText("Synthetic request");
+    },
+  );
+  it("shows a volunteer's registration and handles deleted volunteer accounts", async () => {
+    mocks.userId = "v1";
+    mocks.get.mockResolvedValue({
+      data: { data: { ...request, volunteers: [{ user: { _id: "v1" }, canShareDetails: false }] } },
+    });
+    mount();
+    expect(await screen.findByText("You volunteered")).toBeInTheDocument();
+  });
+  it("renders incomplete optional request and volunteer details", async () => {
+    mocks.get.mockResolvedValue({
+      data: {
+        data: {
+          ...request,
+          message: "",
+          createdAt: "invalid",
+          address: {},
+          contactDetails: { phone: "000" },
+          volunteers: [
+            { _id: "v", user: null, canShareDetails: true },
+            { user: null, canShareDetails: false },
+          ],
+        },
+      },
+    });
+    mount();
+    expect(await screen.findByText("No additional details")).toBeInTheDocument();
+    expect(screen.getAllByText("Member unavailable")).toHaveLength(2);
+  });
   it.each([
     ["high", "pending"],
     ["medium", "completed"],
@@ -47,8 +130,10 @@ describe("blood request detail", () => {
     mocks.get.mockResolvedValue({ data: { data: { ...request, urgency, status } } });
     mount();
     expect(await screen.findByText("Synthetic request")).toBeInTheDocument();
-    expect(mocks.get).toHaveBeenCalledWith("blood-requests/request-1");
-    expect(screen.getByText(`${urgency.toUpperCase()} URGENCY`)).toBeInTheDocument();
+    expect(mocks.get).toHaveBeenCalledWith("/blood-requests/request-1");
+    expect(
+      screen.getByText(`${urgency[0].toUpperCase() + urgency.slice(1)} urgency`),
+    ).toBeInTheDocument();
     expect(screen.getByText("No volunteers yet.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Be a Volunteer" })).not.toBeInTheDocument();
   });

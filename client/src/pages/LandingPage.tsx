@@ -1,82 +1,225 @@
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { Link } from "react-router";
-import { BorderBeam } from "../components/ui/border-beam";
-import Umeed from "@/components/landing page/Umeed";
-import BloodBridge from "@/components/landing page/BloodBridge";
-import ChitChat from "@/components/landing page/ChitChat";
-import Campaign from "@/components/landing page/Campaign";
-import Footer from "@/components/footer/Footer";
-const HeroBackground = () => (
-  <div className="absolute inset-0 overflow-hidden">
-    <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-primary opacity-10 blur-[100px]" />
-    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full bg-accent opacity-10 blur-[100px]" />
-  </div>
-);
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import styles from "./LandingPage.module.css";
+
+const services = [
+  { name: "Umeed", description: "AI health conversations", href: "#umeed" },
+  { name: "Blood Bridge", description: "Requests and volunteers", href: "#blood-bridge" },
+  { name: "Community", description: "Health discussions", href: "#community" },
+  { name: "Organizations", description: "Profiles and updates", href: "#organizations" },
+];
 
 function LandingPage() {
   return (
-    <div>
-      <div className="min-h-screen bg-gradient-to-b from-light-bg to-white dark:from-dark-bg dark:to-dark-bg/95 dark:text-dark-text -mt-16 pb-10 pt-10">
-        {/* Hero Section */}
-        <section className="relative min-h-[100vh] md:min-h-[90vh] flex flex-col justify-center items-center text-center px-6 overflow-hidden">
-          <HeroBackground />
-          <div className="relative space-y-12 max-w-4xl mx-auto">
-            <div className="space-y-6 mt-16 md:mt-12">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/80 dark:bg-dark-bg/80 backdrop-blur-sm border border-gray-200 dark:border-gray-800">
-                <span className="text-sm font-medium text-primary animate-pulse">
-                  ✨ Welcome to the future of healthcare
-                </span>
-              </div>
-              <h1 className="text-6xl md:text-7xl font-bold">
-                <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-gradient">
-                  <span className="font-samarkan">Jeevan</span> Verse
-                </span>
-              </h1>
-              <p className="text-lg md:text-xl text-light-text/80 dark:text-dark-text/80 max-w-2xl mx-auto leading-relaxed">
-                Find symptoms, request blood, join discussions, and support health campaigns—all in
-                one place.
+    <div className={styles.landing}>
+      <a className={styles.skipLink} href="#landing-content">
+        Skip to content
+      </a>
+      <main id="landing-content">
+        <section className={styles.hero} aria-labelledby="hero-title">
+          <div className={styles.heroIntro}>
+            <h1 id="hero-title">
+              Health support
+              <br />
+              goes both ways
+            </h1>
+            <div className={styles.heroAside}>
+              <p>
+                Health questions, blood requests, and shared experiences.
+                <br />
+                One community. Yours.
               </p>
+              <Button size="lg" asChild>
+                <Link to="/signup">
+                  Find your community
+                  <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
+                </Link>
+              </Button>
+              <a className={styles.exploreLink} href="#explore">
+                Explore Jeevan Verse <ArrowDown aria-hidden="true" />
+              </a>
             </div>
+          </div>
+          <figure className={styles.heroPhoto}>
+            <img
+              src="/images/community-together.webp"
+              alt="Three friends sharing a laugh outdoors"
+              width="1800"
+              height="1200"
+              fetchPriority="high"
+            />
+            <figcaption>
+              <span>People make the difference</span>
+              <span>A community for everyday health</span>
+            </figcaption>
+          </figure>
+        </section>
 
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link
-                to="/signup"
-                className="flex items-center gap-2 bg-gradient-to-r from-primary to-secondary text-white rounded-lg px-4 py-2 text-base font-medium transition-all duration-300 hover:shadow-lg hover:shadow-primary/20"
-              >
-                Get Started
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                to="/login"
-                className="group flex items-center gap-2 bg-white dark:bg-dark-bg border-2 border-primary/20 hover:border-primary text-primary dark:text-white rounded-lg px-4 py-2 text-base font-medium transition-all duration-300"
-              >
-                Sign In
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
+        <nav id="explore" className={styles.serviceNav} aria-label="Explore our services">
+          {services.map((service) => (
+            <a key={service.name} href={service.href}>
+              <span>{service.name}</span>
+              <span>{service.description}</span>
+            </a>
+          ))}
+        </nav>
 
-            <div className="pt-8 space-y-4 pb-10">
-              <p className="text-lg text-light-text/70 dark:text-dark-text/70">
-                Are you an organization?
-              </p>
-              <Link
-                to="/organisation"
-                className="inline-flex items-center gap-2 text-gray-900 dark:text-dark-text rounded-full px-8 py-4 text-lg font-medium transition-all duration-300 transform hover:scale-105 relative overflow-hidden group"
-              >
-                <span className="relative z-10">Be a part of our journey</span>
-                <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" />
-                <BorderBeam size={100} />
-              </Link>
+        <section id="umeed" className={styles.umeed} aria-labelledby="umeed-title">
+          <div className={styles.sectionCopy}>
+            <p className={styles.serviceName}>Meet Umeed</p>
+            <h2 id="umeed-title">
+              Your health questions
+              <br />
+              In your own words
+            </h2>
+            <p className={styles.description}>
+              Ask Umeed about everyday health or a prescription you’re trying to understand.
+            </p>
+            <Button variant="outline" size="lg" asChild>
+              <Link to="/chatbot">Talk to Umeed</Link>
+            </Button>
+            <p className={styles.finePrint}>Information and support. Not a diagnosis.</p>
+          </div>
+          <div className={styles.questionBoard}>
+            <div className={styles.questionBoardHeading}>
+              <span>Umeed</span>
+              <span>Your AI health assistant</span>
             </div>
+            <p className={styles.questionBoardTitle}>
+              What’s on
+              <br />
+              your mind?
+            </p>
+            <div className={styles.questions}>
+              <p>“How can I build a better sleep routine?”</p>
+              <Separator />
+              <p>“What should I ask at my next appointment?”</p>
+              <Separator />
+              <p>“Can you help me understand this prescription?”</p>
+            </div>
+            <p className={styles.questionBoardFootnote}>Questions you can bring to Umeed</p>
           </div>
         </section>
 
-        <Umeed />
-        <BloodBridge />
-        <ChitChat />
-        <Campaign />
-      </div>
-      <Footer />
+        <section id="blood-bridge" className={styles.bloodBridge} aria-labelledby="blood-title">
+          <div className={styles.bloodCopy}>
+            <p className={styles.serviceName}>Blood Bridge</p>
+            <h2 id="blood-title">
+              Ask for blood support
+              <br />
+              Or offer yours
+            </h2>
+            <p>Connect blood requests with people willing to volunteer.</p>
+            <div className={styles.bloodActions}>
+              <Button variant="secondary" size="lg" asChild>
+                <Link to="/bloodbridge">Explore blood requests</Link>
+              </Button>
+              <Link className={styles.lightLink} to="/bloodbridge/guidelines">
+                Before you volunteer
+              </Link>
+            </div>
+            <p className={styles.bloodNote}>
+              Volunteer coordination does not confirm donor eligibility or guarantee a match.
+            </p>
+          </div>
+          <div className={styles.bloodVisual} aria-hidden="true">
+            <div className={styles.bloodTypes}>
+              <span>A+</span>
+              <span>B+</span>
+              <span>O+</span>
+              <span>AB+</span>
+              <span>A−</span>
+              <span>B−</span>
+              <span>O−</span>
+              <span>AB−</span>
+            </div>
+            <span className={styles.bloodVisualCaption}>Different types. One community</span>
+          </div>
+        </section>
+
+        <section id="community" className={styles.community} aria-labelledby="community-title">
+          <figure className={styles.communityPhoto}>
+            <img
+              src="/images/community-conversation.webp"
+              alt="Friends sitting together in a sunny field"
+              width="1000"
+              height="667"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+          <div className={styles.sectionCopy}>
+            <p className={styles.serviceName}>The community</p>
+            <h2 id="community-title">
+              Shared experiences
+              <br />A little less alone
+            </h2>
+            <p className={styles.description}>
+              Share an experience. Ask a question. Find a conversation that feels a little like you.
+            </p>
+            <Button variant="outline" size="lg" asChild>
+              <Link to="/discussions">Find your conversation</Link>
+            </Button>
+            <p className={styles.finePrint}>Shared experiences, not professional medical advice.</p>
+          </div>
+        </section>
+
+        <section id="organizations" className={styles.organizations} aria-labelledby="org-title">
+          <div>
+            <p className={styles.serviceName}>For health organizations</p>
+            <h2 id="org-title">
+              A home for your
+              <br />
+              community health work
+            </h2>
+          </div>
+          <div className={styles.orgAside}>
+            <p>
+              Give your organization a home. Share health updates and bring people into your work.
+            </p>
+            <Button variant="outline" size="lg" asChild>
+              <Link to="/organisation">
+                Bring your organization
+                <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
+              </Link>
+            </Button>
+            <Link className={styles.textLink} to="/posts">
+              Explore organization posts
+            </Link>
+          </div>
+        </section>
+
+        <section className={styles.join} aria-labelledby="join-title">
+          <p>Ask a question. Join a conversation. Offer your support.</p>
+          <h2 id="join-title">Join Jeevan Verse</h2>
+          <Button size="lg" asChild>
+            <Link to="/signup">Get started</Link>
+          </Button>
+          <Link className={styles.textLink} to="/login">
+            Already part of Jeevan Verse? Sign in
+          </Link>
+        </section>
+      </main>
+
+      <footer className={styles.footer}>
+        <div className={styles.footerTop}>
+          <Link to="/" className={styles.wordmark} aria-label="Jeevan Verse home">
+            <span className="font-samarkan">Jeevan</span> Verse
+          </Link>
+          <p>Health questions. Blood support. Community.</p>
+          <a href="mailto:jeevanverse247@gmail.com">Say hello</a>
+        </div>
+        <Separator />
+        <div className={styles.footerBottom}>
+          <span>© {new Date().getFullYear()} Jeevan Verse</span>
+          <p>
+            AI and community content are informational. For medical concerns, seek professional
+            care.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

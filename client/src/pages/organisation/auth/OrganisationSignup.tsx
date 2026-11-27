@@ -1,3 +1,11 @@
+import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
+import { AuthLayout } from "@/components/auth/AuthLayout";
+import { AuthField } from "@/components/auth/AuthField";
+import { authFieldProps } from "@/components/auth/auth-field-props";
+import styles from "@/components/auth/AuthLayout.module.css";
+import { FieldGroup } from "@/components/ui/field";
 import { isAxiosError } from "axios";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
@@ -8,12 +16,12 @@ import { Button } from "../../../components/ui/button";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
 import { Input } from "../../../components/ui/input";
-import { Card, CardHeader, CardTitle, CardFooter } from "../../../components/ui/card";
 import { api } from "../../../api/api";
 import { useToast } from "../../../hooks/use-toast";
 
@@ -49,12 +57,13 @@ type OrganizationSignupData = z.infer<typeof organizationSchema>;
 
 export default function OrganizationSignup() {
   const navigate = useNavigate();
+  const [submitError, setSubmitError] = useState("");
   const { toast } = useToast();
   const {
     control,
     handleSubmit,
     register,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<z.input<typeof organizationSchema>, unknown, OrganizationSignupData>({
     resolver: zodResolver(organizationSchema),
     defaultValues: {
@@ -68,6 +77,7 @@ export default function OrganizationSignup() {
   });
 
   const onSubmit = async (data: OrganizationSignupData) => {
+    setSubmitError("");
     try {
       const response = await api.post("/organizations/register", data);
       if (response.status === 200) {
@@ -80,6 +90,7 @@ export default function OrganizationSignup() {
         navigate("/signin");
       }
     } catch (error: unknown) {
+      setSubmitError("Unable to create your organization account. Please try again.");
       toast({
         title: "Registration Failed",
         description:
@@ -92,143 +103,110 @@ export default function OrganizationSignup() {
   };
 
   return (
-    <div className="w-full bg-light-bg dark:bg-dark-bg/90 flex justify-center items-center p-4 overflow-x-hidden">
-      <div className="absolute top-0 left-0 w-1/2 h-screen bg-primary/85 transform -skew-x-12 -translate-x-20 hidden md:block" />
-
-      <Card
-        className="w-full max-w-4xl bg-white/95 dark:bg-dark-bg/95 backdrop-blur-sm shadow-2xl border-0 z-10 relative 
-        flex flex-col md:flex-row"
-      >
-        <div className="hidden md:flex w-1/2 p-8 bg-primary/10 dark:bg-primary/5 flex-col justify-center space-y-6">
-          <h2 className="text-3xl font-bold text-light-text dark:text-dark-text">
-            Join Our Journey
-          </h2>
-          <p className="text-gray-600 dark:text-dark-text/80">start making an impact today.</p>
-          <div className="space-y-2 text-sm">
-            <p className="flex items-center space-x-2">
-              <span className="text-primary">âœ“</span>
-              <span>Secure and confidential registration</span>
-            </p>
-            <p className="flex items-center space-x-2">
-              <span className="text-primary">âœ“</span>
-              <span>Spread the word about your campaign</span>
-            </p>
-            <p className="flex items-center space-x-2">
-              <span className="text-primary">âœ“</span>
-              <span>Get support from our dedicated team</span>
-            </p>
-          </div>
-        </div>
-
-        <div className="w-full md:w-1/2 p-6 md:p-8">
-          <CardHeader className="p-0 mb-6">
-            <CardTitle className="text-2xl font-bold text-primary text-center">
-              Organization Signup
-            </CardTitle>
-          </CardHeader>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Organization Name</label>
-                <Input
-                  {...register("name")}
-                  placeholder="Enter organization name"
-                  className="dark:bg-dark-bg dark:text-dark-text"
-                />
-                {errors.name && <p className="text-red-500 text-xs">{errors.name.message}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Organization Type</label>
-                <Controller
-                  name="type"
-                  control={control}
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger className="w-full dark:bg-dark-bg dark:text-dark-text">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="hospital">Hospital</SelectItem>
-                        <SelectItem value="ngo">NGO</SelectItem>
-                        <SelectItem value="research">Research</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {errors.type && <p className="text-red-500 text-xs">{errors.type.message}</p>}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">Email</label>
-              <Input
-                type="email"
-                {...register("email")}
-                placeholder="Enter email"
-                className="dark:bg-dark-bg dark:text-dark-text"
-              />
-              {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">Password</label>
-              <Input
-                type="password"
-                {...register("password")}
-                placeholder="Enter password"
-                className="dark:bg-dark-bg dark:text-dark-text"
-              />
-              <p className="text-xs text-gray-500">
-                8+ characters with uppercase, lowercase, and number
-              </p>
-              {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">Organization Description</label>
-              <textarea
-                {...register("description")}
-                className="w-full px-3 py-2 border rounded-md resize-none dark:bg-dark-bg dark:text-dark-text"
-                placeholder="Brief description of your organization"
-                rows={4}
-              />
-              {errors.description && (
-                <p className="text-red-500 text-xs">{errors.description.message}</p>
+    <AuthLayout
+      audience="organization"
+      mode="signup"
+      title="Create an organization account"
+      description="Introduce your organization and start sharing health updates."
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className={styles.form} aria-busy={isSubmitting}>
+        {submitError && (
+          <Alert variant="destructive">
+            <AlertDescription>{submitError}</AlertDescription>
+          </Alert>
+        )}
+        <FieldGroup>
+          <AuthField id="name" label="Organization name" error={errors.name?.message}>
+            <Input
+              {...register("name")}
+              {...authFieldProps("name", errors.name?.message)}
+              autoComplete="organization"
+              placeholder="Enter organization name"
+            />
+          </AuthField>
+          <AuthField id="type" label="Organization type" error={errors.type?.message}>
+            <Controller
+              name="type"
+              control={control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger
+                    {...authFieldProps("type", errors.type?.message)}
+                    ref={field.ref}
+                    onBlur={field.onBlur}
+                    className="w-full"
+                  >
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="hospital">Hospital</SelectItem>
+                      <SelectItem value="ngo">NGO</SelectItem>
+                      <SelectItem value="research">Research</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">Website (Optional)</label>
-              <Input
-                type="url"
-                {...register("website")}
-                placeholder="https://www.yourorganization.com"
-                className="dark:bg-dark-bg dark:text-dark-text"
-              />
-              {errors.website && <p className="text-red-500 text-xs">{errors.website.message}</p>}
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90 text-white dark:text-white"
-            >
-              Register Organization
-            </Button>
-          </form>
-
-          <CardFooter className="text-center mt-4 p-0">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Already have an account?{" "}
-              <Link to="/signin" className="text-primary hover:text-secondary transition-colors">
-                Log in
-              </Link>
-            </p>
-          </CardFooter>
-        </div>
-      </Card>
-    </div>
+            />
+          </AuthField>
+          <AuthField id="email" label="Email" error={errors.email?.message}>
+            <Input
+              {...register("email")}
+              {...authFieldProps("email", errors.email?.message)}
+              type="email"
+              autoComplete="email"
+              placeholder="Enter email"
+            />
+          </AuthField>
+          <AuthField
+            id="password"
+            label="Password"
+            error={errors.password?.message}
+            description="8+ characters with uppercase, lowercase, and number"
+          >
+            <Input
+              {...register("password")}
+              {...authFieldProps(
+                "password",
+                errors.password?.message,
+                "8+ characters with uppercase, lowercase, and number",
+              )}
+              type="password"
+              autoComplete="new-password"
+              placeholder="Enter password"
+            />
+          </AuthField>
+          <AuthField
+            id="description"
+            label="Organization description"
+            error={errors.description?.message}
+          >
+            <Textarea
+              {...register("description")}
+              {...authFieldProps("description", errors.description?.message)}
+              placeholder="Brief description of your organization"
+              rows={4}
+              className="resize-y"
+            />
+          </AuthField>
+          <AuthField id="website" label="Website (optional)" error={errors.website?.message}>
+            <Input
+              {...register("website")}
+              {...authFieldProps("website", errors.website?.message)}
+              type="url"
+              autoComplete="url"
+              placeholder="https://www.yourorganization.com"
+            />
+          </AuthField>
+        </FieldGroup>
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting ? "Creating account..." : "Register organization"}
+        </Button>
+      </form>
+      <p className={styles.footer}>
+        Already have an organization account? <Link to="/signin">Sign in</Link>
+      </p>
+    </AuthLayout>
   );
 }

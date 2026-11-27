@@ -1,0 +1,244 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  min-height: 100svh;
+  background: var(--background);
+  color: var(--foreground);
+}
+.layout :where(a, button, input, select, textarea):focus-visible {
+  outline-offset: 4px;
+}
+.brandPanel {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  height: 100svh;
+  padding: clamp(32px, 4.5vw, 64px);
+  background: var(--muted);
+}
+.wordmark,
+.mobileWordmark {
+  width: fit-content;
+  font-size: 24px;
+  font-weight: 500;
+}
+.brandCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-block: auto;
+  padding-top: 16px;
+}
+.brandCopy h2 {
+  font-size: clamp(36px, 4vw, 60px);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
+}
+.brandCopy p {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  line-height: 1.7;
+}
+.photo {
+  display: block;
+  width: 100%;
+  height: clamp(180px, 32vh, 360px);
+  object-fit: cover;
+  object-position: 50% 42%;
+  border-radius: 12px;
+}
+.backLink {
+  width: fit-content;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 24px clamp(24px, 5vw, 80px) 64px;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 40px;
+}
+.mobileWordmark {
+  display: none;
+}
+.formPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: min(100%, 560px);
+  margin: auto;
+  padding-block: 48px 24px;
+}
+.accountNav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 13px;
+}
+.accountNav a {
+  padding-bottom: 8px;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid transparent;
+}
+.accountNav a[aria-current="page"] {
+  border-color: var(--foreground);
+  color: var(--foreground);
+}
+.accountNav a:hover {
+  color: var(--foreground);
+}
+.formHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.formHeader h1 {
+  font-size: clamp(30px, 3vw, 40px);
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+.formHeader p {
+  max-width: 48ch;
+  color: var(--muted-foreground);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.twoColumns,
+.threeColumns {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.twoColumns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.threeColumns {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.formSection {
+  border-top: 1px solid var(--border);
+  padding-top: 0;
+}
+.nativeSelect {
+  width: 100%;
+  min-width: 0;
+  height: calc(var(--spacing, 0.25rem) * 9);
+  padding: 4px 12px;
+  border: 1px solid var(--input);
+  border-radius: calc(var(--radius) * 2.6);
+  background: color-mix(in oklch, var(--input) 30%, transparent);
+  color: var(--foreground);
+  font-size: 14px;
+  outline-color: var(--ring);
+}
+.nativeSelect option {
+  color: var(--foreground);
+  background: var(--background);
+}
+.nativeSelect[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+.nativeSelect:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+}
+.consent input {
+  flex-shrink: 0;
+  margin-top: 4px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+.consent a,
+.footer a {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.footer {
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.layout :global(.group\/button) {
+  transition-property: color, background-color, border-color, box-shadow;
+}
+@media (max-width: 1000px) {
+  .layout {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  }
+  .brandPanel {
+    padding: 32px;
+  }
+  .brandCopy h2 {
+    font-size: 40px;
+  }
+  .main {
+    padding-inline: 32px;
+  }
+  .threeColumns {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 700px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .brandPanel {
+    display: none;
+  }
+  .main {
+    padding: 16px 24px 48px;
+    min-height: 100svh;
+  }
+  .topbar {
+    justify-content: space-between;
+  }
+  .mobileWordmark {
+    display: block;
+    font-size: 22px;
+  }
+  .formPanel {
+    padding-top: 40px;
+    gap: 28px;
+  }
+  .twoColumns,
+  .threeColumns {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .formHeader h1 {
+    font-size: 32px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .layout :global(.group\/button) {
+    transition: none;
+  }
+}

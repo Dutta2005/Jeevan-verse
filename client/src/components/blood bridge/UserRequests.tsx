@@ -1,290 +1,294 @@
-import { getErrorMessage } from "@/lib/error";
-import React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { AlertCircle, ArrowRight, Edit2, EllipsisVertical, Trash2 } from "lucide-react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
-import { Alert, AlertDescription } from "../ui/alert";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import { api } from "../../api/api";
-import { RootState } from "../../store/store";
-import { Link } from "react-router";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { useSearchParams } from "react-router";
+import { Ellipsis } from "lucide-react";
+import type { RootState } from "@/store/store";
+import { api } from "@/api/api";
+import { getErrorMessage } from "@/lib/error";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import RequestCard from "./RequestCard";
+import RequestPagination from "./RequestPagination";
 import EditRequest from "./EditRequest";
-import { Dialog, DialogHeader, DialogContent, DialogTitle } from "../ui/dialog";
-import { ScrollArea } from "../ui/scroll-area";
+import type { BloodRequestPage } from "./blood-request-types";
+import styles from "./BloodBridge.module.css";
 
-interface Address {
-  state: string;
-  district: string;
-  city: string;
-}
-
-interface ContactDetails {
-  email: string;
-  phone: string;
-}
-
-interface Request {
-  _id: string;
-  bloodGroup: string;
-  urgency: string;
-  message: string;
-  contactDetails: ContactDetails;
-  status: string;
-  address: Address;
-}
-
-interface RequestCardProps {
-  request: Request;
-  onStatusChange: (id: string) => void;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-}
-
-const UrgencyBadge = ({ urgency }: { urgency: string }) => {
-  const colors = {
-    high: "bg-red-600 dark:bg-red-600 text-red-800",
-    medium: "bg-orange-400 dark:bg-orange-400 text-orange-800",
-    low: "bg-yellow-400 dark:bg-yellow-400 text-yellow-800",
-  };
-
-  return (
-    <Badge className={colors[urgency as keyof typeof colors]}>
-      {urgency.charAt(0).toUpperCase() + urgency.slice(1)}
-    </Badge>
-  );
-};
-
-const RequestCard: React.FC<RequestCardProps> = ({ request, onStatusChange, onEdit, onDelete }) => {
-  const { bloodGroup, urgency, message, contactDetails, status, address } = request;
-
-  return (
-    <Card className="w-full mb-4">
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl">Blood Group: {bloodGroup}</CardTitle>
-          <div className="flex gap-2">
-            <Badge
-              variant="outline"
-              className={`${
-                status === "pending"
-                  ? "text-yellow-600 dark:text-yellow-600"
-                  : "text-green-600 dark:text-green-600"
-              }`}
-            >
-              {status}
-            </Badge>
-            <UrgencyBadge urgency={urgency} />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <EllipsisVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="dark:bg-dark-bg/70">
-                <Button
-                  variant="ghost"
-                  onClick={() => onEdit(request._id)}
-                  className="flex items-center gap-2"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => onDelete(request._id)}
-                  className="flex items-center gap-2 text-primary dark:text-primary"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </Button>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <h3 className="font-semibold text-gray-700 dark:text-dark-text">Message</h3>
-            <p className="text-gray-600 dark:text-dark-text/80">{message}</p>
-          </div>
-
-          <div className="space-y-2  text-gray-700 dark:text-dark-text">
-            <h3 className="font-semibold">Contact Details</h3>
-            <p>{contactDetails.email}</p>
-            <p>{contactDetails.phone}</p>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="font-semibold text-gray-700 dark:text-dark-text">Address</h3>
-            <p className="text-gray-600 dark:text-dark-text/80">
-              {address.city}, {address.district}, {address.state}
-            </p>
-          </div>
-        </div>
-      </CardContent>
-      <CardFooter className="justify-between items-center">
-        <Link
-          to={`/bloodbridge/request/${request._id}`}
-          className="text-secondary flex items-center hover:underline font-semibold"
-        >
-          View details <ArrowRight className="w-4 h-4 ml-2" />
-        </Link>
-        {status === "pending" && (
-          <Button
-            variant="secondary"
-            onClick={() => onStatusChange(request._id)}
-            className="flex items-center gap-2 hover:text-green-500 dark:hover:text-green-400"
-          >
-            <AlertCircle className="w-4 h-4" />
-            Mark as completed
-          </Button>
-        )}
-      </CardFooter>
-    </Card>
-  );
-};
-
-const UserRequests = () => {
-  const userID = useSelector((state: RootState) => state.auth.user?.id);
-  const [requests, setRequests] = useState<Request[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default function UserRequests() {
+  const userId = useSelector((state: RootState) => state.auth.user?.id);
+  const [result, setResult] = useState<BloodRequestPage | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
-
-  const fetchRequests = useCallback(async () => {
-    try {
-      const response = await api.get(`/blood-requests/user/${userID}&page=1`);
-      if (response.status === 200) {
-        setRequests(response.data.data.bloodRequests);
-      }
-    } catch (error: unknown) {
-      setError(getErrorMessage(error, "Failed to fetch blood requests"));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userID]);
-
-  const handleEdit = (id: string) => {
-    console.log(`Edit request with ID: ${id}`);
-    // Implement the edit logic here
-    setEditingRequestId(id);
+  const [search, setSearch] = useSearchParams();
+  const requestedPage = Number(search.get("page") || 1);
+  const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const setPage = (next: number) =>
+    setSearch(
+      (previous) => {
+        const params = new URLSearchParams(previous);
+        params.set("page", String(next));
+        return params;
+      },
+      { replace: true },
+    );
+  const [retry, setRetry] = useState(0);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const [editPending, setEditPending] = useState(false);
+  const actionLock = useRef(false);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const actionTriggers = useRef(new Map<string, HTMLButtonElement>());
+  const returnFocus = useRef<HTMLButtonElement | null>(null);
+  const restoreFocus = (event: Event) => {
+    event.preventDefault();
+    const fallback = document.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+    (returnFocus.current?.isConnected ? returnFocus.current : fallback)?.focus();
   };
-
-  const handleEditSave = async () => {
-    setIsLoading(true);
+  const requestKey = JSON.stringify([userId, page, retry]);
+  const [previousRequestKey, setPreviousRequestKey] = useState(requestKey);
+  if (previousRequestKey !== requestKey) {
+    setPreviousRequestKey(requestKey);
+    setLoading(true);
     setError(null);
-    await fetchRequests(); // Refresh the requests after saving
-    setEditingRequestId(null);
-  };
+  }
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
 
-  const handleEditCancel = () => {
-    setEditingRequestId(null);
-  };
-
-  const markCompleted = async (id: string) => {
-    try {
-      const response = await api.patch(`/blood-requests/status/${id}`, {
-        status: "completed",
+    api
+      .get(`/blood-requests/user/${userId}?page=${page}`)
+      .then((response) => {
+        if (response.status !== 200) throw new Error("Could not load requests");
+        if (active) setResult(response.data.data);
+      })
+      .catch((error: unknown) => {
+        if (active) setError(getErrorMessage(error, "Failed to fetch blood requests"));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
       });
-      if (response.status === 200) {
-        setRequests((prevRequests) =>
-          prevRequests.map((request) => {
-            if (request._id === id) {
-              return { ...request, status: "completed" };
+    return () => {
+      active = false;
+    };
+  }, [userId, page, retry]);
+  const complete = async (id: string) => {
+    if (actionLock.current) return;
+    actionLock.current = true;
+    setPending(true);
+    setError(null);
+    try {
+      const response = await api.patch(`/blood-requests/status/${id}`, { status: "completed" });
+      if (response.status !== 200) throw new Error("Could not update request");
+      setResult((previous) =>
+        previous
+          ? {
+              ...previous,
+              bloodRequests: previous.bloodRequests.map((request) =>
+                request._id === id ? { ...request, status: "completed" } : request,
+              ),
             }
-            return request;
-          }),
-        );
-      }
+          : previous,
+      );
     } catch (error: unknown) {
-      setError(`Failed to mark request as completed: ${getErrorMessage(error, "Unknown error")}`);
+      setError(getErrorMessage(error, "Failed to mark request as completed"));
+    } finally {
+      actionLock.current = false;
+      setPending(false);
     }
   };
-
-  const handleDelete = async (id: string) => {
+  const remove = async (id: string) => {
+    if (actionLock.current) return;
+    actionLock.current = true;
+    setPending(true);
+    setError(null);
     try {
       const response = await api.delete(`/blood-requests/delete/${id}`);
-      if (response.status === 200) {
-        setRequests((prevRequests) => prevRequests.filter((request) => request._id !== id));
-      }
+      if (response.status !== 200) throw new Error("Could not delete request");
+      if (result?.bloodRequests.length === 1 && page > 1) setPage(page - 1);
+      else setRetry((value) => value + 1);
     } catch (error: unknown) {
-      setError(`Failed to delete request: ${getErrorMessage(error, "Unknown error")}`);
+      setError(getErrorMessage(error, "Failed to delete request"));
+    } finally {
+      actionLock.current = false;
+      setPending(false);
+      setDeleting(null);
     }
   };
-
-  useEffect(() => {
-    const load = async () => {
-      setIsLoading(true);
-      setError(null);
-      await fetchRequests();
-    };
-    void load();
-  }, [fetchRequests]);
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-semibold text-center mb-8">Your Blood Donation Requests</h1>
-
+    <section aria-label="My blood requests">
       {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
+        <Alert variant="destructive" className="mb-5">
           <AlertDescription>{error}</AlertDescription>
+          <Button variant="outline" className="mt-3" onClick={() => setRetry((value) => value + 1)}>
+            Try again
+          </Button>
         </Alert>
       )}
-
-      <div className="max-w-3xl mx-auto space-y-4">
-        {requests.length > 0 ? (
-          requests.map((request) => (
-            <RequestCard
-              key={request._id}
-              request={request}
-              onStatusChange={markCompleted}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+      {loading ? (
+        <div className={styles.list} aria-label="Loading your requests">
+          {[1, 2, 3].map((key) => (
+            <Skeleton key={key} className="h-48 w-full" />
+          ))}
+        </div>
+      ) : !result?.bloodRequests.length ? (
+        !error && (
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>No requests yet</EmptyTitle>
+              <EmptyDescription>Use Create request to share a blood need</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        )
+      ) : (
+        <>
+          <div className={styles.list}>
+            {result.bloodRequests.map((request) => (
+              <RequestCard
+                key={request._id}
+                request={request}
+                menu={
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Actions for ${request.bloodGroup} request`}
+                        ref={(element) => {
+                          if (element) actionTriggers.current.set(request._id, element);
+                          else actionTriggers.current.delete(request._id);
+                        }}
+                        disabled={pending}
+                      >
+                        <Ellipsis aria-hidden="true" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            returnFocus.current = actionTriggers.current.get(request._id) || null;
+                            setEditing(request._id);
+                          }}
+                        >
+                          Edit request
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            returnFocus.current = actionTriggers.current.get(request._id) || null;
+                            setDeleting(request._id);
+                          }}
+                        >
+                          Delete request
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                }
+                actions={
+                  request.status === "pending" ? (
+                    <Button
+                      variant="secondary"
+                      disabled={pending}
+                      onClick={() => void complete(request._id)}
+                    >
+                      Mark as completed
+                    </Button>
+                  ) : undefined
+                }
+              />
+            ))}
+          </div>
+          <RequestPagination page={result} onPage={setPage} />
+        </>
+      )}
+      <Sheet
+        open={editing !== null}
+        onOpenChange={(open) => {
+          if (!open && !editPending) setEditing(null);
+        }}
+      >
+        <SheetContent
+          side="right"
+          className={styles.drawer}
+          onCloseAutoFocus={restoreFocus}
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            titleRef.current?.focus();
+          }}
+        >
+          <SheetHeader className={styles.drawerHeader}>
+            <SheetTitle ref={titleRef} tabIndex={-1} className="outline-none">
+              Edit blood request
+            </SheetTitle>
+            <SheetDescription>Keep the request and contact details up to date</SheetDescription>
+          </SheetHeader>
+          {editing && (
+            <EditRequest
+              requestId={editing}
+              onSave={() => {
+                setEditing(null);
+                setRetry((value) => value + 1);
+              }}
+              onCancel={() => setEditing(null)}
+              onPendingChange={setEditPending}
             />
-          ))
-        ) : (
-          <Card>
-            <CardContent className="flex justify-center py-8">
-              <p className="text-gray-500">No blood donation requests found.</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Edit Request Dialog */}
-      <Dialog open={!!editingRequestId} onOpenChange={() => setEditingRequestId(null)}>
-        <DialogContent className="max-w-md w-full p-0 h-[90%] md:h-auto dark:bg-dark-bg dark:text-dark-text">
-          <ScrollArea className="h-full w-full">
-            <div className="p-6">
-              <DialogHeader>
-                <DialogTitle>Request Form</DialogTitle>
-              </DialogHeader>
-              {editingRequestId && (
-                <EditRequest
-                  requestId={editingRequestId}
-                  onSave={handleEditSave}
-                  onCancel={handleEditCancel}
-                />
-              )}
-            </div>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
-    </div>
+          )}
+        </SheetContent>
+      </Sheet>
+      <AlertDialog
+        open={deleting !== null}
+        onOpenChange={(open) => {
+          if (!open && !actionLock.current) setDeleting(null);
+        }}
+      >
+        <AlertDialogContent onCloseAutoFocus={restoreFocus}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this request?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the request. To stop seeking volunteers and keep the record, mark it as
+              completed instead.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={pending}>Keep request</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={pending}
+              onClick={(event) => {
+                event.preventDefault();
+                if (deleting) void remove(deleting);
+              }}
+            >
+              {pending ? "Deleting…" : "Delete request"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </section>
   );
-};
-
-export default UserRequests;
+}

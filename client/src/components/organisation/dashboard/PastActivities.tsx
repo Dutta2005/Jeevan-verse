@@ -1,15 +1,32 @@
 import { getErrorMessage } from "@/lib/error";
 import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "../../../store/store";
-import { api } from "../../../api/api";
-import { Alert, AlertDescription } from "../../ui/alert";
-import { Card, CardHeader, CardContent, CardFooter } from "../../ui/card";
-import { EllipsisVertical, Eye, Loader2, Pencil, Trash2 } from "lucide-react";
+import type { RootState } from "@/store/store";
+import { api } from "@/api/api";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
+import { EllipsisVertical, Search } from "lucide-react";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { format } from "date-fns";
 import { Link } from "react-router";
-import { Button } from "../../ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "../../ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Post {
   content: string;
@@ -20,142 +37,183 @@ interface Post {
   createdAt: string;
 }
 
-const PastActivities = () => {
+export default function PastActivities() {
   const orgId = useSelector((state: RootState) => state.auth.organization?.id);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  return <OrganizationActivities key={orgId} orgId={orgId} />;
+}
 
-  const getPosts = useCallback(async () => {
-    try {
-      const res = await api.get(`/org-posts/organization/${orgId}`);
-      setPosts(res.data.data);
-      console.log("Posts:", res.data.data);
-    } catch (error: unknown) {
-      setError(getErrorMessage(error, "Failed to fetch activities"));
-    } finally {
-      setIsLoading(false);
-    }
+function OrganizationActivities({ orgId }: { orgId: string | undefined }) {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(Boolean(orgId));
+  const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const getPosts = useCallback(() => {
+    if (!orgId) return;
+    return api
+      .get(`/org-posts/organization/${orgId}`)
+      .then((res) => setPosts(res.data.data ?? []))
+      .catch((error: unknown) => setError(getErrorMessage(error, "Failed to fetch activities")))
+      .finally(() => setIsLoading(false));
   }, [orgId]);
 
   const deletePost = async (postId: string) => {
+    setDeletingId(postId);
+    setError(null);
     try {
       await api.delete(`/org-posts/delete/${postId}`);
-      setIsLoading(true);
-      setError(null);
       await getPosts();
     } catch (error: unknown) {
       setError(getErrorMessage(error, "Failed to delete activity"));
+    } finally {
+      setDeletingId(null);
     }
   };
-
   useEffect(() => {
-    if (orgId) {
-      const load = async () => {
-        setIsLoading(true);
-        setError(null);
-        await getPosts();
-      };
-      void load();
-    }
-  }, [getPosts, orgId]);
+    void getPosts();
+  }, [getPosts]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  const visiblePosts = posts.filter((post) =>
+    `${post.title} ${post.tags}`.toLowerCase().includes(query.trim().toLowerCase()),
+  );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-16">
-      <h1 className="text-2xl md:text-4xl font-bold my-8 dark:text-dark-text">Past Activities</h1>
-
+    <section className="flex flex-col gap-6" aria-label="Published posts">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
+        <div>
+          <h2 className="flex items-center gap-2 text-base font-medium">
+            Published posts{" "}
+            {!isLoading && !error && <Badge variant="secondary">{posts.length}</Badge>}
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Manage the updates you’ve shared with your community.
+          </p>
+        </div>
+        <InputGroup className="w-full sm:w-64">
+          <InputGroupAddon>
+            <Search aria-hidden="true" />
+          </InputGroupAddon>
+          <InputGroupInput
+            aria-label="Search published posts"
+            placeholder="Search your posts"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </InputGroup>
+      </div>
       {error && (
-        <Alert variant="destructive" className="mb-6">
+        <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            onClick={() => {
+              setIsLoading(true);
+              setError(null);
+              void getPosts();
+            }}
+          >
+            Try again
+          </Button>
         </Alert>
       )}
-
-      {posts.length === 0 && !error ? (
-        <Card className="flex justify-center">
-          <CardContent className="p-6">
-            <p className="text-light-text text-center dark:bg-dark-bg">No activities found</p>
+      {isLoading ? (
+        <div className="flex flex-col gap-4" aria-label="Loading posts">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-40 w-full" />
+          ))}
+        </div>
+      ) : posts.length === 0 && !error ? (
+        <Card>
+          <CardContent className="pt-6">
+            <Empty>
+              <EmptyHeader>
+                <EmptyTitle>No posts yet</EmptyTitle>
+                <EmptyDescription>Share your first update with the community</EmptyDescription>
+              </EmptyHeader>
+              <Button variant="outline" asChild>
+                <Link to="/organisation/create">Create post</Link>
+              </Button>
+            </Empty>
           </CardContent>
         </Card>
+      ) : visiblePosts.length === 0 && !error ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>No matching posts</EmptyTitle>
+            <EmptyDescription>Try a different title or tag.</EmptyDescription>
+          </EmptyHeader>
+          <Button variant="outline" onClick={() => setQuery("")}>
+            Clear search
+          </Button>
+        </Empty>
       ) : (
-        <div className="grid gap-6 md:mx-10">
-          {posts.map((post) => (
-            <Card key={post._id} className="transition-all duration-300 hover:shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <h2 className="text-xl font-bold text-primary">{post.title}</h2>
-                <div className="flex justify-between items-center gap-4">
-                  {post.tags && (
-                    <p className="bg-accent text-white rounded-full px-3 py-1 text-xs font-medium">
-                      {post.tags}
-                    </p>
-                  )}
+        <div className="grid items-start gap-6 xl:grid-cols-2">
+          {visiblePosts.map((post) => (
+            <Card key={post._id} className="min-w-0 overflow-hidden">
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <CardTitle>
+                    <h3>{post.title}</h3>
+                  </CardTitle>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
                         aria-label={`Actions for ${post.title}`}
+                        disabled={deletingId === post._id}
                       >
-                        <EllipsisVertical className="h-5 w-5" />
+                        <EllipsisVertical aria-hidden="true" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-light-bg dark:bg-dark-bg p-2">
-                      <Link to={`edit/${post._id}`}>
-                        <Button variant="ghost" className="w-full justify-start gap-2">
-                          <Pencil className="w-4 h-4" />
-                          <span>Edit</span>
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start gap-2 hover:bg-primary/10 text-primary"
-                        onClick={deletePost.bind(null, post._id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span>Delete</span>
-                      </Button>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem asChild>
+                          <Link to={`/organisation/edit/${post._id}`}>Edit</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={deletingId !== null}
+                          onSelect={() => void deletePost(post._id)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
+                <CardDescription>
+                  {post.tags && <Badge variant="secondary">{post.tags}</Badge>}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {post.thumbnail && (
                   <img
                     src={post.thumbnail}
                     alt={post.title}
-                    className="w-full h-auto aspect-[16/9] object-cover rounded-md mb-4"
+                    loading="lazy"
+                    className="mb-4 aspect-[16/9] w-full rounded-lg object-cover"
                   />
                 )}
-                <p className="text-light-text whitespace-pre-wrap dark:text-dark-text">
+                <p className="line-clamp-4 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
                   {post.content}
                 </p>
               </CardContent>
-              <CardFooter className="flex justify-between items-center">
-                <Link
-                  to={`post/${post._id}`}
-                  className="flex items-center mt-2 text-accent transition-colors duration-200"
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  View Post
-                </Link>
-                <time className="text-sm text-light-text dark:text-dark-text">
-                  {format(new Date(post.createdAt), "MMM d, yyyy")}
-                </time>
+              <CardFooter className="flex flex-wrap justify-between gap-3">
+                <Button variant="outline" asChild>
+                  <Link to={`/organisation/post/${post._id}`}>View post</Link>
+                </Button>
+                {post.createdAt && !Number.isNaN(Date.parse(post.createdAt)) && (
+                  <time dateTime={post.createdAt} className="text-xs text-muted-foreground">
+                    {format(new Date(post.createdAt), "MMM d, yyyy")}
+                  </time>
+                )}
               </CardFooter>
             </Card>
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
-};
-
-export default PastActivities;
+}

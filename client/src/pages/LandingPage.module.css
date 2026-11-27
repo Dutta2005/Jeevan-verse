@@ -1,0 +1,566 @@
+.landing {
+  --page-width: 1280px;
+  --page-gutter: clamp(24px, 5vw, 80px);
+  background: var(--background);
+  color: var(--foreground);
+  overflow: clip;
+}
+.landing :where(a, button):focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 5px;
+}
+.landing :where(section[id], nav[id]) {
+  scroll-margin-top: 96px;
+}
+.landing figure {
+  margin: 0;
+}
+.hero,
+.serviceNav,
+.umeed,
+.community,
+.organizations,
+.footer {
+  width: min(var(--page-width), calc(100% - var(--page-gutter) * 2));
+  margin-inline: auto;
+}
+.skipLink {
+  position: fixed;
+  top: 8px;
+  left: 16px;
+  z-index: 60;
+  padding: 12px 20px;
+  background: var(--background);
+  color: var(--foreground);
+  transform: translateY(-180%);
+}
+.skipLink:focus {
+  transform: translateY(0);
+}
+.hero {
+  padding-top: clamp(48px, 6vw, 88px);
+}
+.heroIntro {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  align-items: end;
+  gap: 48px;
+  padding-bottom: 48px;
+}
+.hero h1 {
+  margin: 0;
+  font-size: clamp(56px, 6.5vw, 92px);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+.heroAside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  padding-bottom: 4px;
+}
+.heroAside > p {
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+.exploreLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+.exploreLink svg {
+  width: 14px;
+  height: 14px;
+}
+.heroPhoto {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--muted);
+}
+.heroPhoto img {
+  display: block;
+  width: 100%;
+  height: clamp(320px, 34vw, 460px);
+  object-fit: cover;
+  object-position: 50% 42%;
+}
+.heroPhoto figcaption {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 28px;
+  border-top-left-radius: 12px;
+  background: var(--background);
+  font-size: 14px;
+}
+.heroPhoto figcaption span:last-child {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.serviceNav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding-block: 40px;
+  border-bottom: 1px solid var(--border);
+}
+.serviceNav a {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding-inline: 24px;
+  border-left: 1px solid var(--border);
+}
+.serviceNav a:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+.serviceNav a:last-child {
+  padding-right: 0;
+}
+.serviceNav a > span:first-child {
+  font-size: 17px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  text-decoration-color: transparent;
+}
+.serviceNav a:hover > span:first-child {
+  text-decoration-color: currentColor;
+}
+.serviceNav a > span:last-child {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.umeed,
+.community {
+  display: grid;
+  grid-template-columns: 1fr 1.08fr;
+  align-items: center;
+  gap: clamp(48px, 8vw, 112px);
+  padding-block: 112px;
+}
+.sectionCopy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+}
+.serviceName {
+  font-size: 14px;
+  font-weight: 500;
+}
+.landing h2 {
+  font-size: clamp(34px, 3.6vw, 52px);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
+}
+.description {
+  max-width: 34ch;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--muted-foreground);
+}
+.finePrint {
+  max-width: 42ch;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+.questionBoard {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: clamp(28px, 4vw, 48px);
+  border-radius: 12px;
+  background: var(--muted);
+}
+.questionBoardHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  font-size: 16px;
+  font-weight: 500;
+}
+.questionBoardHeading span:last-child {
+  color: var(--muted-foreground);
+  font-weight: 400;
+  font-size: 12px;
+}
+.questionBoardTitle {
+  font-size: clamp(38px, 4vw, 60px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+}
+.questions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.questions p {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.questionBoardFootnote {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.bloodBridge {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  align-items: center;
+  gap: 64px;
+  padding: 80px max(var(--page-gutter), calc((100vw - var(--page-width)) / 2));
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.bloodCopy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 28px;
+}
+.bloodCopy > p:not(.serviceName, .bloodNote) {
+  max-width: 40ch;
+  font-size: 16px;
+  line-height: 1.7;
+}
+.bloodActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+.lightLink {
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+.bloodNote {
+  max-width: 58ch;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.bloodVisual {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  align-items: center;
+}
+.bloodTypes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+.bloodTypes span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: clamp(21px, 2.5vw, 36px);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.bloodVisualCaption {
+  font-size: 12px;
+}
+.community {
+  grid-template-columns: 1.08fr 1fr;
+}
+.communityPhoto {
+  align-self: stretch;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--muted);
+}
+.communityPhoto img {
+  display: block;
+  height: 100%;
+  min-height: 440px;
+  width: 100%;
+  object-fit: cover;
+  object-position: 50% 55%;
+}
+.organizations {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  align-items: center;
+  gap: 64px;
+  padding-block: 64px 96px;
+  border-top: 1px solid var(--border);
+}
+.organizations .serviceName {
+  margin-bottom: 24px;
+}
+.orgAside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+.orgAside > p {
+  max-width: 36ch;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--muted-foreground);
+}
+.textLink {
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+.join {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  text-align: center;
+  padding: 88px 24px;
+  background: var(--muted);
+}
+.join > p {
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+.join h2 {
+  font-size: clamp(48px, 6.5vw, 88px);
+}
+.join .textLink {
+  font-size: 12px;
+}
+.footer {
+  padding-block: 48px 24px;
+}
+.footerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 32px;
+}
+.wordmark {
+  font-size: 26px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.footerTop > p,
+.footerTop > a:last-child {
+  font-size: 13px;
+}
+.footerTop > p {
+  color: var(--muted-foreground);
+}
+.footerTop > a:last-child {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.footerBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+  padding-top: 24px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.footerBottom p {
+  max-width: 68ch;
+}
+
+@media (max-width: 900px) {
+  .heroIntro {
+    grid-template-columns: 1.3fr 1fr;
+    gap: 24px;
+  }
+  .hero h1 {
+    font-size: clamp(54px, 8vw, 80px);
+  }
+  .heroAside > p {
+    font-size: 15px;
+  }
+  .serviceNav a {
+    padding-inline: 16px;
+  }
+  .serviceNav a > span:last-child {
+    max-width: 17ch;
+    line-height: 1.6;
+  }
+  .umeed,
+  .community {
+    padding-block: 80px;
+    gap: 40px;
+  }
+  .bloodBridge {
+    grid-template-columns: 1.3fr 1fr;
+    gap: 40px;
+    padding-block: 64px;
+  }
+  .bloodTypes {
+    grid-template-columns: repeat(2, 1fr);
+    width: 80%;
+  }
+  .bloodTypes span {
+    aspect-ratio: 1.5;
+  }
+  .organizations {
+    gap: 40px;
+  }
+}
+@media (max-width: 640px) {
+  .hero {
+    padding-top: 44px;
+  }
+  .heroIntro {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-bottom: 32px;
+  }
+  .hero h1 {
+    font-size: clamp(49px, 10.5vw, 68px);
+  }
+  .heroAside {
+    gap: 20px;
+  }
+  .heroAside > p {
+    font-size: 16px;
+  }
+  .exploreLink {
+    display: none;
+  }
+  .heroPhoto img {
+    height: 340px;
+    object-position: 48% 45%;
+  }
+  .heroPhoto figcaption {
+    position: static;
+    gap: 6px;
+    padding: 16px 0 0;
+    border-radius: 0;
+    font-size: 13px;
+  }
+  .serviceNav {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 24px;
+    padding-block: 32px;
+  }
+  .serviceNav a {
+    padding-inline: 0;
+    border: 0;
+  }
+  .serviceNav a > span:first-child {
+    font-size: 16px;
+  }
+  .serviceNav a > span:last-child {
+    max-width: none;
+    font-size: 12px;
+  }
+  .umeed,
+  .community {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding-block: 64px;
+  }
+  .sectionCopy {
+    gap: 24px;
+  }
+  .landing h2 {
+    font-size: clamp(32px, 8.2vw, 44px);
+  }
+  .description {
+    font-size: 15px;
+  }
+  .questionBoard {
+    padding: 28px;
+    gap: 28px;
+  }
+  .questionBoardTitle {
+    font-size: 48px;
+  }
+  .questionBoardHeading span:last-child {
+    max-width: 12ch;
+    text-align: right;
+    line-height: 1.5;
+  }
+  .bloodBridge {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding-block: 56px;
+  }
+  .bloodActions {
+    gap: 20px;
+  }
+  .bloodTypes {
+    grid-template-columns: repeat(4, 1fr);
+    width: 100%;
+    gap: 8px;
+  }
+  .bloodTypes span {
+    aspect-ratio: 1;
+    font-size: 24px;
+  }
+  .bloodVisual {
+    gap: 20px;
+  }
+  .communityPhoto {
+    order: 2;
+  }
+  .communityPhoto img {
+    min-height: 320px;
+    height: 320px;
+  }
+  .organizations {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-block: 48px 64px;
+  }
+  .join {
+    padding-block: 64px;
+    gap: 24px;
+  }
+  .join > p {
+    font-size: 12px;
+  }
+  .join h2 {
+    font-size: clamp(48px, 12vw, 64px);
+  }
+  .footer {
+    padding-top: 32px;
+  }
+  .footerTop {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .footerTop > p {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .footerBottom {
+    flex-direction: column;
+    gap: 12px;
+    line-height: 1.6;
+  }
+}
+
+.landing :global(.group\/button) {
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 160ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing :global(.group\/button) {
+    transition: none;
+  }
+}

@@ -64,7 +64,7 @@ function OrgPost() {
 
   if (!post) {
     return (
-      <Alert className="max-w-3xl mx-auto mt-8 bg-secondary/10 border-secondary">
+      <Alert className="max-w-3xl mx-auto mt-8 bg-primary/10 border-primary">
         <AlertTitle>Not Found</AlertTitle>
         <AlertDescription>The requested post could not be found.</AlertDescription>
       </Alert>
@@ -83,17 +83,17 @@ function OrgPost() {
               }org-profile/${post.organization._id}`}
               className="flex items-center gap-3 group"
             >
-              <div className="bg-accent/10 p-3 rounded-full group-hover:bg-accent/20 transition-colors duration-200">
-                <Landmark className="text-accent w-5 h-5" />
+              <div className="bg-primary/10 p-3 rounded-full group-hover:bg-primary/20 transition-colors duration-200">
+                <Landmark className="text-primary w-5 h-5" />
               </div>
               <div>
-                <h2 className="font-medium text-light-text dark:text-dark-text group-hover:text-accent transition-colors duration-200">
+                <h2 className="font-medium text-light-text dark:text-dark-text group-hover:text-primary transition-colors duration-200">
                   {post.organization.name}
                 </h2>
               </div>
             </Link>
             {post.tags && (
-              <p className="bg-accent text-white rounded-full px-3 py-1 text-xs font-medium">
+              <p className="bg-primary text-white rounded-full px-3 py-1 text-xs font-medium">
                 {post.tags}
               </p>
             )}
@@ -116,7 +116,7 @@ function OrgPost() {
             />
           )}
           <div className="flex items-center gap-2 mt-5">
-            <Calendar className="w-4 h-4 text-secondary" />
+            <Calendar className="w-4 h-4 text-primary" />
             <span>
               {formatDistanceToNow(new Date(post.createdAt), {
                 addSuffix: true,

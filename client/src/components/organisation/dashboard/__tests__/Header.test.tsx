@@ -21,7 +21,10 @@ describe("organization dashboard header", () => {
       </Provider>,
     );
 
-    expect(screen.getByRole("heading", { name: "Welcome, City Clinic" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Create Post" })).toHaveAttribute("href", "/create");
+    expect(screen.getByRole("heading", { name: "City Clinic" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Create post" })).toHaveAttribute(
+      "href",
+      "/organisation/create",
+    );
   });
 });

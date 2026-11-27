@@ -1,307 +1,120 @@
-import { useState } from "react";
-import { Button } from "../ui/button";
-import { Dialog, DialogHeader, DialogContent, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
-import { api } from "../../api/api";
-import { State, City } from "country-state-city";
-import { Plus } from "lucide-react";
-import { ScrollArea } from "../ui/scroll-area";
-import { z } from "zod";
+import { useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetHeader,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { api } from "@/api/api";
+import BloodRequestForm from "./BloodRequestForm";
+import {
+  emptyRequest,
+  requestSchema,
+  requestPayload,
+  type RequestDraft,
+} from "./blood-request-form";
+import styles from "./BloodBridge.module.css";
 
-const requestFormSchema = z.object({
-  bloodGroup: z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"], {
-    error: (issue) => (issue.input === undefined ? "Blood group is required" : undefined),
-  }),
-  urgency: z.enum(["low", "medium", "high"], {
-    error: (issue) => (issue.input === undefined ? "Urgency level is required" : undefined),
-  }),
-  message: z.string().optional(),
-  phone: z
-    .string()
-    .min(10, "Phone number must be at least 10 digits")
-    .max(15, "Phone number must not exceed 15 digits")
-    .regex(/^[0-9+\-\s()]*$/, "Invalid phone number format"),
-  email: z.string().email("Invalid email format").optional().or(z.literal("")),
-  state: z.string().min(1, "State is required"),
-  district: z.string().min(1, "District is required"),
-  city: z.string().min(1, "City is required"),
-});
-
-type FormData = Omit<z.infer<typeof requestFormSchema>, "bloodGroup" | "urgency"> & {
-  bloodGroup: z.infer<typeof requestFormSchema>["bloodGroup"] | "";
-  urgency: z.infer<typeof requestFormSchema>["urgency"] | "";
-};
-
-function RequestForm() {
+export default function RequestForm() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<FormData>({
-    bloodGroup: "",
-    urgency: "",
-    message: "",
-    phone: "",
-    email: "",
-    state: "",
-    district: "",
-    city: "",
-  });
-
-  const [selectedStateCode, setSelectedStateCode] = useState("");
-
+  const [open, setOpen] = useState(false);
+  const [data, setData] = useState<RequestDraft>({ ...emptyRequest });
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const handleChange = (name: keyof FormData, value: string) => {
-    setFormData({ ...formData, [name]: value });
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+  const [pending, setPending] = useState(false);
+  const saving = useRef(false);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const change = (name: keyof RequestDraft, value: string) => {
+    setData((previous) =>
+      name === "state"
+        ? { ...previous, state: value, district: "", city: "" }
+        : { ...previous, [name]: value },
+    );
+    setErrors((previous) => ({
+      ...previous,
+      [name]: "",
+      ...(name === "state" ? { district: "", city: "" } : {}),
+    }));
   };
-
-  const validateForm = () => {
-    try {
-      requestFormSchema.parse(formData);
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const newErrors: Record<string, string> = {};
-        error.issues.forEach((err) => {
-          const field = err.path[0];
-          if (typeof field === "string") {
-            newErrors[field] = err.message;
-          }
-        });
-        setErrors(newErrors);
-      }
-      return false;
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (saving.current) return;
+    const result = requestSchema.safeParse(data);
+    if (!result.success) {
+      setErrors(
+        Object.fromEntries(
+          result.error.issues.map((issue) => [String(issue.path[0]), issue.message]),
+        ),
+      );
+      requestAnimationFrame(() =>
+        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),
+      );
       return;
     }
-
+    saving.current = true;
+    setPending(true);
+    setErrors({});
     try {
       const response = await api.post("/blood-requests/create", {
-        bloodGroup: formData.bloodGroup,
-        urgency: formData.urgency,
-        message: formData.message,
-        contactDetails: {
-          phone: formData.phone,
-          email: formData.email,
-        },
+        ...requestPayload(result.data),
         status: "pending",
-        address: {
-          state: formData.state,
-          district: formData.district,
-          city: formData.city,
-        },
       });
-
-      if (response.status === 201) {
-        setErrors({});
-        setFormData({
-          bloodGroup: "",
-          urgency: "",
-          message: "",
-          phone: "",
-          email: "",
-          state: "",
-          district: "",
-          city: "",
-        });
-        setSelectedStateCode("");
-        navigate(`/bloodbridge/request/${response.data.data?.bloodRequest._id}`);
-      }
-    } catch (error) {
-      console.error("Error creating blood request:", error);
+      const id = response.data?.data?.bloodRequest?._id;
+      if (response.status !== 201 || !id) throw new Error("Unexpected response");
+      setData({ ...emptyRequest });
+      setOpen(false);
+      navigate(`/bloodbridge/request/${id}`);
+    } catch {
       setErrors({ submit: "Failed to submit the form. Please try again." });
+      requestAnimationFrame(() =>
+        formRef.current
+          ?.querySelector<HTMLElement>('[role="alert"]')
+          ?.scrollIntoView({ block: "nearest" }),
+      );
+    } finally {
+      saving.current = false;
+      setPending(false);
     }
   };
-
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant={"ghost"} className="text-accent text-md font-semibold">
-          <Plus /> Create a Request
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md w-full p-0 h-[90%] md:h-auto dark:bg-dark-bg dark:text-dark-text">
-        <ScrollArea className="h-full w-full">
-          <div className="p-6">
-            <DialogHeader>
-              <DialogTitle>Request Form</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-              {errors.submit && <p className="text-red-600 text-sm">{errors.submit}</p>}
-
-              <div className="space-y-4">
-                {/* Blood Group */}
-                <div>
-                  <Label htmlFor="bloodGroup">Blood Group *</Label>
-                  <Select
-                    onValueChange={(value) => handleChange("bloodGroup", value)}
-                    value={formData.bloodGroup}
-                  >
-                    <SelectTrigger className={errors.bloodGroup ? "border-red-500" : ""}>
-                      <SelectValue placeholder="Select blood group" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((group) => (
-                        <SelectItem key={group} value={group}>
-                          {group}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.bloodGroup && (
-                    <p className="text-red-500 text-sm mt-1">{errors.bloodGroup}</p>
-                  )}
-                </div>
-
-                {/* Urgency */}
-                <div>
-                  <Label htmlFor="urgency">Urgency *</Label>
-                  <Select
-                    onValueChange={(value) => handleChange("urgency", value)}
-                    value={formData.urgency}
-                  >
-                    <SelectTrigger className={errors.urgency ? "border-red-500" : ""}>
-                      <SelectValue placeholder="Select urgency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["low", "medium", "high"].map((level) => (
-                        <SelectItem key={level} value={level}>
-                          {level.charAt(0).toUpperCase() + level.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.urgency && <p className="text-red-500 text-sm mt-1">{errors.urgency}</p>}
-                </div>
-
-                {/* Message */}
-                <div>
-                  <Label htmlFor="message">Message</Label>
-                  <Input
-                    type="text"
-                    id="message"
-                    placeholder="Optional message"
-                    value={formData.message}
-                    onChange={(e) => handleChange("message", e.target.value)}
-                    className={errors.message ? "border-red-500" : ""}
-                  />
-                  {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
-                </div>
-
-                {/* Contact Information */}
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="phone">Phone *</Label>
-                    <Input
-                      type="tel"
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => handleChange("phone", e.target.value)}
-                      className={errors.phone ? "border-red-500" : ""}
-                      required
-                    />
-                    {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      type="email"
-                      id="email"
-                      value={formData.email}
-                      onChange={(e) => handleChange("email", e.target.value)}
-                      className={errors.email ? "border-red-500" : ""}
-                    />
-                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                  </div>
-                </div>
-
-                {/* Address Fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="state">State *</Label>
-                    <Select
-                      onValueChange={(stateCode) => {
-                        const state = State.getStatesOfCountry("IN").find(
-                          (s) => s.isoCode === stateCode,
-                        );
-                        if (state) {
-                          handleChange("state", state.name);
-                          setSelectedStateCode(stateCode);
-                        }
-                      }}
-                      value={selectedStateCode}
-                    >
-                      <SelectTrigger className={errors.state ? "border-red-500" : ""}>
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {State.getStatesOfCountry("IN").map((state) => (
-                          <SelectItem key={state.isoCode} value={state.isoCode}>
-                            {state.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="district">District *</Label>
-                    <Input
-                      type="text"
-                      id="district"
-                      value={formData.district}
-                      onChange={(e) => handleChange("district", e.target.value)}
-                      className={errors.district ? "border-red-500" : ""}
-                      required
-                    />
-                    {errors.district && (
-                      <p className="text-red-500 text-sm mt-1">{errors.district}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="city">City *</Label>
-                    <Select
-                      onValueChange={(value) => handleChange("city", value)}
-                      value={formData.city}
-                      disabled={!selectedStateCode}
-                    >
-                      <SelectTrigger className={errors.city ? "border-red-500" : ""}>
-                        <SelectValue placeholder="Select city" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {City.getCitiesOfState("IN", selectedStateCode)?.map((city) => (
-                          <SelectItem key={city.name} value={city.name}>
-                            {city.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <Button type="submit" className="w-full dark:hover:bg-gray-700">
-                  Submit
-                </Button>
-              </div>
-            </form>
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        if (!saving.current) setOpen(next);
+      }}
+    >
+      <SheetTrigger asChild>
+        <Button>Create request</Button>
+      </SheetTrigger>
+      <SheetContent
+        side="right"
+        className={styles.drawer}
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          titleRef.current?.focus();
+        }}
+      >
+        <SheetHeader className={styles.drawerHeader}>
+          <SheetTitle ref={titleRef} tabIndex={-1} className="outline-none">
+            Create a blood request
+          </SheetTitle>
+          <SheetDescription>Tell volunteers what’s needed and where</SheetDescription>
+        </SheetHeader>
+        <BloodRequestForm
+          data={data}
+          errors={errors}
+          onChange={change}
+          onSubmit={(event) => void submit(event)}
+          onCancel={() => setOpen(false)}
+          pending={pending}
+          submitLabel="Publish request"
+          formRef={formRef}
+        />
+      </SheetContent>
+    </Sheet>
   );
 }
-
-export default RequestForm;

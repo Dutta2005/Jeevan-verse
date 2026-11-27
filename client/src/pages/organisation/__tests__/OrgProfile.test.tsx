@@ -1,14 +1,19 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import OrgProfile from "../OrgProfile";
+import { MemoryRouter } from "react-router";
+import userEvent from "@testing-library/user-event";
 
 const mocks = vi.hoisted(() => ({ get: vi.fn(), id: "0", loggedInId: "org-1" }));
 vi.mock("../../../api/api", () => ({ api: { get: mocks.get } }));
-vi.mock("react-router", () => ({ useParams: () => ({ id: mocks.id }) }));
+vi.mock("react-router", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("react-router")>()),
+  useParams: () => ({ id: mocks.id }),
+}));
 vi.mock("react-redux", () => ({
   useSelector: (select: (state: unknown) => unknown) =>
-    select({ auth: { organization: { id: mocks.loggedInId } } }),
+    select({ auth: { role: "organization", organization: { id: mocks.loggedInId } } }),
 }));
 const profile = {
   _id: "org-1",
@@ -27,12 +32,51 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("organization profile", () => {
+  it.each(["example.test", "https://["])(
+    "handles organization website %s and missing descriptions",
+    async (website) => {
+      mocks.loggedInId = "another-org";
+      mocks.get.mockResolvedValue({ data: { data: { ...profile, website, description: "" } } });
+      render(
+        <MemoryRouter>
+          <OrgProfile />
+        </MemoryRouter>,
+      );
+      await screen.findByText("Test Organization");
+      expect(screen.getByText(/hasn.t added a description yet/)).toBeInTheDocument();
+      if (website === "example.test")
+        expect(screen.getByRole("link", { name: "Visit website" })).toHaveAttribute(
+          "href",
+          "https://example.test/",
+        );
+      else expect(screen.queryByRole("link", { name: "Visit website" })).not.toBeInTheDocument();
+    },
+  );
+  it("retries the profile after a failure", async () => {
+    mocks.get
+      .mockRejectedValueOnce(new Error("Offline"))
+      .mockResolvedValueOnce({ data: { data: profile } });
+    render(
+      <MemoryRouter>
+        <OrgProfile />
+      </MemoryRouter>,
+    );
+    await screen.findByRole("alert");
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByText("Test Organization")).toBeInTheDocument();
+  });
   it("loads the current organization's profile and shows the edit action", async () => {
     mocks.get.mockResolvedValue({ status: 200, data: { data: profile } });
-    render(<OrgProfile />);
+    render(
+      <MemoryRouter>
+        <OrgProfile />
+      </MemoryRouter>,
+    );
     expect(await screen.findByText("Test Organization")).toBeInTheDocument();
-    expect(mocks.get).toHaveBeenCalledWith("/organizations/profile");
-    expect(screen.getByRole("button", { name: "Edit Profile" })).toBeInTheDocument();
+    expect(mocks.get).toHaveBeenCalledWith("/organizations/profile", {
+      signal: expect.any(AbortSignal),
+    });
+    expect(screen.getByRole("link", { name: "Create post" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "https://example.test" })).toHaveAttribute(
       "rel",
       "noopener noreferrer",
@@ -45,29 +89,47 @@ describe("organization profile", () => {
       status: 200,
       data: { data: { ...profile, _id: "org-2", website: null, createdAt: "invalid" } },
     });
-    render(<OrgProfile />);
+    render(
+      <MemoryRouter>
+        <OrgProfile />
+      </MemoryRouter>,
+    );
     expect(await screen.findByText("Test Organization")).toBeInTheDocument();
-    expect(mocks.get).toHaveBeenCalledWith("/organizations/profile/org-2");
-    expect(screen.queryByRole("button", { name: "Edit Profile" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
-    expect(screen.getByText("Invalid date")).toBeInTheDocument();
+    expect(mocks.get).toHaveBeenCalledWith("/organizations/profile/org-2", {
+      signal: expect.any(AbortSignal),
+    });
+    expect(screen.queryByRole("link", { name: "Create post" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Visit website" })).not.toBeInTheDocument();
+    expect(screen.getByText("Not available")).toBeInTheDocument();
   });
   it("shows skeletons during loading", () => {
     mocks.get.mockReturnValue(new Promise(() => {}));
-    const { container } = render(<OrgProfile />);
+    const { container } = render(
+      <MemoryRouter>
+        <OrgProfile />
+      </MemoryRouter>,
+    );
     expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
   });
   it("reports profile fetch errors", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     mocks.get.mockRejectedValue(new Error("Offline"));
-    render(<OrgProfile />);
+    render(
+      <MemoryRouter>
+        <OrgProfile />
+      </MemoryRouter>,
+    );
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Failed to fetch organization profile",
+      "We couldn’t load this organization’s profile. Please try again.",
     );
   });
   it.each([200, 204])("handles a missing profile with response %i", async (status) => {
     mocks.get.mockResolvedValue({ status, data: { data: null } });
-    const { container } = render(<OrgProfile />);
-    await waitFor(() => expect(container).toBeEmptyDOMElement());
+    render(
+      <MemoryRouter>
+        <OrgProfile />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText("Organization not found")).toBeInTheDocument();
   });
 });

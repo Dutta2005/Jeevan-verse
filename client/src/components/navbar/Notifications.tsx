@@ -9,6 +9,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Link } from "react-router";
 import { api } from "../../api/api";
 import { useCallback, useEffect } from "react";
+import { Button } from "../ui/button";
 
 function Notifications() {
   const dispatch = useDispatch();
@@ -35,16 +36,24 @@ function Notifications() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="relative dark:text-dark-text">
-          <Bell size={20} />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          aria-label={`Notifications${notifications.length ? ` (${notifications.length})` : ""}`}
+        >
+          <Bell aria-hidden="true" />
           {notifications.length > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-sm text-white rounded-full flex items-center justify-center">
-              {notifications.length}
+            <span
+              aria-hidden="true"
+              className="absolute right-0 top-0 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground"
+            >
+              {notifications.length > 9 ? "9+" : notifications.length}
             </span>
           )}
-        </button>
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-80 p-0">
+      <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-2rem)] p-0">
         <div className="flex flex-col h-[480px]">
           <ScrollArea className="flex-1">
             <div className="p-4">
@@ -57,7 +66,7 @@ function Notifications() {
                     key={notification._id || `${notification.type}-${notification.createdAt}`}
                     className="flex items-start gap-4 mb-4 last:mb-0"
                   >
-                    <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
                       {notification.type === "blood_request" ? (
                         <Droplet className="text-primary" size={16} />
                       ) : (
@@ -81,7 +90,7 @@ function Notifications() {
           <Separator />
           <Link
             to="/notifications"
-            className="block p-4 text-center text-sm text-primary hover:bg-accent/10 transition-colors"
+            className="block p-4 text-center text-sm text-primary hover:bg-primary/10 transition-colors"
           >
             View all notifications
           </Link>

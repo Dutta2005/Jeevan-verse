@@ -257,7 +257,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
             renderCommentInput(replyTo.commentId, replyTo.parentId)}
 
           {comment.replies && comment.replies.length > 0 && (
-            <div className="ml-4 md:ml-8 border-l-2 border-secondary pl-4 mt-2">
+            <div className="ml-4 md:ml-8 border-l-2 border-primary pl-4 mt-2">
               {renderComments(comment.replies)}
             </div>
           )}
@@ -304,7 +304,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
               variant="outline"
               disabled={page === 1}
               onClick={() => fetchComments(page - 1)}
-              className="border-secondary text-light-text dark:text-dark-text"
+              className="border-primary text-light-text dark:text-dark-text"
             >
               Previous
             </Button>
@@ -312,7 +312,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
               variant="outline"
               disabled={page === totalPages}
               onClick={() => fetchComments(page + 1)}
-              className="border-secondary text-light-text dark:text-dark-text"
+              className="border-primary text-light-text dark:text-dark-text"
             >
               Next
             </Button>

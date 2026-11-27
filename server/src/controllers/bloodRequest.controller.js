@@ -121,9 +121,23 @@ const getAllBloodRequests = asyncHandler(async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
+        const filter = {};
+        const { bloodGroup, status } = req.query;
+        if (bloodGroup !== undefined && bloodGroup !== 'all') {
+            if (typeof bloodGroup !== 'string' || !['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].includes(bloodGroup)) {
+                return res.status(400).json(new ApiResponse(400, 'Invalid blood group'));
+            }
+            filter.bloodGroup = bloodGroup;
+        }
+        if (status !== undefined && status !== 'all') {
+            if (typeof status !== 'string' || !['pending', 'completed', 'rejected'].includes(status)) {
+                return res.status(400).json(new ApiResponse(400, 'Invalid request status'));
+            }
+            filter.status = status;
+        }
 
-        const totalRequests = await BloodRequest.countDocuments();
-        const bloodRequests = await BloodRequest.find()
+        const totalRequests = await BloodRequest.countDocuments(filter);
+        const bloodRequests = await BloodRequest.find(filter)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -159,19 +173,17 @@ const getBloodRequestById = asyncHandler(async (req, res) => {
             throw new ApiError(404, "Blood request not found");
         }
 
-        // If the requester is not the creator, filter out contact details of volunteers who opted out
-        if (!req.user || bloodRequest.userId.toString() !== req.user._id.toString()) {
-            bloodRequest.volunteers = bloodRequest.volunteers.map(volunteer => {
-                if (!volunteer.canShareDetails) {
-                    // Remove sensitive information
-                    if (volunteer.user) {
-                        volunteer.user.phone = undefined;
-                        volunteer.user.email = undefined;
-                    }
-                }
-                return volunteer;
-            });
-        }
+        // Respect each volunteer's contact-sharing choice for every other viewer,
+        // including the request creator. Volunteers can still see their own details.
+        bloodRequest.volunteers = bloodRequest.volunteers.map(volunteer => {
+            const isSelf = req.user && volunteer.user &&
+                volunteer.user._id.toString() === req.user._id.toString();
+            if (!volunteer.canShareDetails && !isSelf && volunteer.user) {
+                volunteer.user.phone = undefined;
+                volunteer.user.email = undefined;
+            }
+            return volunteer;
+        });
 
         return res.status(200).json(
             new ApiResponse(200, "Blood request fetched successfully", bloodRequest)

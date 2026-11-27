@@ -1,16 +1,18 @@
+import { AuthLayout } from "@/components/auth/AuthLayout";
+import { AuthField } from "@/components/auth/AuthField";
+import { authFieldProps } from "@/components/auth/auth-field-props";
+import styles from "@/components/auth/AuthLayout.module.css";
+import {
+  FieldGroup,
+  FieldSet,
+  FieldLegend,
+  FieldDescription,
+  FieldError,
+} from "@/components/ui/field";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Button } from "../../components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
 import { useToast } from "../../hooks/use-toast";
 import { api } from "../../api/api";
 import { isAxiosError } from "axios";
@@ -86,6 +88,7 @@ const Signup = () => {
   });
 
   const [errors, setErrors] = useState<Errors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
@@ -167,6 +170,7 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
+    setIsSubmitting(true);
 
     try {
       const response = await api.post("/users/register", {
@@ -212,89 +216,75 @@ const Signup = () => {
           variant: "destructive",
           duration: 5000,
         });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full bg-light-bg dark:bg-dark-bg/90 flex justify-center items-center p-4">
-      <div className="fixed top-0 left-0 w-1/2 h-full bg-accent/85 transform -skew-x-12 -translate-x-20" />
-
-      <Card className="relative w-full max-w-lg bg-white/95 dark:bg-dark-bg/95 backdrop-blur-sm shadow-2xl border-0">
-        <CardHeader className="space-y-4">
-          <CardTitle className="text-3xl font-bold text-center text-light-text dark:text-dark-text">
-            Create Account
-          </CardTitle>
-          <CardDescription className="text-center text-gray-600 dark:text-dark-text/80">
-            Join us and become a potential life-saver
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+    <AuthLayout
+      audience="individual"
+      mode="signup"
+      title="Create your account"
+      description="A place for your health questions, shared experiences, and blood support."
+    >
+      <form onSubmit={handleSubmit} className={styles.form} aria-busy={isSubmitting}>
+        <FieldGroup>
+          <FieldSet>
+            <FieldLegend>About you</FieldLegend>
+            <div className={styles.twoColumns}>
+              <AuthField id="name" label="Full name" error={errors.name}>
                 <Input
-                  id="name"
+                  {...authFieldProps("name", errors.name)}
                   value={formData.name}
                   onChange={handleChange}
+                  autoComplete="name"
                   placeholder="John Doe"
-                  className={`h-11 ${errors.name ? "border-red-500" : ""}`}
                 />
-                {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+              </AuthField>
+              <AuthField id="phone" label="Phone number" error={errors.phone}>
                 <Input
-                  id="phone"
+                  {...authFieldProps("phone", errors.phone)}
                   value={formData.phone}
                   onChange={handleChange}
+                  type="tel"
+                  autoComplete="tel"
                   placeholder="1234567890"
-                  className={`h-11 ${errors.phone ? "border-red-500" : ""}`}
                 />
-                {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
-              </div>
+              </AuthField>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="age">Age</Label>
+            <div className={styles.twoColumns}>
+              <AuthField id="age" label="Age" error={errors.age}>
                 <Input
-                  id="age"
+                  {...authFieldProps("age", errors.age)}
                   type="number"
                   value={formData.age}
                   onChange={handleChange}
                   placeholder="25"
-                  className={`h-11 ${errors.age ? "border-red-500" : ""}`}
                 />
-                {errors.age && <p className="text-red-500 text-sm">{errors.age}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+              </AuthField>
+              <AuthField id="email" label="Email" error={errors.email}>
                 <Input
-                  id="email"
+                  {...authFieldProps("email", errors.email)}
                   type="email"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="john.doe@example.com"
-                  className={`h-11 ${errors.email ? "border-red-500" : ""}`}
                 />
-                {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-              </div>
+              </AuthField>
             </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>State</Label>
+          </FieldSet>
+          <FieldSet className={styles.formSection}>
+            <FieldLegend>Location</FieldLegend>
+            <div className={styles.threeColumns}>
+              <AuthField id="address.state" label="State" error={errors.state}>
                 <select
+                  {...authFieldProps("address.state", errors.state)}
                   value={formData.address.state}
                   onChange={(e) => handleStateChange(e.target.value)}
-                  className={`w-full h-11 p-2 border rounded bg-white dark:bg-dark-bg 
-            text-light-text dark:text-dark-text
-            border-secondary 
-            focus:ring-accent focus:border-accent ${errors.state ? "border-red-500" : ""}`}
+                  autoComplete="address-level1"
+                  className={styles.nativeSelect}
                 >
                   <option value="">Select State</option>
                   {states.map((state) => (
@@ -303,31 +293,23 @@ const Signup = () => {
                     </option>
                   ))}
                 </select>
-                {errors.state && <p className="text-red-500 text-sm">{errors.state}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address.district">District</Label>
+              </AuthField>
+              <AuthField id="address.district" label="District" error={errors.district}>
                 <Input
-                  id="address.district"
+                  {...authFieldProps("address.district", errors.district)}
                   value={formData.address.district}
                   onChange={handleChange}
+                  autoComplete="address-level2"
                   placeholder="Enter District"
-                  className={`h-11 ${errors.district ? "border-red-500" : ""}`}
                 />
-                {errors.district && <p className="text-red-500 text-sm">{errors.district}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address.city">City</Label>
+              </AuthField>
+              <AuthField id="address.city" label="City" error={errors.city}>
                 <select
+                  {...authFieldProps("address.city", errors.city)}
                   value={formData.address.city}
                   onChange={(e) => handleCityChange(e.target.value)}
                   disabled={!formData.address.state}
-                  className={`w-full h-11 p-2 border rounded bg-white dark:bg-dark-bg 
-            text-light-text dark:text-dark-text
-            border-secondary 
-            focus:ring-accent focus:border-accent ${errors.city ? "border-red-500" : ""}`}
+                  className={styles.nativeSelect}
                 >
                   <option value="">Select City</option>
                   {selectedState &&
@@ -337,23 +319,21 @@ const Signup = () => {
                       </option>
                     ))}
                 </select>
-                {errors.city && <p className="text-red-500 text-sm">{errors.city}</p>}
-              </div>
+              </AuthField>
             </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="info.bloodGroup">Blood Group</Label>
+          </FieldSet>
+          <FieldSet className={styles.formSection}>
+            <FieldLegend>Health profile</FieldLegend>
+            <FieldDescription>
+              Profile details do not confirm eligibility to donate blood.
+            </FieldDescription>
+            <div className={styles.threeColumns}>
+              <AuthField id="info.bloodGroup" label="Blood group" error={errors.bloodGroup}>
                 <select
-                  id="info.bloodGroup"
+                  {...authFieldProps("info.bloodGroup", errors.bloodGroup)}
                   value={formData.info.bloodGroup}
                   onChange={handleChange}
-                  className={`w-full h-11 p-2 border rounded bg-white dark:bg-dark-bg 
-                text-light-text dark:text-dark-text
-                border-secondary 
-                focus:ring-accent focus:border-primary ${
-                  errors.bloodGroup ? "border-red-500" : ""
-                }`}
+                  className={styles.nativeSelect}
                 >
                   <option value="">Blood Group</option>
                   {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Others"].map((group) => (
@@ -362,141 +342,94 @@ const Signup = () => {
                     </option>
                   ))}
                 </select>
-                {errors.bloodGroup && <p className="text-red-500 text-sm">{errors.bloodGroup}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="info.height">Height (cm)</Label>
+              </AuthField>
+              <AuthField id="info.height" label="Height (cm)" error={errors.height}>
                 <Input
-                  id="info.height"
+                  {...authFieldProps("info.height", errors.height)}
                   type="number"
                   value={formData.info.height}
                   onChange={handleChange}
                   placeholder="170"
-                  className={`h-11 ${errors.height ? "border-red-500" : ""}`}
                 />
-                {errors.height && <p className="text-red-500 text-sm">{errors.height}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="info.weight">Weight (kg)</Label>
+              </AuthField>
+              <AuthField id="info.weight" label="Weight (kg)" error={errors.weight}>
                 <Input
-                  id="info.weight"
+                  {...authFieldProps("info.weight", errors.weight)}
                   type="number"
                   value={formData.info.weight}
                   onChange={handleChange}
                   placeholder="65"
-                  className={`h-11 ${errors.weight ? "border-red-500" : ""}`}
                 />
-                {errors.weight && <p className="text-red-500 text-sm">{errors.weight}</p>}
-              </div>
+              </AuthField>
             </div>
-
-            <select
-              id="status"
-              value={formData.status}
-              onChange={handleChange}
-              className={`
-              w-full h-11 
-              border rounded 
-            bg-white dark:bg-dark-bg 
-            text-light-text dark:text-dark-text
-            border-secondary 
-            focus:ring-accent focus:border-accent
-              ${errors.status ? "border-red-500" : ""}
-            `}
-            >
-              <option value="doctor">Doctor</option>
-              <option value="medical student">Medical Student</option>
-              <option value="others">Others</option>
-            </select>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+            <AuthField id="status" label="Background" error={errors.status}>
+              <select
+                {...authFieldProps("status", errors.status)}
+                value={formData.status}
+                onChange={handleChange}
+                className={styles.nativeSelect}
+              >
+                <option value="doctor">Doctor</option>
+                <option value="medical student">Medical Student</option>
+                <option value="others">Others</option>
+              </select>
+            </AuthField>
+          </FieldSet>
+          <FieldSet className={styles.formSection}>
+            <FieldLegend>Account security</FieldLegend>
+            <div className={styles.twoColumns}>
+              <AuthField id="password" label="Password" error={errors.password}>
                 <Input
-                  id="password"
+                  {...authFieldProps("password", errors.password)}
                   type="password"
+                  autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Create a strong password"
-                  className={`h-11 ${errors.password ? "border-red-500" : ""}`}
                 />
-                {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+              </AuthField>
+              <AuthField
+                id="confirmPassword"
+                label="Confirm password"
+                error={errors.confirmPassword}
+              >
                 <Input
-                  id="confirmPassword"
+                  {...authFieldProps("confirmPassword", errors.confirmPassword)}
                   type="password"
+                  autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="Confirm your password"
-                  className={`h-11 ${errors.confirmPassword ? "border-red-500" : ""}`}
                 />
-                {errors.confirmPassword && (
-                  <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
-                )}
-              </div>
+              </AuthField>
             </div>
-
-            <div className="flex items-start space-x-2 text-sm">
+          </FieldSet>
+          <div>
+            <div className={styles.consent}>
               <input
+                {...authFieldProps("termsAccepted", errors.termsAccepted)}
                 type="checkbox"
-                id="termsAccepted"
                 checked={formData.termsAccepted}
                 onChange={handleChange}
-                className={`mt-1 rounded border-secondary text-accent focus:ring-accent ${
-                  errors.termsAccepted ? "border-red-500" : ""
-                }`}
               />
-              <label
-                htmlFor="termsAccepted"
-                className={`text-gray-600 dark:text-gray-400 ${
-                  errors.termsAccepted ? "text-red-500" : ""
-                }`}
-              >
-                I agree to the{" "}
-                <Link
-                  to={"/"}
-                  className="text-accent hover:text-secondary dark:text-secondary dark:hover:text-accent transition-colors"
-                >
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link
-                  to={"/"}
-                  className="text-accent hover:text-secondary dark:text-secondary dark:hover:text-accent transition-colors"
-                >
-                  Privacy Policy
-                </Link>
+              <label htmlFor="termsAccepted">
+                I agree to the <Link to="/">Terms of Service</Link> and{" "}
+                <Link to="/">Privacy Policy</Link>
               </label>
             </div>
-            {errors.termsAccepted && <p className="text-red-500 text-sm">{errors.termsAccepted}</p>}
-
-            <Button
-              type="submit"
-              className="w-full h-11 bg-accent dark:bg-accent hover:bg-accent/90 dark:hover:bg-accent/90 transition-colors"
-            >
-              Create Account
-            </Button>
-          </form>
-        </CardContent>
-
-        <CardFooter>
-          <p className="text-sm text-gray-600 dark:text-gray-400 text-center w-full">
-            Already have an account?{" "}
-            <Link
-              to={"/login"}
-              className="text-accent hover:text-secondary dark:text-secondary dark:hover:text-accent transition-colors"
-            >
-              Sign in
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
-    </div>
+            {errors.termsAccepted && (
+              <FieldError id="termsAccepted-error">{errors.termsAccepted}</FieldError>
+            )}
+          </div>
+        </FieldGroup>
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting ? "Creating account..." : "Create account"}
+        </Button>
+      </form>
+      <p className={styles.footer}>
+        Already have an account? <Link to="/login">Sign in</Link>
+      </p>
+    </AuthLayout>
   );
 };
 

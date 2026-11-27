@@ -1,0 +1,143 @@
+.header {
+  max-width: 760px;
+  margin-bottom: 32px;
+}
+.header h1 {
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -0.8px;
+}
+.header p {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+}
+.layout {
+  display: grid;
+  grid-template-columns: 208px minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+.contents {
+  position: sticky;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding-right: 24px;
+}
+.contents p {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin-bottom: 8px;
+}
+.contents a {
+  font-size: 13px;
+  line-height: 1.6;
+  text-underline-offset: 4px;
+}
+.contents a:hover {
+  text-decoration: underline;
+}
+.article {
+  max-width: 720px;
+  min-width: 0;
+}
+.article section {
+  padding-block: 28px;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 80px;
+}
+.article h2 {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+.article ul {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: disc;
+  padding-left: 20px;
+}
+.article li {
+  font-size: 14px;
+  line-height: 1.8;
+  padding-left: 4px;
+}
+.sourceLink {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 12px;
+  line-height: 1.7;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: var(--muted-foreground);
+}
+.references {
+  padding-top: 28px;
+  scroll-margin-top: 80px;
+}
+.references h2 {
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.references p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted-foreground);
+}
+@container workspace (max-width:900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .contents {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    padding: 0;
+  }
+  .contents p {
+    width: 100%;
+    margin-bottom: 0;
+  }
+}
+@media (max-width: 767px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .contents {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    padding: 0;
+  }
+  .contents p {
+    width: 100%;
+    margin-bottom: 0;
+  }
+  .header {
+    margin-bottom: 24px;
+  }
+  .article section,
+  .references {
+    scroll-margin-top: 20px;
+  }
+}
+@media (max-height: 600px) {
+  .contents {
+    position: static;
+  }
+  .article section,
+  .references {
+    scroll-margin-top: 20px;
+  }
+}

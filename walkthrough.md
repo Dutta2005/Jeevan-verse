@@ -37,7 +37,7 @@ Jeevan Verse is a **full-stack healthcare platform** built as a hackathon projec
 | **Axios**                         | HTTP client for API calls                                |
 | **Socket.IO Client**              | Real-time WebSocket communication                        |
 | **TailwindCSS 3**                 | Utility-first CSS styling                                |
-| **ShadCN/UI (New York style)**    | Pre-built accessible UI components (Radix UI primitives) |
+| **ShadCN/UI (Maia style)**    | Pre-built accessible UI components (Radix UI primitives) |
 | **Lucide React**                  | Icon library                                             |
 | **React Hook Form + Zod**         | Form handling & validation                               |
 | **Framer Motion**                 | Animations                                               |
@@ -511,32 +511,160 @@ All pages are lazy-loaded with `React.lazy()` + `<Suspense>` for code splitting,
 
 ## 11. Design System
 
-### Color Palette
+### Preset and Color Palette
 
-| Token        | Value                | Usage                                   |
-| ------------ | -------------------- | --------------------------------------- |
-| `primary`    | `#bf2231` (Deep Red) | CTAs, blood donation, brand accent      |
-| `secondary`  | `#3498db` (Blue)     | Links, AI chatbot, interactive elements |
-| `accent`     | `#1abc9c` (Teal)     | Success states, brand accent            |
-| `light-bg`   | `#f4f9f4`            | Light mode background                   |
-| `light-text` | `#2c3e50`            | Light mode text                         |
-| `dark-bg`    | `#222222`            | Dark mode background                    |
-| `dark-text`  | `#e0e6ed`            | Dark mode text                          |
+The client uses shadcn preset `b2C6zag7s`: Maia style, stone neutrals,
+emerald actions and charts, DM Sans, small radius, Lucide icons, and subtle
+menu highlights. It retains the existing Radix primitives and component APIs.
+
+Theme values live in `client/src/index.css` as semantic CSS variables for
+light and dark modes. Shared components consume `background`, `foreground`,
+`card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`,
+`border`, `input`, and `ring`. Secondary and accent are neutral interaction
+surfaces; emerald `primary` carries brand actions. Legacy `light-*` and
+`dark-*` utilities resolve to the same background and foreground tokens.
+Status-specific red, amber, and green treatments remain separate from brand
+colors.
 
 ### Typography
 
-- **IBM Plex Sans**: Body text font
-- **Samarkan**: Decorative font for "Jeevan" in brand name
+- **DM Sans Variable**: Self-hosted body and heading font from `@fontsource-variable/dm-sans`.
+- **Samarkan**: Decorative font for "Jeevan" in the brand name.
+
+### Public landing page
+
+The public landing uses a photographic, editorial layout with a large
+typographic hero and anchored sections for Umeed, Blood Bridge, community
+discussions, and organizations. Account and service links lead to existing
+routes; protected services retain their sign-in requirements. Examples of
+questions are illustrative, and no campaign dates or community counts are
+presented as live data.
+
+Landing styles are scoped in `client/src/pages/LandingPage.module.css` and
+follow the selected preset in both themes. Responsive visitor navigation
+includes section links, account actions, and a direct light/dark toggle.
+The theme button dispatches the existing Redux action without opening a
+menu; the signed-in account menu remains available for logout.
+Local photography and its license references are in `client/public/images/`.
+
+The public `/organisation` page follows the same typography and theme. It
+introduces organization profiles and publishing with a clearly marked example
+post, a community section, and account setup steps. Registration and sign-in
+link to `/register` and `/signin`. Its header also offers a direct theme toggle.
+The former static campaign carousel and unsubstantiated feature claims have
+been replaced by the confirmed profile and post capabilities.
+
+### Signed-in workspace
+
+Individual and organization routes share `components/layouts/ProtectedLayout.tsx`:
+a persistent desktop sidebar, compact toolbar, mobile navigation sheet, account
+menu, and direct theme toggle. Account-specific routes and authorization guards
+remain separate. Controls use the shared component defaults.
+
+Individual Home shows its page heading in the toolbar, the user's posts, and a
+compact profile. The toolbar displays the current page name; Umeed, Blood Bridge,
+and discussions remain in navigation. The sidebar collapses below desktop width, and the toolbar becomes
+non-sticky on smaller or short viewports. Dashboard columns respond to the
+workspace width; secondary profile details use a shadcn Collapsible, without
+adding an inner dashboard scrollbar. Profile information is
+self-reported and does not establish donor eligibility. Organization Home shows
+the organization name, a create-post action, and published posts with edit/delete
+menus. Published organization posts can be filtered by title or tag. Create post
+opens `/organisation/create` in a right-side drawer over the dashboard, expanding
+to the full viewport width on mobile. Its form stays visible while publishing;
+Cancel and Close return to organization Home. Editing remains a separate route.
+Organization profiles use an about section and a details panel, with retry and
+missing-profile states. The former inactive Edit Profile button is removed;
+the profile update API remains available, but this screen has no editing UI.
+Both dashboards retain loading, empty, and error states. The not-found screen
+offers a context-aware Home link, history navigation, and useful destinations.
+
+### Umeed workspace
+
+On `/chatbot`, `UmeedProvider` shares the in-memory conversation state between
+the app sidebar and chat pane. Recent chat titles, title filtering, New chat,
+deletion confirmation, and Health insights live below app navigation. The mobile
+navigation drawer exposes the same history, without a second sidebar in the page.
+History is ordered by last activity; searching filters loaded titles, not message
+contents. Leaving Umeed unmounts this state rather than persisting health chat
+contents in browser storage.
+
+The conversation uses shadcn Message, Bubble, and MessageScroller primitives,
+with one message scroll region and a multiline shadcn Input Group composer.
+The textarea is available before selecting or creating a chat; the first send
+creates a session through the existing endpoint. Starter prompts fill an editable
+draft without sending it. On desktop Enter sends and Shift+Enter adds a line;
+on touch devices Enter adds a line and the Send button submits. The textarea
+grows to a bounded height, and attachment, symptom, and send controls share its
+footer. Symptom notes expand on request; prescription uploads retain their
+existing API and analysis rendering.
+The UI describes Umeed as informational support, removes internal retrieval
+status labels and unverified memory claims, and retains clinical and urgent-care
+guidance. Failed message requests restore the draft for retry.
+
+### Blood Bridge request flow
+
+`/bloodbridge` leads with open requests in Browse requests and a My requests tab, with a persistent
+Create request action. Creation and editing use right-side shadcn Sheets that
+become full-width on phones. Forms group blood needed, location, contact details,
+and an optional message; their body scrolls independently of the header and
+actions. Creation drafts stay in component memory when dismissed. State changes
+clear dependent district/city values; city suggestions allow manual town entry.
+Validation identifies fields, focuses the first error, preserves failed drafts,
+and prevents duplicate submissions. Successful creation opens the request detail.
+
+The browse sidebar offers independent blood-group and request-status filters.
+Both are passed to `GET /blood-requests` as optional `bloodGroup` and `status`
+query parameters. The controller validates enum values and applies the same
+combined predicate to the count and paginated result query, newest first. On
+narrow workspaces the controls move into a filter Sheet. On desktop the sidebar
+can be hidden or expanded without clearing filters; the list fills the recovered
+space and the collapsed control shows the active-filter count. Selections persist in
+the URL and reset pagination when changed; older single-filter URLs still work.
+The removed Oldest option only reversed one page. My requests uses a
+proper page query and supports pagination, completion, editing, and confirmed
+deletion. Overview cards prioritize blood group, urgency, status, location, and
+actions; contact details remain available in request details.
+
+The request detail page uses the same visual hierarchy, with phone/email links,
+status-aware volunteering, and the owner's consent-aware volunteer roster.
+Owners can return directly to My requests for management. List filters and page
+numbers are kept in the URL and retained by the Back to requests link.
+
+Volunteering still submits the explicit `canShareDetails` choice. The detail
+controller now redacts an opted-out volunteer's phone/email for other viewers,
+including the request creator, while allowing that volunteer to see their own
+information. No donor eligibility or guaranteed donation claim is made.
+
+The guidelines page is a quiet reading layout with section navigation, donor
+screening context, preparation, aftercare, and links to WHO, India's 2025 donor
+selection guidance, and eRaktKosh. It avoids blanket exclusions and universal
+waiting periods; the donation centre confirms eligibility under local rules.
+
+### Account screens
+
+Individual (`/login`, `/signup`) and organization (`/signin`, `/register`)
+forms share `components/auth/AuthLayout.tsx`, a responsive split layout with
+account-type navigation and a direct theme toggle. Field labels and validation
+messages use the shared field primitives; longer registration forms group
+existing inputs into profile, location, health, and security sections.
+Submission payloads and authentication endpoints remain unchanged.
+
+The inactive password recovery link has been removed. Individual signup still
+uses the existing homepage destinations for Terms of Service and Privacy Policy;
+dedicated legal content remains unresolved.
 
 ### Component Library
 
-24 ShadCN/UI components (New York style) built on Radix UI primitives:
-alert-dialog, alert, avatar, badge, border-beam, button, card, dialog, dropdown-menu, input, label, marquee, navigation-menu, number-ticker, scroll-area, select, separator, sheet, skeleton, switch, tabs, textarea, toast, toaster
+Shared shadcn components use Maia-inspired control geometry and the preset's
+semantic tokens. Existing forwarded refs, split variant exports, and custom
+toast variants are preserved. Page-specific layouts and decorative treatments
+still require a separate redesign pass.
 
 ### Theme System
 
 - **Dark mode by default** (`initialState: { theme: "dark" }`)
-- Toggle via navbar dropdown switch
+- Toggle directly from the public navigation or signed-in toolbar
 - Implemented via TailwindCSS `dark:` class strategy
 - Theme preference persisted in localStorage via Redux Persist
 

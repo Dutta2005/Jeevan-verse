@@ -1,9 +1,14 @@
 // @vitest-environment jsdom
+import type { ReactNode } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import OrganisationLogin from "../OrganisationLogin";
 import { loginOrganization } from "../../../../store/authSlice";
+
+vi.mock("@/components/auth/AuthLayout", () => ({
+  AuthLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+}));
 
 const mocks = vi.hoisted(() => ({
   post: vi.fn(),
@@ -32,13 +37,13 @@ const submit = () => {
   fireEvent.change(screen.getByPlaceholderText("Enter your password"), {
     target: { value: "test-password" },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+  fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 };
 
 describe("organization login", () => {
   it("validates blank credentials without calling the API", async () => {
     mount();
-    fireEvent.submit(screen.getByRole("button", { name: "Sign In" }).closest("form")!);
+    fireEvent.submit(screen.getByRole("button", { name: "Sign in" }).closest("form")!);
     expect(await screen.findByText("Password is required")).toBeInTheDocument();
     expect(screen.getByText("Invalid email address")).toBeInTheDocument();
     expect(mocks.post).not.toHaveBeenCalled();
@@ -77,7 +82,7 @@ describe("organization login", () => {
     mount();
     submit();
     await waitFor(() => expect(mocks.post).toHaveBeenCalled());
-    await waitFor(() => expect(screen.getByRole("button", { name: "Sign In" })).toBeEnabled());
+    await waitFor(() => expect(screen.getByRole("button", { name: "Sign in" })).toBeEnabled());
     expect(mocks.dispatch).not.toHaveBeenCalled();
     expect(mocks.navigate).not.toHaveBeenCalled();
     if (result === "error")
