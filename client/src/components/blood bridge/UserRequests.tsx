@@ -1,14 +1,9 @@
+import { getErrorMessage } from "@/lib/error";
 import React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { AlertCircle, ArrowRight, Edit2, EllipsisVertical, Trash2 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -19,7 +14,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dr
 import EditRequest from "./EditRequest";
 import { Dialog, DialogHeader, DialogContent, DialogTitle } from "../ui/dialog";
 import { ScrollArea } from "../ui/scroll-area";
-
 
 interface Address {
   state: string;
@@ -63,14 +57,8 @@ const UrgencyBadge = ({ urgency }: { urgency: string }) => {
   );
 };
 
-const RequestCard: React.FC<RequestCardProps> = ({
-  request,
-  onStatusChange,
-  onEdit,
-  onDelete,
-}) => {
-  const { bloodGroup, urgency, message, contactDetails, status, address } =
-    request;
+const RequestCard: React.FC<RequestCardProps> = ({ request, onStatusChange, onEdit, onDelete }) => {
+  const { bloodGroup, urgency, message, contactDetails, status, address } = request;
 
   return (
     <Card className="w-full mb-4">
@@ -96,22 +84,22 @@ const RequestCard: React.FC<RequestCardProps> = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="dark:bg-dark-bg/70">
-              <Button
-            variant="ghost"
-            onClick={() => onEdit(request._id)}
-            className="flex items-center gap-2"
-          >
-            <Edit2 className="w-4 h-4" />
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => onDelete(request._id)}
-            className="flex items-center gap-2 text-primary dark:text-primary"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete
-          </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => onEdit(request._id)}
+                  className="flex items-center gap-2"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Edit
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => onDelete(request._id)}
+                  className="flex items-center gap-2 text-primary dark:text-primary"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </Button>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -120,9 +108,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <h3 className="font-semibold text-gray-700 dark:text-dark-text">
-              Message
-            </h3>
+            <h3 className="font-semibold text-gray-700 dark:text-dark-text">Message</h3>
             <p className="text-gray-600 dark:text-dark-text/80">{message}</p>
           </div>
 
@@ -133,9 +119,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
           </div>
 
           <div className="space-y-2">
-            <h3 className="font-semibold text-gray-700 dark:text-dark-text">
-              Address
-            </h3>
+            <h3 className="font-semibold text-gray-700 dark:text-dark-text">Address</h3>
             <p className="text-gray-600 dark:text-dark-text/80">
               {address.city}, {address.district}, {address.state}
             </p>
@@ -149,8 +133,8 @@ const RequestCard: React.FC<RequestCardProps> = ({
         >
           View details <ArrowRight className="w-4 h-4 ml-2" />
         </Link>
-          {status === "pending" && (
-            <Button
+        {status === "pending" && (
+          <Button
             variant="secondary"
             onClick={() => onStatusChange(request._id)}
             className="flex items-center gap-2 hover:text-green-500 dark:hover:text-green-400"
@@ -158,7 +142,7 @@ const RequestCard: React.FC<RequestCardProps> = ({
             <AlertCircle className="w-4 h-4" />
             Mark as completed
           </Button>
-          )}
+        )}
       </CardFooter>
     </Card>
   );
@@ -171,20 +155,18 @@ const UserRequests = () => {
   const [error, setError] = useState<string | null>(null);
   const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
-      setIsLoading(true);
-      setError(null);
       const response = await api.get(`/blood-requests/user/${userID}&page=1`);
       if (response.status === 200) {
         setRequests(response.data.data.bloodRequests);
       }
-    } catch (error: any) {
-      setError(error.message || "Failed to fetch blood requests");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "Failed to fetch blood requests"));
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userID]);
 
   const handleEdit = (id: string) => {
     console.log(`Edit request with ID: ${id}`);
@@ -193,6 +175,8 @@ const UserRequests = () => {
   };
 
   const handleEditSave = async () => {
+    setIsLoading(true);
+    setError(null);
     await fetchRequests(); // Refresh the requests after saving
     setEditingRequestId(null);
   };
@@ -201,11 +185,10 @@ const UserRequests = () => {
     setEditingRequestId(null);
   };
 
-
   const markCompleted = async (id: string) => {
     try {
       const response = await api.patch(`/blood-requests/status/${id}`, {
-        status: "completed"
+        status: "completed",
       });
       if (response.status === 200) {
         setRequests((prevRequests) =>
@@ -214,30 +197,33 @@ const UserRequests = () => {
               return { ...request, status: "completed" };
             }
             return request;
-          })
+          }),
         );
       }
-    } catch (error: any) {
-      setError(`Failed to mark request as completed: ${error.message}`);
+    } catch (error: unknown) {
+      setError(`Failed to mark request as completed: ${getErrorMessage(error, "Unknown error")}`);
     }
-  }
+  };
 
   const handleDelete = async (id: string) => {
     try {
       const response = await api.delete(`/blood-requests/delete/${id}`);
       if (response.status === 200) {
-        setRequests((prevRequests) =>
-          prevRequests.filter((request) => request._id !== id)
-        );
+        setRequests((prevRequests) => prevRequests.filter((request) => request._id !== id));
       }
-    } catch (error: any) {
-      setError(`Failed to delete request: ${error.message}`);
+    } catch (error: unknown) {
+      setError(`Failed to delete request: ${getErrorMessage(error, "Unknown error")}`);
     }
   };
 
   useEffect(() => {
-    fetchRequests();
-  }, [userID]);
+    const load = async () => {
+      setIsLoading(true);
+      setError(null);
+      await fetchRequests();
+    };
+    void load();
+  }, [fetchRequests]);
 
   if (isLoading) {
     return (
@@ -249,9 +235,7 @@ const UserRequests = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-semibold text-center mb-8">
-        Your Blood Donation Requests
-      </h1>
+      <h1 className="text-3xl font-semibold text-center mb-8">Your Blood Donation Requests</h1>
 
       {error && (
         <Alert variant="destructive" className="mb-6">
@@ -279,27 +263,26 @@ const UserRequests = () => {
           </Card>
         )}
       </div>
-      
+
       {/* Edit Request Dialog */}
       <Dialog open={!!editingRequestId} onOpenChange={() => setEditingRequestId(null)}>
         <DialogContent className="max-w-md w-full p-0 h-[90%] md:h-auto dark:bg-dark-bg dark:text-dark-text">
-        <ScrollArea className="h-full w-full">
-         <div className="p-6">
-                   <DialogHeader>
-                     <DialogTitle>Request Form</DialogTitle>
-                   </DialogHeader>
-          {editingRequestId && (
-            <EditRequest
-              requestId={editingRequestId}
-              onSave={handleEditSave}
-              onCancel={handleEditCancel}
-            />
-          )}
-          </div>
+          <ScrollArea className="h-full w-full">
+            <div className="p-6">
+              <DialogHeader>
+                <DialogTitle>Request Form</DialogTitle>
+              </DialogHeader>
+              {editingRequestId && (
+                <EditRequest
+                  requestId={editingRequestId}
+                  onSave={handleEditSave}
+                  onCancel={handleEditCancel}
+                />
+              )}
+            </div>
           </ScrollArea>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };

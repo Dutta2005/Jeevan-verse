@@ -47,7 +47,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         }
       }
     },
-    [onFileSelect]
+    [onFileSelect],
   );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,9 +101,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
           >
             <div className="text-center">
               <Paperclip className="w-8 h-8 text-secondary mx-auto mb-2" />
-              <p className="text-sm font-medium text-secondary">
-                Drop prescription here
-              </p>
+              <p className="text-sm font-medium text-secondary">Drop prescription here</p>
             </div>
           </motion.div>
         )}

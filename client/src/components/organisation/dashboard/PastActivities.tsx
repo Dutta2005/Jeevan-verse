@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { getErrorMessage } from "@/lib/error";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { api } from "../../../api/api";
@@ -25,34 +26,39 @@ const PastActivities = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const getPosts = async () => {
+  const getPosts = useCallback(async () => {
     try {
-      setIsLoading(true);
-      setError(null);
       const res = await api.get(`/org-posts/organization/${orgId}`);
       setPosts(res.data.data);
       console.log("Posts:", res.data.data);
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Failed to fetch activities");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "Failed to fetch activities"));
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [orgId]);
 
   const deletePost = async (postId: string) => {
     try {
       await api.delete(`/org-posts/delete/${postId}`);
-      getPosts();
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Failed to delete activity");
+      setIsLoading(true);
+      setError(null);
+      await getPosts();
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, "Failed to delete activity"));
     }
   };
 
   useEffect(() => {
     if (orgId) {
-      getPosts();
+      const load = async () => {
+        setIsLoading(true);
+        setError(null);
+        await getPosts();
+      };
+      void load();
     }
-  }, [orgId]);
+  }, [getPosts, orgId]);
 
   if (isLoading) {
     return (
@@ -64,9 +70,7 @@ const PastActivities = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-16">
-      <h1 className="text-2xl md:text-4xl font-bold my-8 dark:text-dark-text">
-        Past Activities
-      </h1>
+      <h1 className="text-2xl md:text-4xl font-bold my-8 dark:text-dark-text">Past Activities</h1>
 
       {error && (
         <Alert variant="destructive" className="mb-6">
@@ -77,54 +81,49 @@ const PastActivities = () => {
       {posts.length === 0 && !error ? (
         <Card className="flex justify-center">
           <CardContent className="p-6">
-            <p className="text-light-text text-center dark:bg-dark-bg">
-              No activities found
-            </p>
+            <p className="text-light-text text-center dark:bg-dark-bg">No activities found</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-6 md:mx-10">
           {posts.map((post) => (
-            <Card
-              key={post._id}
-              className="transition-all duration-300 hover:shadow-lg"
-            >
+            <Card key={post._id} className="transition-all duration-300 hover:shadow-lg">
               <CardHeader className="flex flex-row items-center justify-between">
-                  <h2 className="text-xl font-bold text-primary">
-                    {post.title}
-                  </h2>
-                  <div className="flex justify-between items-center gap-4">
+                <h2 className="text-xl font-bold text-primary">{post.title}</h2>
+                <div className="flex justify-between items-center gap-4">
                   {post.tags && (
                     <p className="bg-accent text-white rounded-full px-3 py-1 text-xs font-medium">
                       {post.tags}
                     </p>
                   )}
-                <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <EllipsisVertical className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-light-bg dark:bg-dark-bg p-2">
-                <Link to={`edit/${post._id}`}>
-                <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-2"
-                  >
-                    <Pencil className="w-4 h-4" />
-                    <span>Edit</span>
-                  </Button>
-                </Link>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start gap-2 hover:bg-primary/10 text-primary"
-                    onClick={deletePost.bind(null, post._id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Delete</span>
-                  </Button>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        aria-label={`Actions for ${post.title}`}
+                      >
+                        <EllipsisVertical className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-light-bg dark:bg-dark-bg p-2">
+                      <Link to={`edit/${post._id}`}>
+                        <Button variant="ghost" className="w-full justify-start gap-2">
+                          <Pencil className="w-4 h-4" />
+                          <span>Edit</span>
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start gap-2 hover:bg-primary/10 text-primary"
+                        onClick={deletePost.bind(null, post._id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Delete</span>
+                      </Button>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </CardHeader>
               <CardContent>

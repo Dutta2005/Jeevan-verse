@@ -1,22 +1,30 @@
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useNavigate } from 'react-router-dom';
+import { getErrorMessage } from "@/lib/error";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Link, useNavigate } from "react-router";
 
 import { Button } from "../../../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
-import { api } from '../../../api/api';
-import { useToast } from '../../../hooks/use-toast';
-import { useDispatch } from 'react-redux';
-import { loginOrganization } from '../../../store/authSlice';
-import { useState } from 'react';
+import { api } from "../../../api/api";
+import { useToast } from "../../../hooks/use-toast";
+import { useDispatch } from "react-redux";
+import { loginOrganization } from "../../../store/authSlice";
+import { useState } from "react";
 
 // Zod validation schema
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
-  password: z.string().min(1, { message: "Password is required" })
+  password: z.string().min(1, { message: "Password is required" }),
 });
 
 type LoginData = z.infer<typeof loginSchema>;
@@ -24,42 +32,42 @@ type LoginData = z.infer<typeof loginSchema>;
 export default function OrganizationLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const { toast } = useToast();
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
-      password: ""
-    }
+      password: "",
+    },
   });
 
   const onSubmit = async (data: LoginData) => {
     setIsLoading(true);
     try {
-      const response = await api.post('/organizations/login', data);
-      
+      const response = await api.post("/organizations/login", data);
+
       if (response.status === 200) {
         dispatch(loginOrganization(response.data.data.organization));
         toast({
-          title: 'Login Successful',
-          description: 'You have successfully logged in.',
-          variant: 'success',
-          duration: 2000
+          title: "Login Successful",
+          description: "You have successfully logged in.",
+          variant: "success",
+          duration: 2000,
         });
-        
-        navigate('/organisation');
+
+        navigate("/organisation");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: 'Login Failed',
-        description: error.response?.data?.message || 'An error occurred during login',
-        variant: 'destructive',
-        duration: 4000
+        title: "Login Failed",
+        description: getErrorMessage(error, "An error occurred during login"),
+        variant: "destructive",
+        duration: 4000,
       });
     } finally {
       setIsLoading(false);
@@ -83,10 +91,7 @@ export default function OrganizationLogin() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-4">
             <div className="space-y-2">
-              <Label
-                htmlFor="email"
-                className="text-light-text dark:text-dark-text font-medium"
-              >
+              <Label htmlFor="email" className="text-light-text dark:text-dark-text font-medium">
                 Email
               </Label>
               <Input
@@ -99,10 +104,7 @@ export default function OrganizationLogin() {
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="password"
-                className="text-light-text dark:text-dark-text font-medium"
-              >
+              <Label htmlFor="password" className="text-light-text dark:text-dark-text font-medium">
                 Password
               </Label>
               <Input
@@ -123,7 +125,7 @@ export default function OrganizationLogin() {
               </Link>
             </div>
 
-            <Button 
+            <Button
               type="submit"
               disabled={isLoading}
               className="w-full h-11 text-md dark:text-white bg-primary dark:bg-primary hover:bg-primary/90 dark:hover:bg-primary/90 transition-colors"

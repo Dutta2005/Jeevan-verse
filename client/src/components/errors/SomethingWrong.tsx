@@ -1,7 +1,7 @@
-import { AlertCircle, RefreshCcw, HomeIcon, Syringe } from 'lucide-react';
-import { Button } from '../ui/button';
-import { useNavigate } from 'react-router-dom';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { AlertCircle, RefreshCcw, HomeIcon, Syringe } from "lucide-react";
+import { Button } from "../ui/button";
+import { useNavigate } from "react-router";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 function SomethingWrong() {
   const navigate = useNavigate();
@@ -27,25 +27,21 @@ function SomethingWrong() {
             Something Went Wrong
           </AlertTitle>
           <AlertDescription className="text-primary dark:text-light-text">
-            Our health system needs a quick check-up. Don't worry, we'll have everything back to normal soon.
+            Our health system needs a quick check-up. Don't worry, we'll have everything back to
+            normal soon.
           </AlertDescription>
         </Alert>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
-          <Button 
-            onClick={handleRefresh}
-            variant="secondary"
-            size="lg"
-            className="space-x-2"
-          >
+          <Button onClick={handleRefresh} variant="secondary" size="lg" className="space-x-2">
             <RefreshCcw className="h-4 w-4" />
             <span>Try Again</span>
           </Button>
 
-          <Button 
-            onClick={() => navigate('/')} 
-            size="lg" 
+          <Button
+            onClick={() => navigate("/")}
+            size="lg"
             className="bg-primary hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/80 space-x-2"
           >
             <HomeIcon className="h-4 w-4" />

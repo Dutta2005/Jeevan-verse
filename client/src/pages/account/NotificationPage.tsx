@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { Bell, CheckCheck, Droplet, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -38,16 +38,16 @@ const NotificationSkeleton = () => (
   </Card>
 );
 
-const NotificationItem = ({ 
-  notification, 
-  onDelete 
-}: { 
+const NotificationItem = ({
+  notification,
+  onDelete,
+}: {
   notification: Notification;
   onDelete: (id: string) => void;
 }) => {
   const navigate = useNavigate();
-  const bgColor = notification.isRead 
-    ? "bg-background hover:bg-accent/5" 
+  const bgColor = notification.isRead
+    ? "bg-background hover:bg-accent/5"
     : "bg-accent/10 dark:bg-accent/70 hover:bg-accent/15";
 
   const handleClick = async (e: React.MouseEvent) => {
@@ -56,12 +56,12 @@ const NotificationItem = ({
       try {
         await api.patch(`/notifications/mark-read/${notification._id}`);
       } catch (error) {
-        console.error('Failed to mark notification as read:', error);
+        console.error("Failed to mark notification as read:", error);
       }
     }
     // Remove leading slash if present to make path relative
-    const relativePath = notification.redirectUrl.startsWith('/') 
-      ? notification.redirectUrl.slice(1) 
+    const relativePath = notification.redirectUrl.startsWith("/")
+      ? notification.redirectUrl.slice(1)
       : notification.redirectUrl;
     navigate(`/${relativePath}`);
   };
@@ -85,9 +85,7 @@ const NotificationItem = ({
               </p>
             )}
           </CardContent>
-          {notification.isRead && (
-            <CheckCheck className="text-muted-foreground" size={16} />
-          )}
+          {notification.isRead && <CheckCheck className="text-muted-foreground" size={16} />}
         </Card>
       </div>
       <Button
@@ -107,28 +105,28 @@ function NotificationPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const getNotifications = async () => {
+  const getNotifications = useCallback(async () => {
     try {
-      setIsLoading(true);
-      const response = await api.get('/notifications/');
+      const response = await api.get("/notifications/");
       if (response.status === 200) {
         setNotifications(response.data.data);
       }
     } catch (error) {
-      console.error('Failed to fetch notifications:', error);
+      console.error("Failed to fetch notifications:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const markAllRead = async () => {
     try {
-      const response = await api.patch('/notifications/mark-all-read');
+      const response = await api.patch("/notifications/mark-all-read");
       if (response.status === 200) {
+        setIsLoading(true);
         await getNotifications();
       }
     } catch (error) {
-      console.error('Failed to mark notifications as read:', error);
+      console.error("Failed to mark notifications as read:", error);
     }
   };
 
@@ -136,31 +134,35 @@ function NotificationPage() {
     try {
       const response = await api.delete(`/notifications/delete/${id}`);
       if (response.status === 200) {
-        setNotifications(prev => prev.filter(n => n._id !== id));
+        setNotifications((prev) => prev.filter((n) => n._id !== id));
       }
     } catch (error) {
-      console.error('Failed to delete notification:', error);
+      console.error("Failed to delete notification:", error);
     }
   };
 
   const deleteAllNotifications = async () => {
     try {
-      const response = await api.delete('/notifications/delete-all');
+      const response = await api.delete("/notifications/delete-all");
       if (response.status === 200) {
         setNotifications([]);
       }
     } catch (error) {
-      console.error('Failed to delete all notifications:', error);
+      console.error("Failed to delete all notifications:", error);
     }
   };
 
   useEffect(() => {
     dispatch(updateLastCheckedAt());
-    dispatch(clearNotifications())
-    getNotifications();
-  }, []);
+    dispatch(clearNotifications());
+    const load = async () => {
+      setIsLoading(true);
+      await getNotifications();
+    };
+    void load();
+  }, [getNotifications, dispatch]);
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
     <div className="container max-w-2xl mx-auto px-4 py-6 space-y-4">
@@ -176,8 +178,8 @@ function NotificationPage() {
         </div>
         <div className="flex flex-col md:flex-row gap-2">
           {unreadCount > 0 && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={markAllRead}
               className="text-sm bg-secondary/90 text-white dark:bg-secondary/70"
@@ -188,8 +190,8 @@ function NotificationPage() {
           {notifications.length > 0 && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   className="text-sm text-primary hover:text-primary"
                 >
@@ -205,9 +207,7 @@ function NotificationPage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel className="dark:text-dark-text">Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={deleteAllNotifications}>
-                    Continue
-                  </AlertDialogAction>
+                  <AlertDialogAction onClick={deleteAllNotifications}>Continue</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -217,9 +217,9 @@ function NotificationPage() {
 
       <div className="space-y-2">
         {isLoading ? (
-          Array(3).fill(0).map((_, i) => (
-            <NotificationSkeleton key={i} />
-          ))
+          Array(3)
+            .fill(0)
+            .map((_, i) => <NotificationSkeleton key={i} />)
         ) : notifications.length === 0 ? (
           <Card className="p-8">
             <div className="text-center space-y-2">
@@ -229,7 +229,7 @@ function NotificationPage() {
           </Card>
         ) : (
           notifications.map((notification) => (
-            <NotificationItem 
+            <NotificationItem
               key={notification._id}
               notification={notification}
               onDelete={deleteNotification}

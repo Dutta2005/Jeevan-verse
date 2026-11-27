@@ -1,10 +1,5 @@
 import RequestForm from "../components/blood bridge/RequestForm";
-import {
-  Tabs,
-  TabsList,
-  TabsContent,
-  TabsTrigger,
-} from "../components/ui/tabs";
+import { Tabs, TabsList, TabsContent, TabsTrigger } from "../components/ui/tabs";
 import UserRequests from "../components/blood bridge/UserRequests";
 import Requests from "../components/blood bridge/Requests";
 import { Link } from "react-router";
@@ -41,15 +36,18 @@ function BloodBridge() {
           {/* Tab Content */}
           <div className="bg-transparent rounded-lg shadow-lg py-8">
             <TabsContent value="donor" className="space-y-6">
+              <RequestForm />
 
-                <RequestForm />
-                
               <h2 className="text-center mb-8 text-3xl font-bold text-gray-900 dark:text-white">
                 Become a Life Saver
               </h2>
-              <Link to={"/bloodbridge/guidelines"} className="flex justify-center items-center mr-2 font-medium text-sm dark:text-gray-400 hover:text-secondary">
-                  <span className="border border-gray-400 rounded-full px-1.5 text-xs mr-1">i</span> Blood Donation Guidelines
-                </Link>
+              <Link
+                to={"/bloodbridge/guidelines"}
+                className="flex justify-center items-center mr-2 font-medium text-sm dark:text-gray-400 hover:text-secondary"
+              >
+                <span className="border border-gray-400 rounded-full px-1.5 text-xs mr-1">i</span>{" "}
+                Blood Donation Guidelines
+              </Link>
               <Requests />
             </TabsContent>
 

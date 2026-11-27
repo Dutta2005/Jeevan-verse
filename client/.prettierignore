@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+.vitest/
+package-lock.json
+.env
+.env.*
+*.tsbuildinfo

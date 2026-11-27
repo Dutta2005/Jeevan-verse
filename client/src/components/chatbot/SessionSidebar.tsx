@@ -77,11 +77,7 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
         className="absolute top-4 -right-3 z-20 w-6 h-6 rounded-full bg-secondary text-white hidden md:flex items-center justify-center shadow-lg hover:bg-secondary/80 transition-colors"
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
-        {isCollapsed ? (
-          <ChevronRight className="w-3 h-3" />
-        ) : (
-          <ChevronLeft className="w-3 h-3" />
-        )}
+        {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
       </button>
 
       <AnimatePresence>
@@ -152,10 +148,7 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
                           <div className="flex items-center gap-2 mt-1">
                             <Clock className="w-3 h-3 text-light-text/40 dark:text-dark-text/40" />
                             <span className="text-[11px] text-light-text/50 dark:text-dark-text/50">
-                              {format(
-                                new Date(session.updatedAt),
-                                "MMM d, h:mm a"
-                              )}
+                              {format(new Date(session.updatedAt), "MMM d, h:mm a")}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 mt-1">
@@ -189,19 +182,18 @@ const SessionSidebar: React.FC<SessionSidebarProps> = ({
                       </div>
 
                       {/* Topic tags */}
-                      {session.metadata?.topics &&
-                        session.metadata.topics.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {session.metadata.topics.slice(0, 3).map((topic, i) => (
-                              <span
-                                key={i}
-                                className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary/70 dark:text-secondary/80"
-                              >
-                                {topic}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                      {session.metadata?.topics && session.metadata.topics.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {session.metadata.topics.slice(0, 3).map((topic, i) => (
+                            <span
+                              key={i}
+                              className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary/70 dark:text-secondary/80"
+                            >
+                              {topic}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </button>
                   </motion.div>
                 ))

@@ -13,10 +13,10 @@ import { useNavigate } from "react-router";
 
 const requestFormSchema = z.object({
   bloodGroup: z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"], {
-    required_error: "Blood group is required",
+    error: (issue) => (issue.input === undefined ? "Blood group is required" : undefined),
   }),
   urgency: z.enum(["low", "medium", "high"], {
-    required_error: "Urgency level is required",
+    error: (issue) => (issue.input === undefined ? "Urgency level is required" : undefined),
   }),
   message: z.string().optional(),
   phone: z
@@ -24,23 +24,22 @@ const requestFormSchema = z.object({
     .min(10, "Phone number must be at least 10 digits")
     .max(15, "Phone number must not exceed 15 digits")
     .regex(/^[0-9+\-\s()]*$/, "Invalid phone number format"),
-  email: z
-    .string()
-    .email("Invalid email format")
-    .optional()
-    .or(z.literal("")),
+  email: z.string().email("Invalid email format").optional().or(z.literal("")),
   state: z.string().min(1, "State is required"),
   district: z.string().min(1, "District is required"),
   city: z.string().min(1, "City is required"),
 });
 
-type FormData = z.infer<typeof requestFormSchema>;
+type FormData = Omit<z.infer<typeof requestFormSchema>, "bloodGroup" | "urgency"> & {
+  bloodGroup: z.infer<typeof requestFormSchema>["bloodGroup"] | "";
+  urgency: z.infer<typeof requestFormSchema>["urgency"] | "";
+};
 
 function RequestForm() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
-    bloodGroup: "" as any,
-    urgency: "" as any,
+    bloodGroup: "",
+    urgency: "",
     message: "",
     phone: "",
     email: "",
@@ -65,9 +64,10 @@ function RequestForm() {
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          if (err.path) {
-            newErrors[err.path[0]] = err.message;
+        error.issues.forEach((err) => {
+          const field = err.path[0];
+          if (typeof field === "string") {
+            newErrors[field] = err.message;
           }
         });
         setErrors(newErrors);
@@ -78,7 +78,7 @@ function RequestForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -103,8 +103,8 @@ function RequestForm() {
       if (response.status === 201) {
         setErrors({});
         setFormData({
-          bloodGroup: "" as any,
-          urgency: "" as any,
+          bloodGroup: "",
+          urgency: "",
           message: "",
           phone: "",
           email: "",
@@ -124,9 +124,7 @@ function RequestForm() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button 
-        variant={"ghost"}
-        className="text-accent text-md font-semibold">
+        <Button variant={"ghost"} className="text-accent text-md font-semibold">
           <Plus /> Create a Request
         </Button>
       </DialogTrigger>
@@ -181,9 +179,7 @@ function RequestForm() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {errors.urgency && (
-                    <p className="text-red-500 text-sm mt-1">{errors.urgency}</p>
-                  )}
+                  {errors.urgency && <p className="text-red-500 text-sm mt-1">{errors.urgency}</p>}
                 </div>
 
                 {/* Message */}
@@ -197,9 +193,7 @@ function RequestForm() {
                     onChange={(e) => handleChange("message", e.target.value)}
                     className={errors.message ? "border-red-500" : ""}
                   />
-                  {errors.message && (
-                    <p className="text-red-500 text-sm mt-1">{errors.message}</p>
-                  )}
+                  {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
                 </div>
 
                 {/* Contact Information */}
@@ -214,9 +208,7 @@ function RequestForm() {
                       className={errors.phone ? "border-red-500" : ""}
                       required
                     />
-                    {errors.phone && (
-                      <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-                    )}
+                    {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
                   </div>
                   <div>
                     <Label htmlFor="email">Email</Label>
@@ -227,9 +219,7 @@ function RequestForm() {
                       onChange={(e) => handleChange("email", e.target.value)}
                       className={errors.email ? "border-red-500" : ""}
                     />
-                    {errors.email && (
-                      <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                    )}
+                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                   </div>
                 </div>
 
@@ -240,7 +230,7 @@ function RequestForm() {
                     <Select
                       onValueChange={(stateCode) => {
                         const state = State.getStatesOfCountry("IN").find(
-                          (s) => s.isoCode === stateCode
+                          (s) => s.isoCode === stateCode,
                         );
                         if (state) {
                           handleChange("state", state.name);
@@ -260,9 +250,7 @@ function RequestForm() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.state && (
-                      <p className="text-red-500 text-sm mt-1">{errors.state}</p>
-                    )}
+                    {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
                   </div>
 
                   <div>
@@ -298,15 +286,15 @@ function RequestForm() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.city && (
-                      <p className="text-red-500 text-sm mt-1">{errors.city}</p>
-                    )}
+                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
                   </div>
                 </div>
               </div>
 
               <div className="pt-4">
-                <Button type="submit" className="w-full dark:hover:bg-gray-700">Submit</Button>
+                <Button type="submit" className="w-full dark:hover:bg-gray-700">
+                  Submit
+                </Button>
               </div>
             </form>
           </div>

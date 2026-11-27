@@ -45,7 +45,7 @@
 ## Installation
 
 ### Prerequisites
-- Node.js (v16+)
+- Node.js (22.22+ on the 22.x line, or 24+ for the client)
 - npm (v8+)
 - MongoDB
 - Git

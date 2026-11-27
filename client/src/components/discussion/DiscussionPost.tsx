@@ -1,21 +1,10 @@
+import { getErrorMessage } from "@/lib/error";
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 import { api } from "../../api/api";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "../ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import { Badge } from "../ui/badge";
-import {
-  Clock,
-  User,
-  AlertCircle,
-  Pencil,
-  EllipsisVertical,
-  Trash2,
-} from "lucide-react";
+import { Clock, User, AlertCircle, Pencil, EllipsisVertical, Trash2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import DiscussionPostSkeleton from "./DiscussionPostSkeleton";
 import CommentSection from "../CommentSection";
@@ -23,11 +12,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import CreatePost from "./CreatePost";
 import { Button } from "../ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useToast } from "../../hooks/use-toast";
 import BackBtn from "../BackButton";
 
@@ -61,15 +46,11 @@ const DiscussionPost = () => {
         const response = await api.get(`/posts/${id}`);
         setPost(response.data.data);
         setIsLoading(false);
-      } catch (err: any) {
-        const errorMessage =
-          err.response?.data?.message || err.message || "Failed to fetch post";
+      } catch (err: unknown) {
+        const errorMessage = getErrorMessage(err, "Failed to fetch post");
         toast({
           title: "Error",
-          description:
-            err.response?.data?.message ||
-            err.message ||
-            "Failed to fetch post",
+          description: getErrorMessage(err, "Failed to fetch post"),
           variant: "destructive",
           duration: 4000,
         });
@@ -79,7 +60,7 @@ const DiscussionPost = () => {
     };
 
     fetchPost();
-  }, [id]);
+  }, [id, toast]);
 
   const deletePost = async () => {
     try {
@@ -88,13 +69,11 @@ const DiscussionPost = () => {
       }
       await api.delete(`/posts/delete/${id}`);
       navigate("/discussions");
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || err.message || "Failed to delete post";
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, "Failed to delete post");
       toast({
         title: "Error",
-        description:
-          err.response?.data?.message || err.message || "Failed to delete post",
+        description: getErrorMessage(err, "Failed to delete post"),
         variant: "destructive",
         duration: 4000,
       });
@@ -176,19 +155,14 @@ const DiscussionPost = () => {
               <Clock size={16} />
               <span>{formatDate(post.createdAt)}</span>
             </div>
-            <Badge 
-              variant="outline" 
-              className="bg-secondary/10 text-secondary border-secondary/20"
-            >
+            <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/20">
               {post.tags[0]}
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="max-w-none">
-            <p className="text-light-text dark:text-dark-text leading-relaxed">
-              {post.content}
-            </p>
+            <p className="text-light-text dark:text-dark-text leading-relaxed">{post.content}</p>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col border-t border-secondary/10 mt-6">

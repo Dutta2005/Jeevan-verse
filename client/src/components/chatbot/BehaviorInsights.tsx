@@ -1,13 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import {
-  BarChart3,
-  MessageSquare,
-  TrendingUp,
-  Hash,
-  Activity,
-  X,
-} from "lucide-react";
+import { BarChart3, MessageSquare, TrendingUp, Hash, Activity, X } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface BehaviorData {
@@ -58,11 +51,7 @@ const frequencyColors: Record<string, string> = {
   none: "text-gray-400",
 };
 
-const BehaviorInsights: React.FC<BehaviorInsightsProps> = ({
-  data,
-  isLoading,
-  onClose,
-}) => {
+const BehaviorInsights: React.FC<BehaviorInsightsProps> = ({ data, isLoading, onClose }) => {
   if (isLoading) {
     return (
       <motion.div
@@ -82,10 +71,7 @@ const BehaviorInsights: React.FC<BehaviorInsightsProps> = ({
 
   if (!data) return null;
 
-  const totalMoods = Object.values(data.moodDistribution).reduce(
-    (a, b) => a + b,
-    0
-  );
+  const totalMoods = Object.values(data.moodDistribution).reduce((a, b) => a + b, 0);
 
   return (
     <motion.div
@@ -112,12 +98,7 @@ const BehaviorInsights: React.FC<BehaviorInsightsProps> = ({
               Behavior Insights
             </h2>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="rounded-full"
-          >
+          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -127,27 +108,21 @@ const BehaviorInsights: React.FC<BehaviorInsightsProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
             <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 dark:from-secondary/15 dark:to-secondary/5 rounded-xl p-3 text-center">
               <MessageSquare className="w-5 h-5 text-secondary mx-auto mb-1" />
-              <p className="text-2xl font-bold text-secondary">
-                {data.totalSessions}
-              </p>
+              <p className="text-2xl font-bold text-secondary">{data.totalSessions}</p>
               <p className="text-[10px] text-light-text/50 dark:text-dark-text/50 uppercase tracking-wider">
                 Sessions
               </p>
             </div>
             <div className="bg-gradient-to-br from-accent/10 to-accent/5 dark:from-accent/15 dark:to-accent/5 rounded-xl p-3 text-center">
               <Hash className="w-5 h-5 text-accent mx-auto mb-1" />
-              <p className="text-2xl font-bold text-accent">
-                {data.totalMessages}
-              </p>
+              <p className="text-2xl font-bold text-accent">{data.totalMessages}</p>
               <p className="text-[10px] text-light-text/50 dark:text-dark-text/50 uppercase tracking-wider">
                 Messages
               </p>
             </div>
             <div className="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/15 dark:to-primary/5 rounded-xl p-3 text-center">
               <TrendingUp className="w-5 h-5 text-primary mx-auto mb-1" />
-              <p className="text-2xl font-bold text-primary">
-                {data.averageSessionLength}
-              </p>
+              <p className="text-2xl font-bold text-primary">{data.averageSessionLength}</p>
               <p className="text-[10px] text-light-text/50 dark:text-dark-text/50 uppercase tracking-wider">
                 Avg msgs/session
               </p>
@@ -207,9 +182,7 @@ const BehaviorInsights: React.FC<BehaviorInsightsProps> = ({
                   const percentage = Math.round((count / totalMoods) * 100);
                   return (
                     <div key={mood} className="flex items-center gap-2">
-                      <span className="text-sm w-6 text-center">
-                        {moodEmoji[mood] || "😐"}
-                      </span>
+                      <span className="text-sm w-6 text-center">{moodEmoji[mood] || "😐"}</span>
                       <span className="text-xs capitalize text-light-text/60 dark:text-dark-text/60 w-16 md:w-20 truncate">
                         {mood}
                       </span>
@@ -218,9 +191,7 @@ const BehaviorInsights: React.FC<BehaviorInsightsProps> = ({
                           initial={{ width: 0 }}
                           animate={{ width: `${percentage}%` }}
                           transition={{ duration: 0.5, delay: 0.2 }}
-                          className={`h-full rounded-full ${
-                            moodColors[mood] || "bg-gray-400"
-                          }`}
+                          className={`h-full rounded-full ${moodColors[mood] || "bg-gray-400"}`}
                         />
                       </div>
                       <span className="text-xs text-light-text/40 dark:text-dark-text/40 w-8 text-right">
@@ -238,9 +209,7 @@ const BehaviorInsights: React.FC<BehaviorInsightsProps> = ({
             <div className="text-center py-8 text-light-text/40 dark:text-dark-text/40">
               <BarChart3 className="w-12 h-12 mx-auto mb-3 opacity-40" />
               <p className="text-sm">No data yet</p>
-              <p className="text-xs mt-1">
-                Start chatting to see your health behavior insights
-              </p>
+              <p className="text-xs mt-1">Start chatting to see your health behavior insights</p>
             </div>
           )}
         </div>

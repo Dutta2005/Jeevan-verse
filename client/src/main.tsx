@@ -1,37 +1,40 @@
-import { StrictMode, Suspense, lazy } from 'react'
-import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router'
-import { Provider } from 'react-redux'
-import { PersistGate } from "redux-persist/integration/react"
-import { persistStore } from "redux-persist"
-import { store } from './store/store.js'
-import Protected from './components/layouts/Protected'
-import PublicRoutes from './components/layouts/Public'
-import './index.css'
-import { Toaster } from './components/ui/toaster.js'
-import LoadingScreen from './components/LoadingScreen.js'
-import BloodDonationGuidelines from './pages/BloodDonationGuidelines.js'
+import { createBrowserRouter } from "react-router";
+import Protected from "./components/layouts/Protected";
+import PublicRoutes from "./components/layouts/Public";
+import BloodDonationGuidelines from "./pages/BloodDonationGuidelines.js";
 
-// Lazy load components
-const App = lazy(() => import('./App'))
-const Home = lazy(() => import('./pages/Home'))
-const Error404 = lazy(() => import('./components/errors/Error404'))
-const MedicalChatbot = lazy(() => import('./pages/Chatbot'))
-const BloodBridge = lazy(() => import('./pages/BloodBridge'))
-const BloodBridgeRequest = lazy(() => import('./pages/BloodBridgeRequest'))
-const OrgPostPage = lazy(() => import('./pages/organisation/OrgPostPage'))
-const DiscussionsPage = lazy(() => import('./pages/Discussions'))
-const DiscussionPost = lazy(() => import('./components/discussion/DiscussionPost'))
-const OrgPost = lazy(() => import('./pages/organisation/OrgPost'))
-const PostForm = lazy(() => import('./components/organisation/post/PostForm'))
-const Layout = lazy(() => import('./pages/organisation/Layout'))
-const OrgHome = lazy(() => import('./pages/organisation/OrgHome'))
-const Login = lazy(() => import('./pages/account/Login'))
-const Signup = lazy(() => import('./pages/account/Signup'))
-const OrganizationSignup = lazy(() => import('./pages/organisation/auth/OrganisationSignup'))
-const OrganizationLogin = lazy(() => import('./pages/organisation/auth/OrganisationLogin'))
-const OrgProfile = lazy(() => import('./pages/organisation/OrgProfile'))
-const NotificationPage = lazy(() => import('./pages/account/NotificationPage'))
+import {
+  App,
+  Home,
+  Error404,
+  MedicalChatbot,
+  BloodBridge,
+  BloodBridgeRequest,
+  OrgPostPage,
+  DiscussionsPage,
+  DiscussionPost,
+  OrgPost,
+  PostForm,
+  Layout,
+  OrgHome,
+  Login,
+  Signup,
+  OrganizationSignup,
+  OrganizationLogin,
+  OrgProfile,
+  NotificationPage,
+} from "./lazy-pages";
+
+import { StrictMode, Suspense } from "react";
+import { createRoot } from "react-dom/client";
+import { RouterProvider } from "react-router/dom";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { persistStore } from "redux-persist";
+import { store } from "./store/store.js";
+import "./index.css";
+import { Toaster } from "./components/ui/toaster.js";
+import LoadingScreen from "./components/LoadingScreen.js";
 
 const router = createBrowserRouter([
   {
@@ -40,11 +43,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "",
-        element: <Home />
+        element: <Home />,
       },
       {
-        path: '*',
-        element: <Error404 />
+        path: "*",
+        element: <Error404 />,
       },
       {
         path: "chatbot",
@@ -52,151 +55,151 @@ const router = createBrowserRouter([
           <Protected role="user">
             <MedicalChatbot />
           </Protected>
-        )
+        ),
       },
       {
-        path: 'bloodbridge',
+        path: "bloodbridge",
         element: (
           <Protected role="user">
             <BloodBridge />
           </Protected>
-        )
+        ),
       },
       {
-        path: 'bloodbridge/request/:id',
+        path: "bloodbridge/request/:id",
         element: (
           <Protected role="user">
             <BloodBridgeRequest />
           </Protected>
-        )
+        ),
       },
       {
-        path: 'bloodbridge/guidelines',
-        element: <BloodDonationGuidelines />
+        path: "bloodbridge/guidelines",
+        element: <BloodDonationGuidelines />,
       },
       {
-        path: 'notifications',
+        path: "notifications",
         element: (
           <Protected role="user">
             <NotificationPage />
           </Protected>
-        )
+        ),
       },
       {
-        path: 'posts',
+        path: "posts",
         element: (
           <Protected role="user">
             <OrgPostPage />
           </Protected>
-        )
-      },
-      { 
-        path: 'post/:id', 
-        element: <OrgPost /> 
+        ),
       },
       {
-        path: 'discussions',
+        path: "post/:id",
+        element: <OrgPost />,
+      },
+      {
+        path: "discussions",
         element: (
           <Protected role="user">
             <DiscussionsPage />
           </Protected>
-        )
+        ),
       },
       {
-        path: 'discussions/:id',
-        element: <DiscussionPost />
+        path: "discussions/:id",
+        element: <DiscussionPost />,
       },
-      { path: 'org-profile/:id', element: <OrgProfile /> },
-    ]
+      { path: "org-profile/:id", element: <OrgProfile /> },
+    ],
   },
   {
-    path: 'organisation',
+    path: "organisation",
     element: <Layout />,
     children: [
       {
-        path: '',
-        element: <OrgHome />
+        path: "",
+        element: <OrgHome />,
       },
-      { path: 'org-profile/:id', element: <OrgProfile /> },
+      { path: "org-profile/:id", element: <OrgProfile /> },
       {
-        path: '*',
-        element: <Error404 />
+        path: "*",
+        element: <Error404 />,
       },
       {
-        path: 'posts',
+        path: "posts",
         element: (
           <Protected role="organization">
             <OrgPostPage />
           </Protected>
-        )
+        ),
       },
       {
-        path: 'post/:id',
-        element: <OrgPost />
+        path: "post/:id",
+        element: <OrgPost />,
       },
       {
-        path: 'create',
+        path: "create",
         element: (
           <Protected role="organization">
             <PostForm />
           </Protected>
-        )
+        ),
       },
       {
-        path: 'edit/:id',
+        path: "edit/:id",
         element: (
           <Protected role="organization">
             <PostForm />
           </Protected>
-        )
-      }
-    ]
+        ),
+      },
+    ],
   },
   {
-    path: 'login',
+    path: "login",
     element: (
       <PublicRoutes role="user">
         <Login />
       </PublicRoutes>
-    )
+    ),
   },
   {
-    path: 'signup',
+    path: "signup",
     element: (
       <PublicRoutes role="user">
         <Signup />
       </PublicRoutes>
-    )
+    ),
   },
   {
-    path: 'register',
+    path: "register",
     element: (
       <PublicRoutes role="organization">
         <OrganizationSignup />
       </PublicRoutes>
-    )
+    ),
   },
   {
-    path: 'signin',
+    path: "signin",
     element: (
       <PublicRoutes role="organization">
         <OrganizationLogin />
       </PublicRoutes>
-    )
-  }
-])
+    ),
+  },
+]);
 
-let persistor = persistStore(store);
+const persistor = persistStore(store);
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
       <PersistGate persistor={persistor}>
-          <Toaster />
-          <Suspense fallback={<LoadingScreen />}>
-            <RouterProvider router={router} />
-          </Suspense>
+        <Toaster />
+        <Suspense fallback={<LoadingScreen />}>
+          <RouterProvider router={router} />
+        </Suspense>
       </PersistGate>
     </Provider>
-  </StrictMode>
-)
+  </StrictMode>,
+);

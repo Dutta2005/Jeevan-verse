@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { getErrorMessage } from "@/lib/error";
+import React, { useState, useCallback, useEffect } from "react";
 import { api } from "../api/api";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
@@ -47,24 +48,28 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchComments = async (pageNum = 1) => {
-    try {
-      const response = await api.get(`/comments/post/${postId}`, {
-        params: { page: pageNum, limit: 10 },
-      });
-
-      const { comments, totalPages: pages } = response.data.data;
-      setComments(comments);
-      setTotalPages(pages);
-      setPage(pageNum);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to fetch comments");
-    }
-  };
+  const fetchComments = useCallback(
+    (pageNum = 1) => {
+      return api
+        .get(`/comments/post/${postId}`, {
+          params: { page: pageNum, limit: 10 },
+        })
+        .then((response) => {
+          const { comments, totalPages: pages } = response.data.data;
+          setComments(comments);
+          setTotalPages(pages);
+          setPage(pageNum);
+        })
+        .catch((err: unknown) => {
+          setError(getErrorMessage(err, "Failed to fetch comments"));
+        });
+    },
+    [postId],
+  );
 
   useEffect(() => {
-    fetchComments();
-  }, [postId]);
+    void fetchComments();
+  }, [fetchComments]);
 
   const handleAddComment = async () => {
     try {
@@ -79,8 +84,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
       setNewComment("");
       setReplyTo({ commentId: null, parentId: null });
       fetchComments();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to add comment");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to add comment"));
     }
   };
 
@@ -89,8 +94,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
       await api.patch(`/comments/${commentId}`, { content: editContent });
       setEditingCommentId(null);
       fetchComments();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to update comment");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to update comment"));
     }
   };
 
@@ -98,8 +103,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
     try {
       await api.delete(`/comments/${commentId}`);
       fetchComments();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to delete comment");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to delete comment"));
     }
   };
 
@@ -128,41 +133,41 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
         name: comment.user.name,
         status: comment.user.status,
         icon: <User size={16} className="text-light-text/50 dark:text-dark-text/50" />,
-        type: 'user'
+        type: "user",
       };
     }
     if (comment.organization) {
       return {
         name: comment.organization.name,
-        status: 'organization',
+        status: "organization",
         icon: <Building2 size={16} className="text-light-text/50 dark:text-dark-text/50" />,
-        type: 'organization'
+        type: "organization",
       };
     }
     return {
-      name: 'Unknown',
-      status: '',
+      name: "Unknown",
+      status: "",
       icon: <User size={16} className="text-light-text/50 dark:text-dark-text/50" />,
-      type: 'unknown'
+      type: "unknown",
     };
   };
 
-  const getCommentBackground = ( status?: string) => {
-    if (status === 'doctor') return 'bg-green-200/80 dark:bg-green-900/40';
-    if (status === 'medical student') return 'bg-blue-200/80 dark:bg-blue-900/40';
-    return '';
+  const getCommentBackground = (status?: string) => {
+    if (status === "doctor") return "bg-green-200/80 dark:bg-green-900/40";
+    if (status === "medical student") return "bg-blue-200/80 dark:bg-blue-900/40";
+    return "";
   };
 
   const renderCommentInput = (
     commentId: string | null,
     parentId: string | null,
-    isEditing: boolean = false
+    isEditing: boolean = false,
   ) => {
     const placeholder = isEditing
       ? "Edit your comment..."
       : parentId
-      ? "Reply to comment..."
-      : "Add a comment...";
+        ? "Reply to comment..."
+        : "Add a comment...";
     const value = isEditing ? editContent : newComment;
     const onChange = isEditing
       ? (e: React.ChangeEvent<HTMLTextAreaElement>) => setEditContent(e.target.value)
@@ -211,7 +216,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setReplyTo({ commentId: comment._id, parentId: null })}
+                onClick={() => setReplyTo({ commentId: comment._id, parentId: comment._id })}
                 className="text-light-text/70 dark:text-dark-text/70 hover:bg-light-bg/50 dark:hover:bg-dark-bg/50"
               >
                 <MessageSquare size={14} className="mr-1" /> Reply
@@ -245,12 +250,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
           {editingCommentId === comment._id ? (
             renderCommentInput(comment._id, null, true)
           ) : (
-            <p className="text-sm text-light-text dark:text-dark-text">
-              {comment.content}
-            </p>
+            <p className="text-sm text-light-text dark:text-dark-text">{comment.content}</p>
           )}
 
-          {replyTo.commentId === comment._id && renderCommentInput(replyTo.commentId, null)}
+          {replyTo.commentId === comment._id &&
+            renderCommentInput(replyTo.commentId, replyTo.parentId)}
 
           {comment.replies && comment.replies.length > 0 && (
             <div className="ml-4 md:ml-8 border-l-2 border-secondary pl-4 mt-2">
@@ -277,7 +281,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
           </Alert>
         )}
 
-        {(user || organization) ? (
+        {user || organization ? (
           renderCommentInput(null, null)
         ) : (
           <Alert className="mb-4">
@@ -288,9 +292,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
 
         <div className="space-y-4 mt-6 max-w-2xl mx-auto">
           {comments.length === 0 ? (
-            <p className="text-center text-light-text/50 dark:text-dark-text/50">
-              No comments yet
-            </p>
+            <p className="text-center text-light-text/50 dark:text-dark-text/50">No comments yet</p>
           ) : (
             renderComments(comments)
           )}
