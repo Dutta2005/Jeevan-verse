@@ -1,9 +1,14 @@
 // @vitest-environment jsdom
+import type { ReactNode } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import OrganisationSignup from "../OrganisationSignup";
 import { selectOption } from "../../../../test/selectOption";
+
+vi.mock("@/components/auth/AuthLayout", () => ({
+  AuthLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+}));
 
 const mocks = vi.hoisted(() => ({ post: vi.fn(), navigate: vi.fn(), toast: vi.fn() }));
 vi.mock("../../../../api/api", () => ({ api: { post: mocks.post } }));
@@ -20,7 +25,7 @@ const mount = () =>
     </MemoryRouter>,
   );
 const submit = () =>
-  fireEvent.submit(screen.getByRole("button", { name: "Register Organization" }).closest("form")!);
+  fireEvent.submit(screen.getByRole("button", { name: "Register organization" }).closest("form")!);
 async function fill(website = "") {
   for (const [placeholder, value] of [
     ["Enter organization name", "Test Organization"],

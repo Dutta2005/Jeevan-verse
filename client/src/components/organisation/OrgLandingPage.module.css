@@ -1,0 +1,358 @@
+.page {
+  --page-width: 1280px;
+  --page-gutter: clamp(24px, 5vw, 80px);
+  color: var(--foreground);
+  background: var(--background);
+  overflow: clip;
+}
+.page :where(a, button):focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 5px;
+}
+.page section[id] {
+  scroll-margin-top: 96px;
+}
+.page :global(.group\/button) {
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 160ms;
+}
+.hero,
+.publishing,
+.community,
+.gettingStarted,
+.footer {
+  width: min(var(--page-width), calc(100% - var(--page-gutter) * 2));
+  margin-inline: auto;
+}
+.skipLink {
+  position: fixed;
+  top: 8px;
+  left: 16px;
+  z-index: 60;
+  padding: 12px 20px;
+  background: var(--background);
+  transform: translateY(-180%);
+}
+.skipLink:focus {
+  transform: translateY(0);
+}
+.hero {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: clamp(48px, 7vw, 96px);
+  align-items: center;
+  padding-block: 96px;
+}
+.heroCopy,
+.sectionHeading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+.label {
+  font-size: 14px;
+  font-weight: 500;
+}
+.hero h1 {
+  font-size: clamp(52px, 6vw, 84px);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  font-weight: 500;
+}
+.description {
+  max-width: 38ch;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--muted-foreground);
+}
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  padding-top: 8px;
+}
+.textLink {
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+.previewStage {
+  min-width: 0;
+}
+.postPreview {
+  overflow: hidden;
+}
+.postArtwork {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 40px;
+  padding: 32px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.postArtwork > p {
+  font-size: clamp(32px, 3.6vw, 48px);
+  text-wrap: balance;
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+}
+.postArtwork > span {
+  font-size: 12px;
+}
+.postText {
+  padding-top: 24px;
+}
+.postText h2 {
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+.postText > p {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted-foreground);
+}
+.exampleNote {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.publishing {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 96px;
+  align-items: start;
+  border-top: 1px solid var(--border);
+  padding-block: 80px 96px;
+}
+.sectionHeading h2,
+.community h2 {
+  font-size: clamp(32px, 3.5vw, 48px);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+.editorialList {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.editorialList h3,
+.steps h3 {
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.editorialList p,
+.steps p {
+  margin-top: 12px;
+  max-width: 36ch;
+  color: var(--muted-foreground);
+  font-size: 15px;
+  line-height: 1.75;
+}
+.community {
+  display: grid;
+  grid-template-columns: 1.08fr 1fr;
+  align-items: center;
+  gap: 96px;
+  padding-bottom: 96px;
+}
+.community figure {
+  margin: 0;
+  height: 440px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--muted);
+}
+.community img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.community > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+.gettingStarted {
+  border-top: 1px solid var(--border);
+  padding-block: 64px 96px;
+}
+.steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  margin-top: 56px;
+  padding: 0;
+}
+.stepNumber {
+  display: block;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+.join {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 80px 24px;
+  background: var(--muted);
+  text-align: center;
+}
+.join > p {
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+.join h2 {
+  font-size: clamp(44px, 5.5vw, 76px);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+}
+.footer {
+  padding-block: 48px 24px;
+}
+.footerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 32px;
+}
+.wordmark {
+  font-size: 26px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.footerTop p {
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+.footerTop > a:last-child {
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.footerBottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 24px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.footerBottom p {
+  max-width: 66ch;
+}
+@media (max-width: 1000px) {
+  .hero {
+    gap: 40px;
+    padding-block: 64px 80px;
+  }
+  .hero h1 {
+    font-size: clamp(48px, 6.5vw, 72px);
+  }
+  .postArtwork {
+    padding: 24px;
+    gap: 24px;
+  }
+  .publishing,
+  .community {
+    gap: 48px;
+    padding-bottom: 80px;
+  }
+  .steps {
+    gap: 32px;
+  }
+}
+@media (max-width: 700px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding-block: 48px 64px;
+    gap: 40px;
+  }
+  .hero h1 {
+    font-size: clamp(52px, 12vw, 72px);
+  }
+  .heroCopy,
+  .sectionHeading {
+    gap: 24px;
+  }
+  .description {
+    font-size: 15px;
+  }
+  .postArtwork {
+    padding: 24px;
+  }
+  .postArtwork p {
+    font-size: 36px;
+  }
+  .publishing,
+  .community {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding-block: 56px;
+  }
+  .community figure {
+    height: 320px;
+  }
+  .community > div {
+    gap: 24px;
+  }
+  .sectionHeading h2,
+  .community h2 {
+    font-size: clamp(32px, 7.5vw, 44px);
+  }
+  .gettingStarted {
+    padding-block: 48px 64px;
+  }
+  .steps {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    margin-top: 40px;
+  }
+  .stepNumber {
+    margin-bottom: 12px;
+  }
+  .join {
+    padding-block: 64px;
+    gap: 24px;
+  }
+  .join > p {
+    max-width: 30ch;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .footer {
+    padding-top: 32px;
+  }
+  .footerTop {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .footerTop p {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .footerBottom {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page :global(.group\/button) {
+    transition: none;
+  }
+}

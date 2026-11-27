@@ -16,9 +16,9 @@ interface Post {
 
 const tagColors: Record<string, string> = {
   help: "bg-primary/10 text-primary hover:bg-primary/20",
-  discussion: "bg-secondary/10 text-secondary hover:bg-secondary/20",
-  advice: "bg-accent/10 text-accent hover:bg-accent/20",
-  question: "bg-secondary/10 text-secondary hover:bg-secondary/20",
+  discussion: "bg-primary/10 text-primary hover:bg-primary/20",
+  advice: "bg-primary/10 text-primary hover:bg-primary/20",
+  question: "bg-primary/10 text-primary hover:bg-primary/20",
   general: "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300",
 };
 
@@ -34,7 +34,7 @@ const PostCard = ({ post }: { post: Post }) => {
   return (
     <Card className="w-full bg-white dark:bg-transparent hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700">
       {/* Accent line with gradient */}
-      <div className="h-1 w-full bg-gradient-to-r from-accent via-accent/80 to-accent/50"></div>
+      <div className="h-1 w-full bg-gradient-to-r from-primary via-primary/80 to-primary/50"></div>
 
       <CardHeader className="pb-3 space-y-4">
         <div className="flex items-start justify-between gap-4">
@@ -56,7 +56,7 @@ const PostCard = ({ post }: { post: Post }) => {
         </div>
 
         <CardTitle>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-accent transition-colors">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary transition-colors">
             {post.title}
           </h3>
         </CardTitle>
@@ -74,7 +74,7 @@ const PostCard = ({ post }: { post: Post }) => {
                 <User className="w-3 h-3" />
               </div>
               {post.author?.name && (
-                <span className="hover:text-accent transition-colors">{post.author?.name}</span>
+                <span className="hover:text-primary transition-colors">{post.author?.name}</span>
               )}
             </div>
             <div className="flex items-center gap-2">

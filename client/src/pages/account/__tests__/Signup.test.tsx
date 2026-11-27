@@ -1,9 +1,14 @@
 // @vitest-environment jsdom
+import type { ReactNode } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Signup from "../Signup";
+
+vi.mock("@/components/auth/AuthLayout", () => ({
+  AuthLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+}));
 
 const mocks = vi.hoisted(() => ({ post: vi.fn(), navigate: vi.fn(), toast: vi.fn() }));
 vi.mock("../../../api/api", () => ({ api: { post: mocks.post } }));
@@ -29,7 +34,7 @@ const mount = () =>
     </MemoryRouter>,
   );
 const submit = () =>
-  fireEvent.submit(screen.getByRole("button", { name: "Create Account" }).closest("form")!);
+  fireEvent.submit(screen.getByRole("button", { name: "Create account" }).closest("form")!);
 async function fill(age = "25") {
   for (const [placeholder, value] of [
     ["John Doe", "Test Person"],
@@ -46,7 +51,7 @@ async function fill(age = "25") {
   }
   await userEvent.selectOptions(screen.getAllByRole("combobox")[0]!, "Test State");
   await userEvent.selectOptions(screen.getAllByRole("combobox")[1]!, "Test City");
-  await userEvent.selectOptions(screen.getByLabelText("Blood Group"), "O+");
+  await userEvent.selectOptions(screen.getByLabelText("Blood group"), "O+");
   await userEvent.selectOptions(screen.getAllByRole("combobox")[3]!, "doctor");
   await userEvent.click(screen.getByRole("checkbox"));
 }

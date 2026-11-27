@@ -46,7 +46,7 @@ const moodEmoji: Record<string, string> = {
 const frequencyColors: Record<string, string> = {
   "very high": "text-red-500",
   high: "text-orange-500",
-  moderate: "text-secondary",
+  moderate: "text-primary",
   low: "text-emerald-500",
   none: "text-gray-400",
 };
@@ -60,7 +60,7 @@ const BehaviorInsights: React.FC<BehaviorInsightsProps> = ({ data, isLoading, on
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
       >
         <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 text-center">
-          <div className="w-10 h-10 border-2 border-secondary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-sm text-light-text/60 dark:text-dark-text/60">
             Analyzing your behavior patterns...
           </p>
@@ -91,7 +91,7 @@ const BehaviorInsights: React.FC<BehaviorInsightsProps> = ({ data, isLoading, on
         {/* Header */}
         <div className="sticky top-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md p-4 pb-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between z-10 rounded-t-2xl">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-secondary to-accent flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary flex items-center justify-center">
               <BarChart3 className="w-4 h-4 text-white" />
             </div>
             <h2 className="text-lg font-semibold text-light-text dark:text-dark-text">
@@ -106,16 +106,16 @@ const BehaviorInsights: React.FC<BehaviorInsightsProps> = ({ data, isLoading, on
         <div className="p-4 space-y-5">
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
-            <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 dark:from-secondary/15 dark:to-secondary/5 rounded-xl p-3 text-center">
-              <MessageSquare className="w-5 h-5 text-secondary mx-auto mb-1" />
-              <p className="text-2xl font-bold text-secondary">{data.totalSessions}</p>
+            <div className="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/15 dark:to-primary/5 rounded-xl p-3 text-center">
+              <MessageSquare className="w-5 h-5 text-primary mx-auto mb-1" />
+              <p className="text-2xl font-bold text-primary">{data.totalSessions}</p>
               <p className="text-[10px] text-light-text/50 dark:text-dark-text/50 uppercase tracking-wider">
                 Sessions
               </p>
             </div>
-            <div className="bg-gradient-to-br from-accent/10 to-accent/5 dark:from-accent/15 dark:to-accent/5 rounded-xl p-3 text-center">
-              <Hash className="w-5 h-5 text-accent mx-auto mb-1" />
-              <p className="text-2xl font-bold text-accent">{data.totalMessages}</p>
+            <div className="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/15 dark:to-primary/5 rounded-xl p-3 text-center">
+              <Hash className="w-5 h-5 text-primary mx-auto mb-1" />
+              <p className="text-2xl font-bold text-primary">{data.totalMessages}</p>
               <p className="text-[10px] text-light-text/50 dark:text-dark-text/50 uppercase tracking-wider">
                 Messages
               </p>
@@ -161,10 +161,10 @@ const BehaviorInsights: React.FC<BehaviorInsightsProps> = ({ data, isLoading, on
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.05 }}
-                    className="px-3 py-1.5 rounded-full text-xs font-medium bg-secondary/10 text-secondary border border-secondary/20 dark:border-secondary/30"
+                    className="px-3 py-1.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20 dark:border-primary/30"
                   >
                     {t.topic}
-                    <span className="ml-1.5 text-secondary/50">×{t.count}</span>
+                    <span className="ml-1.5 text-primary/50">×{t.count}</span>
                   </motion.span>
                 ))}
               </div>

@@ -126,7 +126,7 @@ const DiscussionPost = () => {
                     trigger={
                       <Button
                         variant="ghost"
-                        className="w-full justify-start gap-2 hover:bg-secondary/10"
+                        className="w-full justify-start gap-2 hover:bg-primary/10"
                       >
                         <Pencil className="w-4 h-4" />
                         <span>Edit</span>
@@ -147,15 +147,15 @@ const DiscussionPost = () => {
             )}
           </div>
           <div className="flex flex-wrap gap-4 items-center text-sm">
-            <div className="flex items-center gap-2 text-secondary">
+            <div className="flex items-center gap-2 text-primary">
               <User size={16} />
               <span>{post.author.name}</span>
             </div>
-            <div className="flex items-center gap-2 text-accent">
+            <div className="flex items-center gap-2 text-primary">
               <Clock size={16} />
               <span>{formatDate(post.createdAt)}</span>
             </div>
-            <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/20">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
               {post.tags[0]}
             </Badge>
           </div>
@@ -165,7 +165,7 @@ const DiscussionPost = () => {
             <p className="text-light-text dark:text-dark-text leading-relaxed">{post.content}</p>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col border-t border-secondary/10 mt-6">
+        <CardFooter className="flex flex-col border-t border-primary/10 mt-6">
           <div className="w-full pt-6">
             <CommentSection postId={post._id} />
           </div>

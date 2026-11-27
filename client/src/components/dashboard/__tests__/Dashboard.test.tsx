@@ -6,22 +6,25 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import authReducer, { login } from "../../../store/authSlice";
 import Dashboard from "../Dashboard";
+import { MemoryRouter } from "react-router";
 
 vi.mock("../PersonalDetails", () => ({ default: () => <div>Profile details</div> }));
 vi.mock("../LatestsPosts", () => ({ LatestsPosts: () => <div>Recent posts</div> }));
 
 describe("Dashboard", () => {
-  it("greets the signed-in user and renders both dashboard sections", () => {
+  it("renders both dashboard sections without duplicating the toolbar heading", () => {
     const store = configureStore({ reducer: { auth: authReducer } });
     store.dispatch(login({ _id: "u1", name: "Asha", info: { bloodGroup: "O+" } }));
 
     render(
       <Provider store={store}>
-        <Dashboard />
+        <MemoryRouter>
+          <Dashboard />
+        </MemoryRouter>
       </Provider>,
     );
 
-    expect(screen.getByRole("heading", { name: "Welcome back, Asha" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Home" })).not.toBeInTheDocument();
     expect(screen.getByText("Profile details")).toBeInTheDocument();
     expect(screen.getByText("Recent posts")).toBeInTheDocument();
   });

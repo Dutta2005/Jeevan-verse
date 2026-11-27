@@ -10,9 +10,18 @@ import authReducer, { login } from "../store/authSlice";
 import themeReducer, { toggleTheme } from "../store/themeSlice";
 import notificationReducer from "../store/notificationSlice";
 import { initializeSocket } from "../utils/socket";
+import type { ReactNode } from "react";
 
 const socketMock = vi.hoisted(() => ({ on: vi.fn(), disconnect: vi.fn() }));
 vi.mock("../components/navbar/Navbar", () => ({ default: () => <nav>App navigation</nav> }));
+vi.mock("../components/layouts/ProtectedLayout", () => ({
+  default: ({ children }: { children: ReactNode }) => (
+    <>
+      <nav>App navigation</nav>
+      {children}
+    </>
+  ),
+}));
 vi.mock("../utils/socket", () => ({ initializeSocket: vi.fn(() => socketMock) }));
 
 function renderApp(signedIn: boolean, light = false) {

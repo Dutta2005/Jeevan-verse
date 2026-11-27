@@ -1,10 +1,11 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 import type { ComponentProps } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Chatbot from "../Chatbot";
-import type SessionSidebar from "../../components/chatbot/SessionSidebar";
+import { UmeedProvider } from "../../components/chatbot/UmeedWorkspace";
+import { useUmeed } from "../../components/chatbot/umeed-context";
 import type MessageList from "../../components/MessageComponent";
 import type FileUpload from "../../components/chatbot/FileUpload";
 import type BehaviorInsights from "../../components/chatbot/BehaviorInsights";
@@ -12,26 +13,34 @@ import type BehaviorInsights from "../../components/chatbot/BehaviorInsights";
 const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), delete: vi.fn() }));
 vi.mock("../../api/api", () => ({ api: mocks }));
 // Child behavior has its own suites; these adapters expose the page's state and callbacks.
-vi.mock("../../components/chatbot/SessionSidebar", () => ({
-  default: (props: ComponentProps<typeof SessionSidebar>) => (
+function ChatTestHistory() {
+  const chat = useUmeed();
+  return (
     <aside>
-      <button onClick={props.onCreateSession} disabled={props.isLoading}>
+      <button onClick={() => void chat.createSession()} disabled={chat.sessionsLoading}>
         Create session
       </button>
-      <button onClick={props.onToggleCollapse}>
-        {props.isCollapsed ? "Expand sessions" : "Collapse sessions"}
-      </button>
-      <button onClick={props.onOpenInsights}>Open insights</button>
-      {props.sessions.map((s) => (
-        <div key={s._id}>
-          <button onClick={() => props.onSelectSession(s._id)}>{s.title}</button>
-          <button onClick={() => props.onDeleteSession(s._id)}>Delete {s.title}</button>
-          <span>{s.metadata?.messageCount || 0} messages</span>
+      <button onClick={() => void chat.openInsights()}>Open insights</button>
+      {chat.sessions.map((session) => (
+        <div key={session._id}>
+          <button onClick={() => void chat.loadSession(session._id)}>{session.title}</button>
+          <button onClick={() => void chat.deleteSession(session._id)}>
+            Delete {session.title}
+          </button>
+          <span>{session.metadata?.messageCount || 0} messages</span>
         </div>
       ))}
     </aside>
-  ),
-}));
+  );
+}
+function renderChat() {
+  return render(
+    <UmeedProvider>
+      <ChatTestHistory />
+      <Chatbot />
+    </UmeedProvider>,
+  );
+}
 vi.mock("../../components/MessageComponent", () => ({
   default: ({ messages, isLoading }: ComponentProps<typeof MessageList>) => (
     <div>
@@ -54,7 +63,9 @@ vi.mock("../../components/chatbot/FileUpload", () => ({
         }}
       />
       {props.selectedFile && (
-        <button onClick={props.onClearFile}>Clear {props.selectedFile.name}</button>
+        <button type="button" onClick={props.onClearFile}>
+          Clear {props.selectedFile.name}
+        </button>
       )}
       {props.isUploading && <p>Uploading file</p>}
     </div>
@@ -77,19 +88,21 @@ const session = {
   updatedAt: "2026-01-01T00:00:00Z",
 };
 const mount = async () => {
-  render(<Chatbot />);
+  renderChat();
   await screen.findByRole("button", { name: session.title });
 };
 const select = async () => {
   await mount();
   await userEvent.click(screen.getByRole("button", { name: session.title }));
-  await screen.findByPlaceholderText("Ask about health, medications, symptoms...");
+  await screen.findByPlaceholderText("Write your question");
+  await waitFor(() => expect(screen.getByLabelText("Message Umeed")).toBeEnabled());
+  await userEvent.click(screen.getByRole("button", { name: "Add symptoms" }));
 };
 const send = async (message = "Synthetic question") => {
-  fireEvent.change(screen.getByPlaceholderText("Ask about health, medications, symptoms..."), {
+  fireEvent.change(screen.getByPlaceholderText("Write your question"), {
     target: { value: message },
   });
-  fireEvent.keyDown(screen.getByPlaceholderText("Ask about health, medications, symptoms..."), {
+  fireEvent.keyDown(screen.getByPlaceholderText("Write your question"), {
     key: "Enter",
   });
 };
@@ -114,40 +127,34 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("chat session workflows", () => {
-  it("opens and dismisses the mobile session overlay", async () => {
+  it("restores the first message if creating its conversation fails", async () => {
     await mount();
-    await userEvent.click(screen.getByRole("button", { name: "" }));
-    const overlay = document.querySelector(".fixed.inset-0.z-40");
-    expect(overlay).toBeInTheDocument();
-    fireEvent.click(overlay!);
-    await waitFor(() =>
-      expect(document.querySelector(".fixed.inset-0.z-40")).not.toBeInTheDocument(),
-    );
+    mocks.post.mockRejectedValueOnce(new Error("Could not start chat"));
+    await send("First question");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not start chat");
+    expect(screen.getByLabelText("Message Umeed")).toHaveValue("First question");
   });
-  it("loads sessions, selects a conversation, and toggles sidebar state", async () => {
+  it("opens a saved conversation through shared sidebar state", async () => {
     await select();
     expect(mocks.get).toHaveBeenCalledWith("/chat/sessions/s1");
-    expect(screen.getByText("Start your conversation")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Collapse sessions" }));
-    expect(screen.getByRole("button", { name: "Expand sessions" })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Expand sessions" }));
+    expect(screen.getByText("Ask a health question")).toBeInTheDocument();
   });
   it("creates a conversation from the welcome screen", async () => {
     mocks.post.mockResolvedValue({
       data: { data: { ...session, _id: "new", title: "New conversation" } },
     });
     await mount();
-    await userEvent.click(screen.getByRole("button", { name: "Start New Conversation" }));
-    expect(await screen.findByText("Start your conversation")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Create session" }));
+    expect(await screen.findByText("Ask a health question")).toBeInTheDocument();
     expect(mocks.post).toHaveBeenCalledWith("/chat/sessions");
     expect(screen.getByRole("button", { name: "New conversation" })).toBeInTheDocument();
   });
   it.each(["list", "create", "load"])("recovers from a session %s failure", async (operation) => {
     if (operation === "list") {
       mocks.get.mockRejectedValue(new Error("Offline"));
-      render(<Chatbot />);
+      renderChat();
       await waitFor(() =>
-        expect(screen.getByRole("button", { name: "Start New Conversation" })).toBeEnabled(),
+        expect(screen.getByRole("button", { name: "Create session" })).toBeEnabled(),
       );
     } else {
       await mount();
@@ -158,9 +165,9 @@ describe("chat session workflows", () => {
         mocks.get.mockRejectedValue(new Error("Offline"));
         await userEvent.click(screen.getByRole("button", { name: session.title }));
       }
-      expect(screen.getByText("Welcome to Umeed")).toBeInTheDocument();
+      expect(screen.getByText("Ask a health question")).toBeInTheDocument();
     }
-    expect(console.error).toHaveBeenCalled();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Offline");
   });
   it.each([true, false])("deletes a conversation (active: %s)", async (active) => {
     if (active) await select();
@@ -170,7 +177,7 @@ describe("chat session workflows", () => {
       expect(screen.queryByRole("button", { name: session.title })).not.toBeInTheDocument(),
     );
     expect(mocks.delete).toHaveBeenCalledWith("/chat/sessions/s1");
-    expect(screen.getByText("Welcome to Umeed")).toBeInTheDocument();
+    expect(screen.getByText("Ask a health question")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Other conversation" })).toBeInTheDocument();
   });
   it("keeps a session after deletion fails", async () => {
@@ -188,19 +195,51 @@ describe("chat session workflows", () => {
     expect(await screen.findByText("Saved response")).toBeInTheDocument();
     mocks.get.mockResolvedValueOnce({ data: {} });
     await userEvent.click(screen.getByRole("button", { name: "Other conversation" }));
-    expect(await screen.findByText("Start your conversation")).toBeInTheDocument();
+    expect(await screen.findByText("Ask a health question")).toBeInTheDocument();
   });
   it("handles an empty sessions response", async () => {
     mocks.get.mockResolvedValue({ data: {} });
-    render(<Chatbot />);
+    renderChat();
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Create session" })).toBeEnabled(),
     );
-    expect(screen.getByText("Welcome to Umeed")).toBeInTheDocument();
+    expect(screen.getByText("Ask a health question")).toBeInTheDocument();
   });
 });
 
 describe("chat messages and prescriptions", () => {
+  it("dismisses a failed request before trying again", async () => {
+    mocks.get.mockRejectedValueOnce(new Error("Offline"));
+    renderChat();
+    await screen.findByRole("alert");
+    await userEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+  it("inserts a starter draft without sending it", async () => {
+    await mount();
+    await userEvent.click(screen.getByRole("button", { name: "Prepare for a visit" }));
+    expect(screen.getByLabelText("Message Umeed")).toHaveValue(
+      "Help me prepare questions to ask at my next medical appointment.",
+    );
+    expect(mocks.post).not.toHaveBeenCalled();
+  });
+  it("creates a session on the first send and posts the draft to that session", async () => {
+    await mount();
+    mocks.post
+      .mockResolvedValueOnce({ data: { data: { ...session, _id: "new-chat" } } })
+      .mockResolvedValueOnce({
+        data: { data: { assistantMessage: { role: "assistant", content: "Synthetic answer" } } },
+      });
+    fireEvent.change(screen.getByLabelText("Message Umeed"), {
+      target: { value: "First line\nSecond line" },
+    });
+    await userEvent.click(screen.getByRole("button", { name: "Send message" }));
+    expect(await screen.findByText("Synthetic answer")).toBeInTheDocument();
+    expect(mocks.post).toHaveBeenNthCalledWith(1, "/chat/sessions");
+    expect(mocks.post).toHaveBeenNthCalledWith(2, "/chat/sessions/new-chat/message", {
+      message: "First line\nSecond line",
+    });
+  });
   it("sends symptoms and a message together, displays the response, and updates the sidebar", async () => {
     await select();
     fireEvent.change(screen.getByPlaceholderText("Add a symptom..."), {
@@ -233,7 +272,7 @@ describe("chat messages and prescriptions", () => {
     fireEvent.click(screen.getByText("Test symptom").parentElement!.querySelector("button")!);
     await waitFor(() => expect(screen.queryByText("Test symptom")).not.toBeInTheDocument());
     await send(" ");
-    fireEvent.keyDown(screen.getByPlaceholderText("Ask about health, medications, symptoms..."), {
+    fireEvent.keyDown(screen.getByPlaceholderText("Write your question"), {
       key: "Enter",
       shiftKey: true,
     });
@@ -243,20 +282,15 @@ describe("chat messages and prescriptions", () => {
     await select();
     mocks.post.mockRejectedValue(new Error("Offline"));
     await send();
-    expect(
-      await screen.findByText("I apologize, but I encountered an error. Please try again."),
-    ).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Ask about health, medications, symptoms...")).toBeEnabled();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Offline");
+    expect(screen.getByLabelText("Message Umeed")).toHaveValue("Synthetic question");
+    expect(screen.getByPlaceholderText("Write your question")).toBeEnabled();
   });
   it("handles a response without an assistant message or title", async () => {
     await select();
     await send();
     expect(await screen.findByText("Synthetic question")).toBeInTheDocument();
-    await waitFor(() =>
-      expect(
-        screen.getByPlaceholderText("Ask about health, medications, symptoms..."),
-      ).toBeEnabled(),
-    );
+    await waitFor(() => expect(screen.getByPlaceholderText("Write your question")).toBeEnabled());
   });
   it.each(["success", "empty", "error"])("handles prescription upload %s", async (result) => {
     await select();
@@ -290,9 +324,7 @@ describe("chat messages and prescriptions", () => {
       expect(screen.getByText("Uploaded prescription")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Prescription conversation" })).toBeInTheDocument();
     } else if (result === "error") {
-      expect(
-        await screen.findByText(/I had trouble analyzing the prescription/),
-      ).toBeInTheDocument();
+      expect(await screen.findByRole("alert")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Clear test.pdf" })).toBeInTheDocument();
     }
     if (result !== "error")
@@ -307,9 +339,7 @@ describe("chat messages and prescriptions", () => {
       new File(["test"], "test.pdf", { type: "application/pdf" }),
     );
     await userEvent.click(screen.getByRole("button", { name: "Clear test.pdf" }));
-    expect(
-      screen.getByPlaceholderText("Ask about health, medications, symptoms..."),
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Write your question")).toBeInTheDocument();
     expect(mocks.post).not.toHaveBeenCalled();
   });
   it.each([true, false])("loads insights and closes them (success: %s)", async (success) => {

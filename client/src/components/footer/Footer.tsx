@@ -19,7 +19,7 @@ const Footer = () => {
               <Heart className="w-6 h-6 text-primary" fill="#bf2231" />
               <div className="text-3xl font-semibold whitespace-nowrap">
                 <span className="text-primary font-samarkan">Jeevan </span>
-                <span className="text-accent">Verse</span>
+                <span className="text-primary">Verse</span>
               </div>
             </div>
             <p className="text-sm text-muted-foreground max-w-xs text-center">

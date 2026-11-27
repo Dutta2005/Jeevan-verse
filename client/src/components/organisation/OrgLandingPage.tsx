@@ -1,238 +1,199 @@
-import type { LucideIcon } from "lucide-react";
-import {
-  BellRing,
-  RefreshCw,
-  CalendarDays,
-  ScrollText,
-  MessageSquare,
-  ArrowRight,
-  ChevronRight,
-  Users,
-  TrendingUp,
-  Calendar,
-  Info,
-} from "lucide-react";
-import { Card } from "../ui/card";
-import { useNavigate } from "react-router";
+import { ArrowUpRight } from "lucide-react";
+import { Link } from "react-router";
 import { Button } from "../ui/button";
-import { Marquee } from "../ui/marquee";
-import Footer from "../footer/Footer";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { Separator } from "../ui/separator";
+import styles from "./OrgLandingPage.module.css";
 
-const CampaignCard = ({
-  title,
-  description,
-  icon: Icon,
-  category,
-  date,
-}: {
-  title: string;
-  description: string;
-  icon: LucideIcon;
-  category: string;
-  date?: string;
-}) => (
-  <div className="w-[320px] relative group cursor-pointer">
-    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent dark:from-primary/20 rounded-2xl transition-all duration-300 group-hover:from-primary/20 dark:group-hover:from-primary/30" />
-    <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-dark-bg/50 shadow-lg transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl">
-      <div className="h-2 w-full bg-gradient-to-r from-primary via-secondary to-accent" />
-      <div className="p-6 flex flex-col h-full">
-        <div className="flex items-start justify-between mb-4">
-          <div className="p-3 rounded-xl bg-primary/10 dark:bg-primary/20 transition-colors duration-300 group-hover:bg-primary/20">
-            <Icon className="w-6 h-6 text-primary" />
-          </div>
-          <span className="text-sm font-medium px-3 py-1 rounded-full bg-accent/10 text-accent">
-            {category}
-          </span>
-        </div>
-
-        <h3 className="text-xl font-bold text-light-text dark:text-dark-text mb-3">{title}</h3>
-        <p className="text-light-text/70 dark:text-dark-text/70 mb-6 flex-grow text-sm">
-          {description}
-        </p>
-
-        {date && (
-          <div className="flex items-center text-sm text-light-text/60 dark:text-dark-text/60 pt-4 border-t border-light-text/10 dark:border-dark-text/10">
-            <Calendar className="w-4 h-4 mr-2" />
-            <span>{date}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-);
-
-const FeatureCard = ({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-}) => (
-  <div className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.33%-1rem)] group cursor-pointer">
-    <Card className="h-full bg-white dark:bg-dark-bg/50 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-lg overflow-hidden">
-      <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-accent" />
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="p-3 rounded-xl bg-primary/10 dark:bg-primary/20 transition-colors duration-300 group-hover:bg-primary/20">
-            <Icon className="w-6 h-6 text-primary" />
-          </div>
-        </div>
-        <h3 className="text-lg font-bold text-light-text dark:text-dark-text mb-2">{title}</h3>
-        <p className="text-light-text/70 dark:text-dark-text/70 text-sm">{description}</p>
-      </div>
-    </Card>
-  </div>
-);
-
-const features = [
+const steps = [
   {
-    icon: BellRing,
-    title: "Announcements",
-    description:
-      "Share important updates and critical information instantly with your community members.",
+    title: "Register your organization",
+    text: "Introduce your team and the work you do.",
   },
   {
-    icon: CalendarDays,
-    title: "Event Management",
-    description:
-      "Organize and promote upcoming events, meetings, and community gatherings effectively.",
+    title: "Publish an update",
+    text: "Add a title, an image, and your message.",
   },
   {
-    icon: MessageSquare,
-    title: "Community Engagement",
-    description: "Foster meaningful discussions and connections within your organization.",
-  },
-  {
-    icon: ScrollText,
-    title: "Resource Center",
-    description:
-      "Create and share important documents, policies, and guidelines in one central location.",
-  },
-  {
-    icon: RefreshCw,
-    title: "Regular Updates",
-    description: "Keep your community informed about ongoing projects and latest developments.",
-  },
-  {
-    icon: Users,
-    title: "Member Directory",
-    description: "Connect with other members and build a stronger community network.",
-  },
-];
-
-const campaigns = [
-  {
-    title: "Emergency Blood Drive",
-    description:
-      "Join our urgent blood donation camp. Your contribution can help save lives in critical situations.",
-    icon: Users,
-    category: "Healthcare",
-    date: "February 15, 2025",
-  },
-  {
-    title: "Clean Water Initiative",
-    description:
-      "Help us provide clean and safe drinking water to communities in need through local filtration systems.",
-    icon: TrendingUp,
-    category: "Environment",
-    date: "March 10, 2025",
-  },
-  {
-    title: "Community Health Awareness",
-    description:
-      "Learn about preventing seasonal diseases through our comprehensive awareness program.",
-    icon: Info,
-    category: "Education",
-    date: "February 20, 2025",
+    title: "Manage your posts",
+    text: "Revisit, edit, or remove your published updates.",
   },
 ];
 
 function OrganizationLandingPage() {
-  const navigate = useNavigate();
-
   return (
-    <div>
-      <div className="min-h-screen bg-light-bg dark:bg-dark-bg md:px-8">
-        {/* Hero Section */}
-        <section className="container mx-auto px-4 pt-20 pb-16">
-          <div className="max-w-3xl lg:text-center lg:mx-auto">
-            <h1 className="font-semibold text-3xl md:text-4xl text-light-text/85 dark:text-dark-text/70">
-              <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent text-5xl md:text-7xl font-bold">
-                <span className="font-samarkan">Jeevan</span> Verse
-              </span>
+    <div className={styles.page}>
+      <a href="#organization-content" className={styles.skipLink}>
+        Skip to content
+      </a>
+      <main id="organization-content">
+        <section className={styles.hero} aria-labelledby="org-hero-title">
+          <div className={styles.heroCopy}>
+            <p className={styles.label}>Jeevan Verse for organizations</p>
+            <h1 id="org-hero-title">
+              Your work belongs
               <br />
-              for organisations
+              in the community.
             </h1>
-            <p className="text-lg md:text-xl lg:mt-10 text-light-text/80 dark:text-dark-text/80 mt-6 max-w-2xl lg:mx-auto">
-              A powerful platform for organizations to connect, communicate, and grow their
-              community through engaging content and meaningful interactions.
+            <p className={styles.description}>
+              Give your health organization a home. Share announcements, events, and updates with
+              the Jeevan Verse community.
             </p>
-
-            <div className="mt-8 lg:mt-12 flex flex-wrap gap-4 md:ml-4 lg:justify-center items-center">
-              <Button
-                className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white px-6 py-5 rounded-lg text-lg transition-all duration-300"
-                onClick={() => navigate("/register")}
-              >
-                Get Started
-                <ArrowRight className="w-5 h-5 ml-2" />
+            <div className={styles.actions}>
+              <Button size="lg" className="h-12" asChild>
+                <Link to="/register">
+                  Create an organization account
+                  <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
+                </Link>
               </Button>
-              <Button
-                variant="outline"
-                className="border-2 dark:border-primary/30 border-primary/20 hover:border-primary text-primary dark:text-white dark:bg-transparent px-4 py-5 rounded-lg text-lg transition-all duration-300"
-                onClick={() => navigate("/signin")}
-              >
-                Sign In
-                <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
+              <Link to="/signin" className={styles.textLink}>
+                Already here? Sign in
+              </Link>
             </div>
+          </div>
+          <div className={styles.previewStage}>
+            <Card className={styles.postPreview}>
+              <CardHeader>
+                <CardTitle>Community health team</CardTitle>
+                <CardDescription>Health organization</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className={styles.postArtwork}>
+                  <p>
+                    Make room
+                    <br />
+                    for your
+                    <br />
+                    questions
+                  </p>
+                  <span>At your next health visit</span>
+                </div>
+                <div className={styles.postText}>
+                  <h2>Before your next appointment</h2>
+                  <p>Keep a short list of questions to discuss with your care team.</p>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <span className={styles.exampleNote}>Example post · Announcement</span>
+              </CardFooter>
+            </Card>
           </div>
         </section>
 
-        {/* Featured Campaigns */}
-        <section className="py-16 lg:px-12 bg-light-bg/50 dark:bg-dark-bg/50">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-secondary/10 mb-4">
-                <span className="text-sm font-medium text-secondary">Featured</span>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-light-text dark:text-dark-text">
-                Active Campaigns
-              </h2>
-            </div>
-
-            <Marquee className="py-4 [--duration:15s]">
-              <div className="flex gap-6 items-center">
-                {campaigns.map((campaign, index) => (
-                  <CampaignCard key={index} {...campaign} />
-                ))}
-              </div>
-            </Marquee>
+        <section id="publishing" className={styles.publishing} aria-labelledby="publishing-title">
+          <div className={styles.sectionHeading}>
+            <p className={styles.label}>Profiles and publishing</p>
+            <h2 id="publishing-title">
+              A familiar name.
+              <br />A useful update.
+            </h2>
+            <p className={styles.description}>
+              A profile and a publishing space for your organization.
+            </p>
+          </div>
+          <div className={styles.editorialList}>
+            <article>
+              <h3>An organization profile</h3>
+              <p>Your name, your purpose, and contact information, together in one place.</p>
+            </article>
+            <Separator />
+            <article>
+              <h3>Posts in your own words</h3>
+              <p>Share an image and a message. Choose a category that fits.</p>
+            </article>
+            <Separator />
+            <article>
+              <h3>Updates you can manage</h3>
+              <p>Find and edit your published posts from your dashboard.</p>
+            </article>
           </div>
         </section>
 
-        {/* Features */}
-        <section className="py-16 lg:px-12">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-accent/10 mb-4">
-                <span className="text-sm font-medium text-accent">Features</span>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-light-text dark:text-dark-text">
-                Everything You Need
-              </h2>
-            </div>
-
-            <div className="flex flex-wrap gap-6 justify-center">
-              {features.map((feature, index) => (
-                <FeatureCard key={index} {...feature} />
-              ))}
-            </div>
+        <section className={styles.community} aria-labelledby="org-community-title">
+          <figure>
+            <img
+              src="/images/community-conversation.webp"
+              alt="Friends spending time together outdoors"
+              width="1000"
+              height="667"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+          <div>
+            <p className={styles.label}>A shared health community</p>
+            <h2 id="org-community-title">
+              Share with the
+              <br />
+              Jeevan Verse community
+            </h2>
+            <p className={styles.description}>
+              A place for organization updates alongside health discussions, Umeed, and Blood
+              Bridge.
+            </p>
+            <Link to="/" className={styles.textLink}>
+              Meet Jeevan Verse
+            </Link>
           </div>
         </section>
-      </div>
-      <Footer />
+
+        <section
+          id="getting-started"
+          className={styles.gettingStarted}
+          aria-labelledby="getting-started-title"
+        >
+          <div className={styles.sectionHeading}>
+            <p className={styles.label}>Getting started</p>
+            <h2 id="getting-started-title">
+              Set up your account.
+              <br />
+              Start sharing.
+            </h2>
+          </div>
+          <ol className={styles.steps}>
+            {steps.map((step, index) => (
+              <li key={step.title}>
+                <span className={styles.stepNumber}>{String(index + 1).padStart(2, "0")}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className={styles.join} aria-labelledby="org-join-title">
+          <p>For organizations working in community health</p>
+          <h2 id="org-join-title">
+            Share your next
+            <br />
+            health update
+          </h2>
+          <Button size="lg" className="h-12" asChild>
+            <Link to="/register">Create an organization account</Link>
+          </Button>
+          <Link to="/signin" className={styles.textLink}>
+            Sign in to your organization
+          </Link>
+        </section>
+      </main>
+
+      <footer className={styles.footer}>
+        <div className={styles.footerTop}>
+          <Link to="/" className={styles.wordmark}>
+            <span className="font-samarkan">Jeevan</span> Verse
+          </Link>
+          <p>For organizations. For the community</p>
+          <a href="mailto:jeevanverse247@gmail.com">Say hello</a>
+        </div>
+        <Separator />
+        <div className={styles.footerBottom}>
+          <span>© {new Date().getFullYear()} Jeevan Verse</span>
+          <p>
+            Organization posts reflect their authors’ information. For medical concerns, seek
+            professional care.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

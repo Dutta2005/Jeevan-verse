@@ -47,8 +47,8 @@ const NotificationItem = ({
 }) => {
   const navigate = useNavigate();
   const bgColor = notification.isRead
-    ? "bg-background hover:bg-accent/5"
-    : "bg-accent/10 dark:bg-accent/70 hover:bg-accent/15";
+    ? "bg-background hover:bg-primary/5"
+    : "bg-primary/10 dark:bg-primary/70 hover:bg-primary/15";
 
   const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -70,7 +70,7 @@ const NotificationItem = ({
     <div className="group relative">
       <div onClick={handleClick} className="cursor-pointer">
         <Card className={`flex items-center gap-4 p-4 transition-colors ${bgColor}`}>
-          <CardHeader className="w-8 h-8 bg-accent/20 dark:bg-accent/30 rounded-full flex items-center justify-center p-0">
+          <CardHeader className="w-8 h-8 bg-primary/20 dark:bg-primary/30 rounded-full flex items-center justify-center p-0">
             {notification.type === "blood_request" ? (
               <Droplet className="text-primary" size={16} />
             ) : (
@@ -182,7 +182,7 @@ function NotificationPage() {
               variant="outline"
               size="sm"
               onClick={markAllRead}
-              className="text-sm bg-secondary/90 text-white dark:bg-secondary/70"
+              className="text-sm bg-primary/90 text-white dark:bg-primary/70"
             >
               Mark all as read
             </Button>

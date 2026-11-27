@@ -39,20 +39,20 @@ const PostCard = ({ post }: { post: Post }) => {
               }org-profile/${post.organization._id}`}
               className="flex items-center gap-3 mb-1 -ml-2"
             >
-              <div className="bg-accent/10 p-2 rounded-full">
-                <Landmark size={16} className="text-accent" />
+              <div className="bg-primary/10 p-2 rounded-full">
+                <Landmark size={16} className="text-primary" />
               </div>
               <h2 className="font-medium text-sm text-secondary-foreground">
                 {post.organization.name}
               </h2>
             </Link>
             {post.tags && (
-              <p className="bg-accent text-white rounded-full px-3 py-1 text-xs font-medium">
+              <p className="bg-primary text-white rounded-full px-3 py-1 text-xs font-medium">
                 {post.tags}
               </p>
             )}
           </div>
-          <h2 className="text-lg font-semibold text-foreground hover:text-accent transition-colors duration-200">
+          <h2 className="text-lg font-semibold text-foreground hover:text-primary transition-colors duration-200">
             {post.title}
           </h2>
         </CardHeader>
@@ -125,7 +125,7 @@ function OrgPostPage() {
               <ChevronLeft size={16} />
               Previous
             </Button>
-            <div className="px-4 py-2 rounded-md bg-accent/10 text-sm font-medium">
+            <div className="px-4 py-2 rounded-md bg-primary/10 text-sm font-medium">
               Page {currentPage} of {totalPages}
             </div>
             <Button

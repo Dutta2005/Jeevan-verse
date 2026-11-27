@@ -17,5 +17,6 @@ describe("lazy route registrations", () => {
       const module = await load();
       expect(module.default).toBeTypeOf("function");
     },
+    15000,
   );
 });

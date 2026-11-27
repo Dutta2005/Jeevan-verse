@@ -4,11 +4,20 @@ import { api } from "../../../api/api";
 import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
 import { Textarea } from "../../ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { Alert, AlertDescription } from "../../ui/alert";
 import { useNavigate, useParams } from "react-router";
-import { Loader2, Upload } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
+import { Loader2, Send } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../ui/select";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "../../ui/field";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "../../ui/sheet";
+import styles from "../OrganizationWorkspace.module.css";
 
 const TAG_OPTIONS = ["Announcement", "Update", "Event", "Policy", "General"] as const;
 
@@ -35,6 +44,11 @@ const PostForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!formData.thumbnail || !thumbnailPreview) return;
+    return () => URL.revokeObjectURL(thumbnailPreview);
+  }, [formData.thumbnail, thumbnailPreview]);
 
   useEffect(() => {
     if (postId) {
@@ -79,19 +93,20 @@ const PostForm: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setThumbnailPreview(URL.createObjectURL(file));
       setFormData((prev) => ({
         ...prev,
         thumbnail: file,
       }));
-      setThumbnailPreview(URL.createObjectURL(file));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
 
     // Validate form
-    if (!formData.title || !formData.content) {
+    if (!formData.title.trim() || !formData.content.trim()) {
       setError("Title and content are required");
       return;
     }
@@ -101,8 +116,8 @@ const PostForm: React.FC = () => {
 
     try {
       const formPayload = new FormData();
-      formPayload.append("title", formData.title);
-      formPayload.append("content", formData.content);
+      formPayload.append("title", formData.title.trim());
+      formPayload.append("content", formData.content.trim());
       formPayload.append("tags", formData.tags);
 
       if (formData.thumbnail) {
@@ -112,8 +127,8 @@ const PostForm: React.FC = () => {
       if (postId) {
         // Edit existing post
         await api.patch(`/org-posts/edit/${postId}`, {
-          title: formData.title,
-          content: formData.content,
+          title: formData.title.trim(),
+          content: formData.content.trim(),
           tags: formData.tags,
         });
         navigate(`/organisation`);
@@ -131,127 +146,145 @@ const PostForm: React.FC = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-primary">{postId ? "Edit Post" : "Create New Post"}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium mb-2">
-                Title
-              </label>
+  const form = (
+    <form onSubmit={handleSubmit} className={styles.composer} aria-busy={isLoading}>
+      <div className={styles.composerBody}>
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        <fieldset disabled={isLoading} className="min-w-0">
+          <legend className="sr-only">Post details</legend>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="title">Title</FieldLabel>
               <Input
-                type="text"
                 id="title"
                 name="title"
                 value={formData.title}
                 onChange={handleInputChange}
-                placeholder="Enter post title"
+                placeholder="Give your update a clear title"
                 required
               />
-            </div>
-
-            <div>
-              <label htmlFor="content" className="block text-sm font-medium mb-2">
-                Content
-              </label>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="content">Content</FieldLabel>
               <Textarea
                 id="content"
                 name="content"
                 value={formData.content}
                 onChange={handleInputChange}
-                placeholder="Write your post content"
-                rows={6}
+                placeholder="What would you like your community to know?"
+                rows={9}
                 required
               />
-            </div>
-
-            <div>
-              <label htmlFor="tags" className="block text-sm font-medium mb-2">
-                Tag
-              </label>
-              <Select value={formData.tags} onValueChange={handleTagChange}>
-                <SelectTrigger>
+              <FieldDescription>
+                Include useful details and any next steps for readers.
+              </FieldDescription>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="tags">Tag</FieldLabel>
+              <Select value={formData.tags} onValueChange={handleTagChange} disabled={isLoading}>
+                <SelectTrigger id="tags">
                   <SelectValue placeholder="Select a tag" />
                 </SelectTrigger>
                 <SelectContent>
-                  {TAG_OPTIONS.map((tag) => (
-                    <SelectItem key={tag} value={tag}>
-                      {tag}
-                    </SelectItem>
-                  ))}
+                  <SelectGroup>
+                    {TAG_OPTIONS.map((tag) => (
+                      <SelectItem key={tag} value={tag}>
+                        {tag}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div>
-              <label htmlFor="thumbnail" className="block text-sm font-medium mb-2">
-                Thumbnail (Optional)
-              </label>
-              <div className="flex items-center space-x-4">
+            </Field>
+            {!postId && (
+              <Field>
+                <FieldLabel htmlFor="thumbnail">Cover image (optional)</FieldLabel>
                 <Input
                   type="file"
                   id="thumbnail"
                   name="thumbnail"
                   accept="image/*"
                   onChange={handleFileChange}
-                  className="hidden"
                 />
-                <label
-                  htmlFor="thumbnail"
-                  className="flex items-center cursor-pointer bg-secondary text-white px-4 py-2 rounded hover:bg-secondary/90"
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Thumbnail
-                </label>
-
                 {thumbnailPreview && (
                   <img
                     src={thumbnailPreview}
-                    alt="Thumbnail Preview"
-                    className="h-20 w-20 object-cover rounded"
+                    alt="Cover image preview"
+                    className={styles.coverPreview}
                   />
                 )}
-              </div>
-            </div>
+              </Field>
+            )}
+          </FieldGroup>
+        </fieldset>
+      </div>
+      <div className={styles.composerFooter}>
+        <p>Your post will be visible to the community.</p>
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isLoading}
+            onClick={() => navigate("/organisation", { replace: true })}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Send data-icon="inline-start" aria-hidden="true" />
+            )}
+            {isLoading ? "Saving…" : postId ? "Update post" : "Publish post"}
+          </Button>
+        </div>
+      </div>
+    </form>
+  );
 
-            <div className="flex justify-end space-x-4">
-              <Button type="button" variant="outline" onClick={() => navigate("/past-activities")}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90">
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
-                  </>
-                ) : postId ? (
-                  "Update Post"
-                ) : (
-                  "Create Post"
-                )}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+  if (postId)
+    return (
+      <section className={styles.editPage}>
+        <header className={styles.sectionHeading}>
+          <h1>Edit post</h1>
+          <p>Update the details of your community post.</p>
+        </header>
+        {form}
+      </section>
+    );
+
+  return (
+    <Sheet
+      open
+      onOpenChange={(open) => {
+        if (!open && !isLoading) navigate("/organisation", { replace: true });
+      }}
+    >
+      <SheetContent
+        side="right"
+        className={styles.drawer}
+        onEscapeKeyDown={(event) => {
+          if (isLoading) event.preventDefault();
+        }}
+        onInteractOutside={(event) => {
+          if (isLoading) event.preventDefault();
+        }}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          document.getElementById("organization-create-post")?.focus();
+        }}
+      >
+        <SheetHeader className={styles.drawerHeader}>
+          <SheetTitle>Create post</SheetTitle>
+          <SheetDescription>Share an update from your organization.</SheetDescription>
+        </SheetHeader>
+        {form}
+      </SheetContent>
+    </Sheet>
   );
 };
 

@@ -16,22 +16,13 @@ export default {
         samarkan: ["Samarkan", "sans-serif"],
       },
       colors: {
-        primary: {
-          DEFAULT: "#bf2231",
-        },
-        secondary: {
-          DEFAULT: "#3498db",
-        },
-        accent: {
-          DEFAULT: "#1abc9c",
-        },
         light: {
-          bg: "#f4f9f4",
-          text: "#2c3e50",
+          bg: "var(--background)",
+          text: "var(--foreground)",
         },
         dark: {
-          bg: "#222222",
-          text: "#e0e6ed",
+          bg: "var(--background)",
+          text: "var(--foreground)",
         },
       },
       keyframes: {

@@ -54,6 +54,7 @@ npm.cmd test
 npm.cmd run typecheck
 npm.cmd run lint
 npm.cmd run build
+npm.cmd run preflight
 
 # One suite without a full coverage report:
 npm.cmd exec vitest run src/store/__tests__/authSlice.test.ts
@@ -78,16 +79,18 @@ least 99% statements, functions, and lines, and 95% branches. These are minimum
 floors; 100% remains the target. Do not remove application files from coverage
 or add ignore comments merely to satisfy a threshold.
 
-The verified result after expansion is 308 passing tests across 62 suites:
+The verified result after the workspace updates and preflight fixes is 376
+passing tests across 66 suites. `npm.cmd run preflight` passes formatting, lint,
+TypeScript checks, tests with coverage, and the production build.
 
 | Metric | Before | After |
 | --- | ---: | ---: |
-| Statements | 23.39% | 99.46% |
-| Branches | 17.38% | 96.45% |
-| Functions | 26.10% | 99.78% |
-| Lines | 23.46% | 99.70% |
+| Statements | 23.39% | 99.21% |
+| Branches | 17.38% | 96.10% |
+| Functions | 26.10% | 99.63% |
+| Lines | 23.46% | 99.74% |
 
-The four uncovered lines are in `FileUpload.tsx` (fallback preview icon),
+The four uncovered lines are in `PostForm.tsx` (outside-interaction handling),
 `DiscussionPost.tsx` (missing ID during deletion), `SomethingWrong.tsx`
 (browser reload), and `socket.ts` (defensive timeout clearing).
 
@@ -96,6 +99,9 @@ account-specific navigation; socket lifecycle and duplicate events; chat and
 upload orchestration; and volunteer consent/contact visibility. API calls are
 mocked, using synthetic fixtures. Page orchestration suites sometimes substitute
 child components that have their own independent behavior suites.
+Additional suites cover account layouts, mobile workspace navigation, legacy
+filter URLs, chat history actions, account changes, preview URL cleanup, and
+requests settling after their screen unmounts.
 
 ## Limits
 
@@ -111,11 +117,14 @@ the immediately preceding duplicate-event guard is false; the current handler
 does not naturally reach that state. Browser reload behavior also needs a real
 browser check. Do not manufacture internal state solely to turn these green.
 
-Existing UI issues encountered during expansion include nested links in
-`OrgPostPage` and nested session/delete buttons in `SessionSidebar`; these need
-a separate markup/accessibility cleanup. The nested volunteer dialog trigger
-was fixed with Radix's `asChild` option because it directly blocked an
-unambiguous interaction in its consent tests.
+The chat history now uses separate session and options buttons, with confirmed
+deletion. Mobile workspace links close the drawer through their click handlers
+and retain React Router's active-link styling. The volunteer dialog trigger
+uses Radix's `asChild` option so consent actions remain unambiguous.
+
+The production build reports non-blocking warnings for `/grid.svg` and the large
+city-data bundle. These checks do not establish asset delivery or bundle
+performance in a deployed browser.
 
 The server has no test script in the current checkout. These client tests do
 not establish server coverage.

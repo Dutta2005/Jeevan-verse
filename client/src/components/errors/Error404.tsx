@@ -1,57 +1,64 @@
-import { Heart, HomeIcon, Pill } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { Button } from "../ui/button";
-import { useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store/store";
+import { Separator } from "../ui/separator";
+import styles from "./Error404.module.css";
 
 function Error404() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const role = useSelector((state: RootState) => state.auth.role);
+  const isOrganization = role === "organization" || pathname.startsWith("/organisation/");
+  const home = isOrganization ? "/organisation" : "/";
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-light-bg dark:bg-dark-bg px-4">
-      <div className="text-center space-y-8 max-w-2xl mx-auto">
-        {/* Animated Icons */}
-        <div className="flex justify-center gap-6 mb-8">
-          <Heart className="w-12 h-12 text-primary animate-pulse" fill="#bf2231" />
-          <Pill className="w-12 h-12 text-secondary rotate-45" fill="#3498db" />
-          <Heart className="w-12 h-12 text-primary animate-pulse" fill="#bf2231" />
-        </div>
-
-        {/* Error Message */}
-        <div className="space-y-4">
-          <h1 className="text-6xl font-bold text-primary">404</h1>
-          <h2 className="text-3xl font-semibold text-light-text dark:text-dark-text">
-            Oops! Page Not Found
-          </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Looks like this page took a sick day!
-          </p>
-          <p className="text-gray-500 dark:text-gray-500">
-            Don't worry, our healthcare team is on it. Let's get you back to the homepage.
-          </p>
-        </div>
-
-        {/* Back to Home Button */}
-        <div className="mt-8">
+    <section className={styles.page} aria-labelledby="not-found-title">
+      <div className={styles.number} aria-hidden="true">
+        404
+      </div>
+      <div className={styles.content}>
+        <h1 id="not-found-title">Page not found</h1>
+        <p>
+          This link may have changed, or the page may no longer be available. Let’s get you
+          somewhere familiar.
+        </p>
+        <div className={styles.actions}>
+          <Button asChild>
+            <Link to={home}>
+              Back to home
+              <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
+            </Link>
+          </Button>
           <Button
-            onClick={() => navigate("/")}
-            size="lg"
-            className="bg-primary hover:bg-red-700 transition-colors"
+            variant="outline"
+            onClick={() => {
+              if (typeof window.history.state?.idx === "number" && window.history.state.idx > 0)
+                void navigate(-1);
+              else void navigate(home, { replace: true });
+            }}
           >
-            <HomeIcon className="mr-2 h-4 w-4" />
-            Back to Homepage
+            <ArrowLeft data-icon="inline-start" aria-hidden="true" />
+            Go back
           </Button>
         </div>
-
-        {/* Health Tips Easter Egg */}
-        <div className="mt-12 p-4 bg-white dark:bg-dark-bg rounded-lg shadow-md">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            While you're here, remember to:
-            <span className="block mt-2 font-medium">
-              Stay hydrated • Get enough sleep • Exercise regularly
-            </span>
-          </p>
-        </div>
+        <Separator />
+        <nav className={styles.destinations} aria-label="Useful destinations">
+          {isOrganization ? (
+            <>
+              <Link to="/organisation/posts">Community posts</Link>
+              <Link to="/organisation">Organization home</Link>
+            </>
+          ) : (
+            <>
+              <Link to="/discussions">Community</Link>
+              <Link to="/organisation">For organizations</Link>
+            </>
+          )}
+        </nav>
       </div>
-    </div>
+    </section>
   );
 }
 

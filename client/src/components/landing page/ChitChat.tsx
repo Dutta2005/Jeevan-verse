@@ -51,13 +51,13 @@ export default function ChitChat() {
     <section className="py-24 px-4 bg-gradient-to-b from-gray-50 to-white dark:from-dark-bg dark:to-dark-bg">
       <div className="container mx-auto">
         <div className="text-center mb-16 space-y-4">
-          <span className="inline-flex items-center px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium">
+          <span className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
             Community Space
           </span>
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">
             Chit Chat
           </h2>
-          <div className="h-1 w-24 mx-auto bg-gradient-to-r from-transparent via-accent/50 to-transparent rounded-full"></div>
+          <div className="h-1 w-24 mx-auto bg-gradient-to-r from-transparent via-primary/50 to-transparent rounded-full"></div>
           <p className="text-xl text-light-text/80 dark:text-dark-text/70 max-w-2xl mx-auto">
             Share your thoughts and experiences on health, wellness, and support—whether openly or
             anonymously.

@@ -33,15 +33,15 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = ({ analysis, imageUrl 
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-secondary/5 to-accent/5 dark:from-secondary/10 dark:to-accent/10 rounded-xl border border-secondary/20 dark:border-secondary/30 overflow-hidden"
+      className="bg-gradient-to-br from-primary/5 to-primary/5 dark:from-primary/10 dark:to-primary/10 rounded-xl border border-primary/20 dark:border-primary/30 overflow-hidden"
     >
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-3 hover:bg-secondary/5 transition-colors"
+        className="w-full flex items-center justify-between p-3 hover:bg-primary/5 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-secondary to-accent flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary flex items-center justify-center">
             <FileText className="w-4 h-4 text-white" />
           </div>
           <span className="text-sm font-semibold text-light-text dark:text-dark-text">
@@ -64,7 +64,7 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = ({ analysis, imageUrl 
           {/* Diagnosis */}
           {isValid(analysis.diagnosis) && (
             <div className="flex items-start gap-2 bg-white/50 dark:bg-gray-800/50 rounded-lg p-2.5">
-              <Stethoscope className="w-4 h-4 text-secondary mt-0.5 flex-shrink-0" />
+              <Stethoscope className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-[11px] text-light-text/50 dark:text-dark-text/50 uppercase tracking-wider font-medium">
                   Diagnosis
@@ -78,7 +78,7 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = ({ analysis, imageUrl 
           {analysis.medications && analysis.medications.length > 0 && (
             <div className="space-y-1.5">
               <div className="flex items-center gap-1.5 px-1">
-                <Pill className="w-3.5 h-3.5 text-accent" />
+                <Pill className="w-3.5 h-3.5 text-primary" />
                 <p className="text-[11px] text-light-text/50 dark:text-dark-text/50 uppercase tracking-wider font-medium">
                   Medications
                 </p>
@@ -140,7 +140,7 @@ const PrescriptionCard: React.FC<PrescriptionCardProps> = ({ analysis, imageUrl 
             <div>
               <button
                 onClick={() => setShowImage(!showImage)}
-                className="text-xs text-secondary hover:underline"
+                className="text-xs text-primary hover:underline"
               >
                 {showImage ? "Hide prescription" : "View prescription"}
               </button>

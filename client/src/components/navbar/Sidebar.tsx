@@ -25,7 +25,7 @@ function Sidebar() {
     ${
       isActive
         ? "bg-primary/10 text-primary font-medium"
-        : "text-light-text dark:text-dark-text hover:text-secondary dark:hover:text-secondary"
+        : "text-light-text dark:text-dark-text hover:text-primary dark:hover:text-primary"
     }`;
   };
 
@@ -33,6 +33,7 @@ function Sidebar() {
     <Sheet>
       <SheetTrigger asChild className="h-10 w-10 bg-transparent lg:hidden">
         <Button
+          aria-label="Open navigation"
           variant="ghost"
           size="icon"
           className="hover:bg-primary/10 transition-colors dark:text-dark-text border-none"
@@ -42,17 +43,36 @@ function Sidebar() {
       </SheetTrigger>
       <SheetContent
         side="right"
-        className="border-l border-accent/20 bg-light-bg dark:bg-dark-bg w-64"
+        className="border-l border-primary/20 bg-light-bg dark:bg-dark-bg w-64"
       >
         <SheetHeader>
-          <SheetTitle className="text-xl font-semibold text-accent dark:text-accent flex items-center gap-2">
-            <User className="mr-2 h-5 w-5" />
-            <span>{name?.split(" ")[0]}</span>
+          <SheetTitle className="text-xl font-semibold text-primary dark:text-primary flex items-center gap-2">
+            {isAuthenticated && <User className="mr-2 h-5 w-5" />}
+            <span>{isAuthenticated ? name?.split(" ")[0] : "Explore Jeevan Verse"}</span>
           </SheetTitle>
         </SheetHeader>
 
         <ScrollArea className="h-full">
           <nav className="mt-8 flex flex-col gap-2">
+            {!isAuthenticated && (
+              <>
+                <a href="/#umeed" className="rounded-md px-4 py-3 hover:bg-muted">
+                  Umeed
+                </a>
+                <a href="/#blood-bridge" className="rounded-md px-4 py-3 hover:bg-muted">
+                  Blood Bridge
+                </a>
+                <a href="/#community" className="rounded-md px-4 py-3 hover:bg-muted">
+                  Community
+                </a>
+                <a href="/#organizations" className="rounded-md px-4 py-3 hover:bg-muted">
+                  Organizations
+                </a>
+                <NavLink to="/login" className="rounded-md px-4 py-3 hover:bg-muted">
+                  Sign in
+                </NavLink>
+              </>
+            )}
             {menuOptions.map((option) => (
               <NavLink
                 key={option.name}

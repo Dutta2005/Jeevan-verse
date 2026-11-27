@@ -1,31 +1,23 @@
-import { Heart } from "lucide-react";
+import styles from "./LoadingScreen.module.css";
 
 const LoadingScreen = () => {
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-light-bg dark:bg-dark-bg/95 backdrop-blur-sm z-50">
-      <div className="relative flex items-center justify-center">
-        <Heart className="w-12 h-12 text-red-500 animate-pulse mb-2" fill="currentColor" />
-        <div className="absolute -bottom-3">
-          <div className="flex space-x-1">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="w-3 h-3 bg-red-500 rounded-full animate-bounce"
-                style={{
-                  animationDelay: `${i * 0.15}s`,
-                  animationDuration: "0.8s",
-                }}
-              />
-            ))}
-          </div>
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-label="Loading Jeevan Verse"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-background px-6 text-foreground"
+    >
+      <p className="text-2xl font-medium">
+        <span className="font-samarkan">Jeevan</span> Verse
+      </p>
+      <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground">
+        <div aria-hidden="true" className={styles.track}>
+          <span className={styles.segment} />
         </div>
+        <p>Loading your page</p>
       </div>
-      <p className="mt-6 text-lg font-medium text-gray-700 dark:text-gray-200">
-        Loading Jeevan Verse...
-      </p>
-      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-        Connecting you to healthcare services
-      </p>
     </div>
   );
 };

@@ -16,6 +16,7 @@ function Home() {
     }
   }, [isAuthenticated, role, navigate]);
 
+  if (isAuthenticated && role === "organization") return null;
   return <div>{isAuthenticated ? <Dashboard /> : <LandingPage />}</div>;
 }
 

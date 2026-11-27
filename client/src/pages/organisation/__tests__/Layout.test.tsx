@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import authReducer, { login, loginOrganization } from "../../../store/authSlice";
 import themeReducer, { toggleTheme } from "../../../store/themeSlice";
 import Layout from "../Layout";
+import userEvent from "@testing-library/user-event";
 
 vi.mock("../../../components/organisation/navbar/Sidebar", () => ({
   default: ({ isLoggedIn, theme }: { isLoggedIn: boolean; theme: string }) => (
@@ -39,11 +40,20 @@ function renderLayout(account: "signed-out" | "user" | "organization", light = f
 }
 
 describe("Organization layout", () => {
+  it("switches the public organization header theme", async () => {
+    renderLayout("signed-out");
+    await userEvent.click(screen.getByRole("button", { name: "Switch to light mode" }));
+    expect(screen.getByRole("button", { name: "Switch to dark mode" })).toBeInTheDocument();
+  });
   it("shows organization navigation and applies the dark theme to the body", () => {
     document.body.classList.remove("dark");
     renderLayout("organization");
 
-    expect(screen.getByTestId("org-sidebar")).toHaveTextContent("true:dark");
+    expect(screen.getByRole("navigation", { name: "Workspace navigation" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Profile" })).toHaveAttribute(
+      "href",
+      "/organisation/org-profile/0",
+    );
     expect(screen.getByText("Organization outlet")).toBeInTheDocument();
     expect(document.body).toHaveClass("dark");
   });

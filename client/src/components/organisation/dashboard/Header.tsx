@@ -1,22 +1,32 @@
 import { useSelector } from "react-redux";
-import { RootState } from "../../../store/store";
+import type { RootState } from "@/store/store";
 import { Link } from "react-router";
-import { Button } from "../../ui/button";
-import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import styles from "@/components/dashboard/Dashboard.module.css";
+import { ArrowUpRight, Plus } from "lucide-react";
 
-function Header() {
+export default function Header() {
   const orgName = useSelector((state: RootState) => state.auth.organization?.name);
   return (
-    <div className="bg-light-bg dark:bg-dark-bg dark:text-dark-text py-8 px-4 text-center">
-      <h1 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Welcome, {orgName}</h1>
-      <Link to="create">
-        <Button className="bg-primary hover:bg-primary/90 text-white">
-          <Plus className="mr-2 h-5 w-5" />
-          Create Post
+    <header className={styles.pageHeader}>
+      <div>
+        <h1>{orgName || "Your organization"}</h1>
+        <p>Share your work. Keep your community informed.</p>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button variant="outline" asChild>
+          <Link to="/organisation/org-profile/0">
+            View profile
+            <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
+          </Link>
         </Button>
-      </Link>
-    </div>
+        <Button asChild>
+          <Link id="organization-create-post" to="/organisation/create">
+            <Plus data-icon="inline-start" aria-hidden="true" />
+            Create post
+          </Link>
+        </Button>
+      </div>
+    </header>
   );
 }
-
-export default Header;

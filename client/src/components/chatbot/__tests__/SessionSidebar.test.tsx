@@ -1,16 +1,16 @@
 // @vitest-environment jsdom
-import { act, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import SessionSidebar from "../SessionSidebar";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
+import SessionSidebar, { UmeedHistory } from "../SessionSidebar";
+import { UmeedProvider } from "../UmeedWorkspace";
+const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), delete: vi.fn() }));
+vi.mock("@/api/api", () => ({ api }));
 
 const session = {
   _id: "session-1",
   title: "Synthetic session",
-  metadata: {
-    messageCount: 4,
-    mood: "positive",
-    topics: ["sleep", "exercise", "nutrition", "fourth topic"],
-  },
+  metadata: { messageCount: 4, mood: "positive", topics: [] },
   updatedAt: "2026-01-01T00:00:00Z",
   createdAt: "2026-01-01T00:00:00Z",
 };
@@ -22,69 +22,92 @@ const props = () => ({
   onDeleteSession: vi.fn(),
   onOpenInsights: vi.fn(),
   isLoading: false,
-  isCollapsed: false,
-  onToggleCollapse: vi.fn(),
-});
-afterEach(() => {
-  vi.clearAllTimers();
-  vi.useRealTimers();
 });
 
-describe("chat session sidebar", () => {
-  it("selects a session, creates chats, opens insights and toggles the sidebar", () => {
+describe("chat history", () => {
+  it.each([true, false])(
+    "wires workspace actions to saved sessions (mobile: %s)",
+    async (mobile) => {
+      vi.clearAllMocks();
+      api.get.mockImplementation((url: string) =>
+        Promise.resolve({
+          data: {
+            data:
+              url === "/chat/sessions"
+                ? [session, { ...session, _id: "s2", title: "", updatedAt: "invalid" }]
+                : { messages: [] },
+          },
+        }),
+      );
+      api.post.mockResolvedValue({ data: { data: { ...session, _id: "new" } } });
+      api.delete.mockResolvedValue({});
+      const navigate = vi.fn();
+      render(
+        <UmeedProvider>
+          <UmeedHistory onNavigate={mobile ? navigate : undefined} />
+        </UmeedProvider>,
+      );
+      await userEvent.click(await screen.findByRole("button", { name: "Untitled chat" }));
+      await userEvent.click(screen.getByRole("button", { name: "New chat" }));
+      await userEvent.click(screen.getByRole("button", { name: "Health insights" }));
+      expect(navigate).toHaveBeenCalledTimes(mobile ? 3 : 0);
+      await userEvent.click(screen.getByRole("button", { name: "Options for Untitled chat" }));
+      await userEvent.click(screen.getByRole("menuitem", { name: "Delete chat" }));
+      await userEvent.click(
+        within(screen.getByRole("alertdialog")).getByRole("button", { name: "Keep chat" }),
+      );
+      expect(api.delete).not.toHaveBeenCalled();
+      await userEvent.click(screen.getByRole("button", { name: "Options for Untitled chat" }));
+      await userEvent.click(screen.getByRole("menuitem", { name: "Delete chat" }));
+      await userEvent.click(
+        within(screen.getByRole("alertdialog")).getByRole("button", { name: "Delete chat" }),
+      );
+      expect(api.delete).toHaveBeenCalledWith("/chat/sessions/s2");
+    },
+  );
+  it("opens saved chats, starts a chat and opens insights", () => {
     const callbacks = props();
     render(<SessionSidebar {...callbacks} />);
-    expect(screen.getByText("4 msgs")).toBeInTheDocument();
-    expect(screen.getByText("sleep")).toBeInTheDocument();
-    expect(screen.queryByText("fourth topic")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText("Synthetic session"));
+    fireEvent.click(screen.getByRole("button", { name: "Synthetic session" }));
     expect(callbacks.onSelectSession).toHaveBeenCalledWith("session-1");
-    fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
-    expect(callbacks.onCreateSession).toHaveBeenCalledTimes(1);
-    fireEvent.click(screen.getByRole("button", { name: "Behavior Insights" }));
-    expect(callbacks.onOpenInsights).toHaveBeenCalledTimes(1);
-    fireEvent.click(screen.getByRole("button", { name: "Collapse sidebar" }));
-    expect(callbacks.onToggleCollapse).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "New chat" }));
+    expect(callbacks.onCreateSession).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole("button", { name: "Health insights" }));
+    expect(callbacks.onOpenInsights).toHaveBeenCalledOnce();
+    expect(screen.getByRole("button", { name: "Synthetic session" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
-  it("requires a second click to delete and does not select the session", () => {
-    vi.useFakeTimers();
+  it("filters saved chat titles without requesting or searching message contents", () => {
+    render(<SessionSidebar {...props()} />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Search chat titles" }), {
+      target: { value: "missing" },
+    });
+    expect(screen.getByText("No matching chat titles")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Synthetic session" })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole("textbox", { name: "Search chat titles" }), {
+      target: { value: "SYNTHETIC" },
+    });
+    expect(screen.getByRole("button", { name: "Synthetic session" })).toBeInTheDocument();
+  });
+  it("confirms deletion without selecting the conversation", async () => {
     const callbacks = props();
     render(<SessionSidebar {...callbacks} />);
-    fireEvent.click(screen.getByTitle("Delete session"));
+    await userEvent.click(screen.getByRole("button", { name: "Options for Synthetic session" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Delete chat" }));
     expect(callbacks.onDeleteSession).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByTitle("Click again to confirm"));
+    await userEvent.click(screen.getByRole("button", { name: "Delete chat" }));
     expect(callbacks.onDeleteSession).toHaveBeenCalledWith("session-1");
     expect(callbacks.onSelectSession).not.toHaveBeenCalled();
-    act(() => vi.runOnlyPendingTimers());
   });
-  it("expires deletion confirmation after three seconds", () => {
-    vi.useFakeTimers();
-    const callbacks = props();
-    render(<SessionSidebar {...callbacks} />);
-    fireEvent.click(screen.getByTitle("Delete session"));
-    act(() => vi.advanceTimersByTime(3000));
-    expect(screen.getByTitle("Delete session")).toBeInTheDocument();
-    expect(callbacks.onDeleteSession).not.toHaveBeenCalled();
-  });
-  it("shows an empty state and prevents chat creation while loading", () => {
+  it("shows loading placeholders and disables creation while loading", () => {
     render(<SessionSidebar {...props()} sessions={[]} isLoading />);
-    expect(screen.getByText("No conversations yet")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "New Chat" })).toBeDisabled();
+    expect(screen.getByLabelText("Loading chats")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "New chat" })).toBeDisabled();
   });
-  it("hides sessions when collapsed", () => {
-    render(<SessionSidebar {...props()} isCollapsed />);
-    expect(screen.getByRole("button", { name: "Expand sidebar" })).toBeInTheDocument();
-    expect(screen.queryByText("Synthetic session")).not.toBeInTheDocument();
-  });
-  it("handles inactive sessions, unknown moods and empty metadata fields", () => {
-    render(
-      <SessionSidebar
-        {...props()}
-        activeSessionId={null}
-        sessions={[{ ...session, metadata: { messageCount: 0, mood: "unknown", topics: [] } }]}
-      />,
-    );
-    expect(screen.getByText("0 msgs")).toBeInTheDocument();
-    expect(screen.queryByText("sleep")).not.toBeInTheDocument();
+  it("shows an empty history", () => {
+    render(<SessionSidebar {...props()} sessions={[]} />);
+    expect(screen.getByText("No chats yet")).toBeInTheDocument();
   });
 });

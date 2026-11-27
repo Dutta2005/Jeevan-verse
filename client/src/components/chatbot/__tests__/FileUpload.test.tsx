@@ -72,12 +72,36 @@ describe("prescription file selection", () => {
 
   it("renders an image preview and disables the picker during upload", () => {
     const createObjectURL = vi.fn(() => "blob:preview");
-    vi.stubGlobal("URL", Object.assign(class extends URL {}, { createObjectURL }));
+    vi.stubGlobal(
+      "URL",
+      Object.assign(class extends URL {}, { createObjectURL, revokeObjectURL: vi.fn() }),
+    );
     const file = new File(["test"], "test.png", { type: "image/png" });
-    render(<FileUpload {...props()} selectedFile={file} isUploading />);
+    const { unmount } = render(<FileUpload {...props()} selectedFile={file} isUploading />);
     expect(screen.getByAltText("Preview")).toHaveAttribute("src", "blob:preview");
     expect(screen.getByTitle("Upload prescription (Image or PDF)")).toBeDisabled();
-    expect(screen.getByText("Analyzing...")).toBeInTheDocument();
+    expect(screen.getByText("Analyzing prescription…")).toBeInTheDocument();
+    unmount();
+    vi.unstubAllGlobals();
+  });
+  it("releases image preview URLs on replacement and removal", () => {
+    const createObjectURL = vi
+      .fn()
+      .mockReturnValueOnce("blob:first")
+      .mockReturnValueOnce("blob:second");
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", Object.assign(class extends URL {}, { createObjectURL, revokeObjectURL }));
+    const callbacks = props();
+    const first = new File(["first"], "first.png", { type: "image/png" });
+    const second = new File(["second"], "second.png", { type: "image/png" });
+    const view = render(<FileUpload {...callbacks} selectedFile={first} />);
+    expect(screen.getByAltText("Preview")).toHaveAttribute("src", "blob:first");
+    view.rerender(<FileUpload {...callbacks} selectedFile={second} />);
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:first");
+    expect(screen.getByAltText("Preview")).toHaveAttribute("src", "blob:second");
+    view.rerender(<FileUpload {...callbacks} />);
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:second");
+    expect(screen.queryByAltText("Preview")).not.toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 });

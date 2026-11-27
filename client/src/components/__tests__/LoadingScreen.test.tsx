@@ -6,6 +6,9 @@ import LoadingScreen from "../LoadingScreen";
 it("explains that Jeevan Verse is loading", () => {
   render(<LoadingScreen />);
 
-  expect(screen.getByText("Loading Jeevan Verse...")).toBeInTheDocument();
-  expect(screen.getByText("Connecting you to healthcare services")).toBeInTheDocument();
+  expect(screen.getByRole("status", { name: "Loading Jeevan Verse" })).toHaveAttribute(
+    "aria-live",
+    "polite",
+  );
+  expect(screen.getByText("Loading your page")).toBeInTheDocument();
 });
